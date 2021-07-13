@@ -7,39 +7,39 @@ module.exports = {
     return queryInterface.sequelize.query(
       'SELECT 1 FROM db_was_seeded LIMIT 0').then(function(x) {
       console.log('Database was already seeded, no new records are inserted.')
-    }).catch(function(e) {
+    }).catch(async function(e) {
       // Database has not been seeded yet.
       return queryInterface.bulkInsert('roles', [{
-        name: 'administrator',
+        name: 'admin',
         description: 'The administrator is allowed to create, read, update, and delete users and their roles.'
       }, {
-        name: 'editor',
+        name: 'partner',
         description: 'An editor can create, update, and delete data of the various data models, excluding users and user-roles.'
       }, {
-        name: 'reader',
+        name: 'monitor',
         description: 'A reader is allowed read access to all data models, excluding users and user-roles.'
       }]).then(async function(x) {
         let hashedPassword = await bcrypt.hash('admin', globals.SALT_ROUNDS);
         return queryInterface.bulkInsert('users', [{
-          email: 'admin@zen.dro',
-          password: hashedPassword
-        }])
+            username: 'admin',
+            password: hashedPassword
+        }]) 
       }).then(function(x) {
         return queryInterface.sequelize.query(
-          'INSERT INTO role_to_users ("userId", "roleId") VALUES ' +
-          '( (SELECT (id) FROM users WHERE email = \'admin@zen.dro\'), ' +
-          '(SELECT (id) FROM roles WHERE name = \'administrator\') ), ' +
-          '( (SELECT (id) FROM users WHERE email = \'admin@zen.dro\'), ' +
-          '(SELECT (id) FROM roles WHERE name = \'editor\') ), ' +
-          '( (SELECT (id) FROM users WHERE email = \'admin@zen.dro\'), ' +
-          '(SELECT (id) FROM roles WHERE name = \'reader\') )'
+          'INSERT INTO role_to_users ("user_id", "role_id") VALUES ' +
+          '( (SELECT (id) FROM users WHERE username = \'admin\'), ' +
+          '(SELECT (id) FROM roles WHERE name = \'admin\') ), ' +
+          '( (SELECT (id) FROM users WHERE username = \'admin\'), ' +
+          '(SELECT (id) FROM roles WHERE name = \'partner\') ), ' +
+          '( (SELECT (id) FROM users WHERE username = \'admin\'), ' +
+          '(SELECT (id) FROM roles WHERE name = \'monitor\') )'
         )
       }).then(function(x) {
         return queryInterface.sequelize.query(
           'CREATE TABLE db_was_seeded ( seeded INT )')
       }).then(function(x) {
         return queryInterface.sequelize.query(
-          'INSERT INTO db_was_seeded (seeded) VALUES (1)')
+            'INSERT INTO db_was_seeded (seeded) VALUES (1)')
       })
     })
   },
@@ -48,7 +48,7 @@ module.exports = {
     return queryInterface.bulkDelete('users', null, {}).then(u => {
       return queryInterface.bulkDelete('role_to_users', null, {})
     }).then(r => {
-      return queryInterface.bulkDelete('roles', null, {})
+        return queryInterface.bulkDelete('roles', null, {})
     });
   }
 };
