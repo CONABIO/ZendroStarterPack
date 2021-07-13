@@ -1,0 +1,51 @@
+{
+    "model" : "cumulus",
+    "storageType" : "sql",
+    "attributes" : {
+      "name" : "String",
+      "geometry": "String",
+      "criteria_id": "Int",
+      "devices_ids": "[Int]",
+      "institutions_ids": "[Int]"
+    },
+    "associations": {
+      "nodes": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "cumulus",
+        "target": "node",
+        "targetKey": "cumulus_id",
+        "keysIn": "node",
+        "targetStorageType": "sql"
+      },
+      "unique_cumulus_criteria": {
+        "type": "one_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "unique_cumulus",
+        "target": "cumulus_criteria",
+        "targetKey": "criteria_id",
+        "keysIn": "cumulus",
+        "targetStorageType": "sql"
+      }, 
+      "devices": {
+        "type": "many_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "cumulus",
+        "target": "device_catalog",
+        "targetKey": "cumulus_ids",
+        "sourceKey": "devices_ids",
+        "keysIn": "cumulus",
+        "targetStorageType": "sql"
+      },
+      "associated_institutions": {
+          "type": "many_to_many",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "associated_cumulus",
+          "target": "institution",
+          "targetKey": "cumulus_ids",
+          "sourceKey": "institutions_ids",
+          "keysIn": "cumulus",
+          "targetStorageType": "sql"
+      }
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "model": "device_catalog",
+    "storageType": "sql",
+    "attributes": {
+        "brand": "String",
+        "model": "String",
+        "type": "String",
+        "serial_number": "String",
+        "cumulus_ids": "[Int]"
+    },
+    "associations": {
+        "physical_devices": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "device",
+            "target": "physical_device",
+            "targetKey": "device_id",
+            "keysIn": "physical_device",
+            "targetStorageType": "sql"
+        },
+        "cumulus": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "devices",
+            "target": "cumulus",
+            "targetKey": "devices_ids",
+            "sourceKey": "cumulus_ids",
+            "keysIn": "device_catalog",
+            "targetStorageType": "sql"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "model": "calendar",
+    "storageType": "sql",
+    "attributes": {
+        "date_started": "Date",
+        "date_finished": "Date",
+        "node_id": "Int"
+    },
+    "associations": {
+        "unique_node": {
+          "type": "one_to_one",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "unique_calendar",
+          "target": "node",
+          "targetKey": "node_id",
+          "keysIn": "calendar",
+          "targetStorageType": "sql"
+        },
+        "visits": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "calendar",
+            "target": "visit",
+            "targetKey": "calendar_id",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
+        }
+    }
+}

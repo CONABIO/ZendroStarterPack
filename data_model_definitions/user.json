@@ -1,0 +1,29 @@
+{
+    "model": "user",
+    "storageType": "sql",
+    "attributes": {
+        "username": "String",
+        "password": "String",
+        "first_name": "String",
+        "last_name": "String",
+        "grade": "String",
+        "email": "String",
+        "address": "String",
+        "is_active": "Boolean",
+        "comments": "String",
+        "last_login": "DateTime"
+    },
+    "associations": {
+        "roles": {
+            "type": "many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "users",
+            "target": "role",
+            "targetKey": "role_id",
+            "sourceKey" : "user_id",
+            "keysIn": "role_to_user",
+            "targetStorageType": "sql",
+            "label": "name"
+        }
+    }
+}

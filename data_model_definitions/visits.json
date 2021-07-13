@@ -1,0 +1,20 @@
+{
+    "model": "visit",
+    "storageType": "sql",
+    "attributes": {
+        "user_id": "Int",
+        "device_id": "Int",
+        "calendar_id": "Int"
+    },
+    "associations": {
+        "calendar": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visits",
+            "target": "calendar",
+            "targetKey": "calendar_id",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
+        }
+    }
+}

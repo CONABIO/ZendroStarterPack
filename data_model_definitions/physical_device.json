@@ -1,0 +1,38 @@
+{
+    "model": "physical_device",
+    "storageType": "sql",
+    "attributes": {
+        "serial": "String",
+        "device_id": "Int",
+        "node_id": "Int"
+    },
+    "associations": {
+        "node": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "physical_devices",
+            "target": "node",
+            "targetKey": "node_id",
+            "keysIn": "physical_device",
+            "targetStorageType": "sql"
+        },
+        "device": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "physical_devices",
+            "target": "device_catalog",
+            "targetKey": "device_id",
+            "keysIn": "physical_device",
+            "targetStorageType": "sql"
+        },
+        "device_deployments": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "device",
+            "target": "deployment",
+            "targetKey": "device_id",
+            "keysIn": "deployment",
+            "targetStorageType": "sql"
+        }
+    }
+}

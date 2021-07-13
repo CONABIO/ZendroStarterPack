@@ -1,0 +1,55 @@
+{
+    "model" : "node",
+    "storageType" : "sql",
+    "attributes" : {
+      "has_partner" : "Boolean",
+      "id_sipe": "String",
+      "fid": "Int",
+      "latitude": "Float",
+      "longitude": "Float",
+      "altitude": "Float",
+      "cat_integr": "String",
+      "anpmarcelo": "Boolean",
+      "by_fauna": "Int",
+      "integrity": "Boolean",
+      "cumulus_id": "Int"
+    },
+    "associations": {
+      "cumulus": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "nodes",
+        "target": "cumulus",
+        "targetKey": "cumulus_id",
+        "keysIn": "node",
+        "targetStorageType": "sql"
+      },
+      "unique_ecosystem": {
+        "type": "one_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "unique_node",
+        "target": "ecosystem",
+        "targetKey": "node_id",
+        "keysIn": "ecosystem",
+        "targetStorageType": "sql"
+      },
+      "physical_devices": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "node",
+        "target": "physical_device",
+        "targetKey": "node_id",
+        "keysIn": "physical_device",
+        "targetStorageType": "sql"
+      },
+      "unique_calendar": {
+        "type": "one_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "unique_node",
+        "target": "calendar",
+        "targetKey": "node_id",
+        "keysIn": "calendar",
+        "targetStorageType": "sql"
+      }
+    }
+}
