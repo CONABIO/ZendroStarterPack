@@ -31,7 +31,8 @@ const definition = {
         address: 'String',
         is_active: 'Boolean',
         comments: 'String',
-        last_login: 'DateTime'
+        last_login: 'DateTime',
+        institution_id: 'Int'
     },
     associations: {
         roles: {
@@ -44,6 +45,15 @@ const definition = {
             keysIn: 'role_to_user',
             targetStorageType: 'sql',
             label: 'name'
+        },
+        institutions: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'users',
+            target: 'institution',
+            targetKey: 'institution_id',
+            keysIn: 'user',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -95,6 +105,9 @@ module.exports = class user extends Sequelize.Model {
             },
             last_login: {
                 type: Sequelize[dict['DateTime']]
+            },
+            institution_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -144,6 +157,10 @@ module.exports = class user extends Sequelize.Model {
     }
 
     static associate(models) {
+        user.belongsTo(models.institution, {
+            as: 'institutions',
+            foreignKey: 'institution_id'
+        });
         user.belongsToMany(models.role, {
             as: 'roles',
             foreignKey: 'user_id',
@@ -407,6 +424,22 @@ module.exports = class user extends Sequelize.Model {
 
 
     /**
+     * add_institution_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_institution_id(id, institution_id) {
+        let updated = await user.update({
+            institution_id: institution_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+    /**
      * add_role_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -421,6 +454,23 @@ module.exports = class user extends Sequelize.Model {
         return updated;
     }
 
+    /**
+     * remove_institution_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_institution_id(id, institution_id) {
+        let updated = await user.update({
+            institution_id: null
+        }, {
+            where: {
+                id: id,
+                institution_id: institution_id
+            }
+        });
+        return updated;
+    }
     /**
      * remove_role_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
@@ -440,6 +490,59 @@ module.exports = class user extends Sequelize.Model {
 
 
 
+    /**
+     * bulkAssociateUserWithInstitution_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateUserWithInstitution_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "institution_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            institution_id,
+            id
+        }) => {
+            promises.push(super.update({
+                institution_id: institution_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+
+    /**
+     * bulkDisAssociateUserWithInstitution_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateUserWithInstitution_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "institution_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            institution_id,
+            id
+        }) => {
+            promises.push(super.update({
+                institution_id: null
+            }, {
+                where: {
+                    id: id,
+                    institution_id: institution_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 

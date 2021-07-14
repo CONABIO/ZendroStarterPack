@@ -45,6 +45,22 @@ module.exports = `
     """
     countFilteredAssociated_cumulus(search: searchCumulusInput) : Int
   
+    """
+    @search-request
+    """
+    usersFilter(search: searchUserInput, order: [ orderUserInput ], pagination: paginationInput!): [user]
+
+
+    """
+    @search-request
+    """
+    usersConnection(search: searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput!): UserConnection
+
+    """
+    @count-request
+    """
+    countFilteredUsers(search: searchUserInput) : Int
+  
     }
 type InstitutionConnection{
   edges: [InstitutionEdge]
@@ -100,8 +116,8 @@ type InstitutionEdge{
   }
 
   type Mutation {
-    addInstitution( name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
-    updateInstitution(id: ID!, name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
+    addInstitution( name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID], addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
+    updateInstitution(id: ID!, name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
     deleteInstitution(id: ID!): String!
     bulkAddInstitutionCsv: String!
       }

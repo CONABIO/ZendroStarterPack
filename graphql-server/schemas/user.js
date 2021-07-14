@@ -64,7 +64,14 @@ module.exports = `
     """
     last_login: DateTime
 
-      
+    """
+    @original-field
+    
+    """
+    institution_id: Int
+
+    institutions(search: searchInstitutionInput): institution
+    
     """
     @search-request
     """
@@ -116,6 +123,7 @@ type UserEdge{
     is_active
     comments
     last_login
+    institution_id
   }
   input searchUserInput {
     field: userField
@@ -130,7 +138,10 @@ type UserEdge{
     order: Order
   }
 
-
+  input bulkAssociationUserWithInstitution_idInput{
+    id: ID!
+    institution_id: ID!
+  }
 
   type Query {
     users(search: searchUserInput, order: [ orderUserInput ], pagination: paginationInput! ): [user]
@@ -142,9 +153,11 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime   , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime , addInstitutions:ID  , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAddUserCsv: String!
-      }
+    bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;

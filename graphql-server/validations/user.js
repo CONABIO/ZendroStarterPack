@@ -51,6 +51,9 @@ module.exports.validator_patch = function(user) {
                 }, {
                     "type": "null"
                 }]
+            },
+            "institution_id": {
+                "type": ["integer", "null"]
             }
         }
     }

@@ -14,6 +14,7 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
+    'addInstitutions': 'institution',
     'addRoles': 'role'
 }
 
@@ -95,6 +96,44 @@ user.prototype.countFilteredRoles = async function({
     }
 }
 
+/**
+ * user.prototype.institutions - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+user.prototype.institutions = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.institution_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneInstitution({
+                [models.institution.idAttribute()]: this.institution_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.institution.idAttribute(),
+                "value": this.institution_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.institutionsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -112,11 +151,17 @@ user.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.addRoles)) {
         promises_add.push(this.add_roles(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addInstitutions)) {
+        promises_add.push(this.add_institutions(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeRoles)) {
         promises_remove.push(this.remove_roles(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeInstitutions)) {
+        promises_remove.push(this.remove_institutions(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -132,12 +177,36 @@ user.prototype.add_roles = async function(input) {
 }
 
 /**
+ * add_institutions - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+user.prototype.add_institutions = async function(input, benignErrorReporter) {
+    await user.add_institution_id(this.getIdValue(), input.addInstitutions, benignErrorReporter);
+    this.institution_id = input.addInstitutions;
+}
+
+/**
  * remove_roles - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 user.prototype.remove_roles = async function(input) {
     await models.user.remove_role_id(this, input.removeRoles);
+}
+
+/**
+ * remove_institutions - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+user.prototype.remove_institutions = async function(input, benignErrorReporter) {
+    if (input.removeInstitutions == this.institution_id) {
+        await user.remove_institution_id(this.getIdValue(), input.removeInstitutions, benignErrorReporter);
+        this.institution_id = null;
+    }
 }
 
 
@@ -159,6 +228,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_one.push(user.institutions({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -375,6 +445,46 @@ module.exports = {
         }
     },
 
+    /**
+     * bulkAssociateUserWithInstitution_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateUserWithInstitution_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                institution_id
+            }) => institution_id)), models.institution);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), user);
+        }
+        return await user.bulkAssociateUserWithInstitution_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateUserWithInstitution_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateUserWithInstitution_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                institution_id
+            }) => institution_id)), models.institution);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), user);
+        }
+        return await user.bulkDisAssociateUserWithInstitution_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
      * csvTableTemplateUser - Returns table's template

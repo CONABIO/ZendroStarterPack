@@ -17,6 +17,15 @@
             "sourceKey": "cumulus_ids",
             "keysIn": "institution",
             "targetStorageType": "sql"
+        },
+        "users": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "institutions",
+            "target": "user",
+            "targetKey": "institution_id",
+            "keysIn": "user",
+            "targetStorageType": "sql"
         }
     }
 }

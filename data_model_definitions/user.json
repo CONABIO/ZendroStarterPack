@@ -11,7 +11,8 @@
         "address": "String",
         "is_active": "Boolean",
         "comments": "String",
-        "last_login": "DateTime"
+        "last_login": "DateTime",
+        "institution_id": "Int"
     },
     "associations": {
         "roles": {
@@ -24,6 +25,15 @@
             "keysIn": "role_to_user",
             "targetStorageType": "sql",
             "label": "name"
+        },
+        "institutions": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "users",
+            "target": "institution",
+            "targetKey": "institution_id",
+            "keysIn": "user",
+            "targetStorageType": "sql"
         }
     }
 }

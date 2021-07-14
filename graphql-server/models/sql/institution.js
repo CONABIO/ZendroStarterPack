@@ -37,6 +37,15 @@ const definition = {
             sourceKey: 'cumulus_ids',
             keysIn: 'institution',
             targetStorageType: 'sql'
+        },
+        users: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'institutions',
+            target: 'user',
+            targetKey: 'institution_id',
+            keysIn: 'user',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -119,7 +128,12 @@ module.exports = class institution extends Sequelize.Model {
         return record;
     }
 
-    static associate(models) {}
+    static associate(models) {
+        institution.hasMany(models.user, {
+            as: 'users',
+            foreignKey: 'institution_id'
+        });
+    }
 
     /**
      * Batch function for readById method.

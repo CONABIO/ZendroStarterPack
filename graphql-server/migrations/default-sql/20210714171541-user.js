@@ -59,6 +59,9 @@ module.exports = {
             },
             last_login: {
                 type: Sequelize[dict['DateTime']]
+            },
+            institution_id: {
+                type: Sequelize[dict['Int']]
             }
 
         });
