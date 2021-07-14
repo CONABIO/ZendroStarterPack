@@ -11,7 +11,8 @@
         "address": "String",
         "is_active": "Boolean",
         "comments": "String",
-        "last_login": "DateTime"
+        "last_login": "DateTime",
+        "created_at": "DateTime"
     },
     "associations": {
         "roles": {

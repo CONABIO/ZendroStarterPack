@@ -4,7 +4,8 @@
     "attributes": {
         "serial": "String",
         "device_id": "Int",
-        "node_id": "Int"
+        "node_id": "Int",
+        "created_at": "DateTime"
     },
     "associations": {
         "node": {

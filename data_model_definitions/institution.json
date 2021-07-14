@@ -5,7 +5,8 @@
         "name": "String",
         "address": "String",
         "phone_number": "Int",
-        "cumulus_ids": "[Int]"
+        "cumulus_ids": "[Int]",
+        "created_at": "DateTime"
     },
     "associations": {
         "associated_cumulus": {

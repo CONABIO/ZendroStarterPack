@@ -6,7 +6,8 @@
         "model": "String",
         "type": "String",
         "serial_number": "String",
-        "cumulus_ids": "[Int]"
+        "cumulus_ids": "[Int]",
+        "created_at": "DateTime"
     },
     "associations": {
         "physical_devices": {

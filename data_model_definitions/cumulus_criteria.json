@@ -3,7 +3,8 @@
     "storageType": "sql",
     "attributes": {
         "name": "String",
-        "cumulus_id": "Int"
+        "cumulus_id": "Int",
+        "created_at": "DateTime"
     },
     "associations": {
         "unique_cumulus": {

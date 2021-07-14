@@ -6,7 +6,8 @@
       "geometry": "String",
       "criteria_id": "Int",
       "devices_ids": "[Int]",
-      "institutions_ids": "[Int]"
+      "institutions_ids": "[Int]",
+      "created_at": "DateTime"
     },
     "associations": {
       "nodes": {
