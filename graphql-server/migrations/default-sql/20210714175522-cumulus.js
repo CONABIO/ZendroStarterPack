@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('nodes', {
+        return queryInterface.createTable('cumulus', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,38 +30,25 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            has_partner: {
-                type: Sequelize[dict['Boolean']]
-            },
-            id_sipe: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            fid: {
-                type: Sequelize[dict['Int']]
-            },
-            latitude: {
-                type: Sequelize[dict['Float']]
-            },
-            longitude: {
-                type: Sequelize[dict['Float']]
-            },
-            altitude: {
-                type: Sequelize[dict['Float']]
-            },
-            cat_integr: {
+            geometry: {
                 type: Sequelize[dict['String']]
             },
-            anpmarcelo: {
-                type: Sequelize[dict['Boolean']]
-            },
-            by_fauna: {
+            criteria_id: {
                 type: Sequelize[dict['Int']]
             },
-            integrity: {
-                type: Sequelize[dict['Boolean']]
+            devices_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             },
-            cumulus_id: {
-                type: Sequelize[dict['Int']]
+            institutions_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
         });
@@ -75,7 +62,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('nodes');
+        return queryInterface.dropTable('cumulus');
     }
 
 };

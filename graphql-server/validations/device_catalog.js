@@ -32,6 +32,13 @@ module.exports.validator_patch = function(device_catalog) {
             },
             "cumulus_ids": {
                 "type": ["array", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

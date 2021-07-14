@@ -28,7 +28,8 @@ const definition = {
         longitude: 'Float',
         altitude: 'Float',
         comments: 'String',
-        device_id: 'Int'
+        device_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         device: {
@@ -81,6 +82,9 @@ module.exports = class deployment extends Sequelize.Model {
             },
             device_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

@@ -16,6 +16,12 @@ module.exports = `
     """
     cumulus_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     unique_cumulus(search: searchCumulusInput): cumulus
     
     }
@@ -45,6 +51,7 @@ type Cumulus_criteriaEdge{
     id
     name
     cumulus_id
+    created_at
   }
   input searchCumulus_criteriaInput {
     field: cumulus_criteriaField
@@ -71,8 +78,8 @@ type Cumulus_criteriaEdge{
   }
 
   type Mutation {
-    addCumulus_criteria( name: String, cumulus_id: Int , addUnique_cumulus:ID   , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
-    updateCumulus_criteria(id: ID!, name: String, cumulus_id: Int , addUnique_cumulus:ID, removeUnique_cumulus:ID    , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    addCumulus_criteria( name: String, cumulus_id: Int, created_at: DateTime , addUnique_cumulus:ID   , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    updateCumulus_criteria(id: ID!, name: String, cumulus_id: Int, created_at: DateTime , addUnique_cumulus:ID, removeUnique_cumulus:ID    , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
     deleteCumulus_criteria(id: ID!): String!
     bulkAddCumulus_criteriaCsv: String!
       }

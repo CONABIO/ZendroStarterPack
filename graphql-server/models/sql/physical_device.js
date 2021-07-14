@@ -24,7 +24,8 @@ const definition = {
     attributes: {
         serial: 'String',
         device_id: 'Int',
-        node_id: 'Int'
+        node_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         node: {
@@ -83,6 +84,9 @@ module.exports = class physical_device extends Sequelize.Model {
             },
             node_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

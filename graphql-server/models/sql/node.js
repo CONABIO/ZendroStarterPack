@@ -32,7 +32,8 @@ const definition = {
         anpmarcelo: 'Boolean',
         by_fauna: 'Int',
         integrity: 'Boolean',
-        cumulus_id: 'Int'
+        cumulus_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         cumulus: {
@@ -124,6 +125,9 @@ module.exports = class node extends Sequelize.Model {
             },
             cumulus_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

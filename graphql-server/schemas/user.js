@@ -70,6 +70,12 @@ module.exports = `
     """
     institution_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     institutions(search: searchInstitutionInput): institution
     
     """
@@ -124,6 +130,7 @@ type UserEdge{
     comments
     last_login
     institution_id
+    created_at
   }
   input searchUserInput {
     field: userField
@@ -153,8 +160,8 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime , addInstitutions:ID  , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAddUserCsv: String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

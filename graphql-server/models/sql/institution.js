@@ -25,7 +25,8 @@ const definition = {
         name: 'String',
         address: 'String',
         phone_number: 'Int',
-        cumulus_ids: '[Int]'
+        cumulus_ids: '[Int]',
+        created_at: 'DateTime'
     },
     associations: {
         associated_cumulus: {
@@ -80,6 +81,9 @@ module.exports = class institution extends Sequelize.Model {
             cumulus_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

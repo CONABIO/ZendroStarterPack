@@ -34,6 +34,12 @@ module.exports = `
     """
     institutions_ids: [Int]
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     unique_cumulus_criteria(search: searchCumulus_criteriaInput): cumulus_criteria
     
     """
@@ -114,6 +120,7 @@ type CumulusEdge{
     criteria_id
     devices_ids
     institutions_ids
+    created_at
   }
   input searchCumulusInput {
     field: cumulusField
@@ -143,8 +150,8 @@ type CumulusEdge{
   }
 
   type Mutation {
-    addCumulus( name: String, geometry: String , addUnique_cumulus_criteria:ID  , addNodes:[ID], addDevices:[ID], addAssociated_institutions:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
-    updateCumulus(id: ID!, name: String, geometry: String , addUnique_cumulus_criteria:ID, removeUnique_cumulus_criteria:ID   , addNodes:[ID], removeNodes:[ID] , addDevices:[ID], removeDevices:[ID] , addAssociated_institutions:[ID], removeAssociated_institutions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    addCumulus( name: String, geometry: String, created_at: DateTime , addUnique_cumulus_criteria:ID  , addNodes:[ID], addDevices:[ID], addAssociated_institutions:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    updateCumulus(id: ID!, name: String, geometry: String, created_at: DateTime , addUnique_cumulus_criteria:ID, removeUnique_cumulus_criteria:ID   , addNodes:[ID], removeNodes:[ID] , addDevices:[ID], removeDevices:[ID] , addAssociated_institutions:[ID], removeAssociated_institutions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
     bulkAddCumulusCsv: String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

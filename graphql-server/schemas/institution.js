@@ -28,6 +28,12 @@ module.exports = `
     """
     cumulus_ids: [Int]
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
       
     """
     @search-request
@@ -90,6 +96,7 @@ type InstitutionEdge{
     address
     phone_number
     cumulus_ids
+    created_at
   }
   input searchInstitutionInput {
     field: institutionField
@@ -116,8 +123,8 @@ type InstitutionEdge{
   }
 
   type Mutation {
-    addInstitution( name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID], addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
-    updateInstitution(id: ID!, name: String, address: String, phone_number: Int   , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
+    addInstitution( name: String, address: String, phone_number: Int, created_at: DateTime   , addAssociated_cumulus:[ID], addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
+    updateInstitution(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
     deleteInstitution(id: ID!): String!
     bulkAddInstitutionCsv: String!
       }

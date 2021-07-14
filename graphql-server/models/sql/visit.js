@@ -24,7 +24,8 @@ const definition = {
     attributes: {
         user_id: 'Int',
         device_id: 'Int',
-        calendar_id: 'Int'
+        calendar_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         calendar: {
@@ -65,6 +66,9 @@ module.exports = class visit extends Sequelize.Model {
             },
             calendar_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

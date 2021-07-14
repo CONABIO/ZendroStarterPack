@@ -23,6 +23,13 @@ module.exports.validator_patch = function(role_to_user) {
             },
             "role_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

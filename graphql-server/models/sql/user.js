@@ -32,7 +32,8 @@ const definition = {
         is_active: 'Boolean',
         comments: 'String',
         last_login: 'DateTime',
-        institution_id: 'Int'
+        institution_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         roles: {
@@ -108,6 +109,9 @@ module.exports = class user extends Sequelize.Model {
             },
             institution_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

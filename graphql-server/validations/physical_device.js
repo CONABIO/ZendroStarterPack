@@ -26,6 +26,13 @@ module.exports.validator_patch = function(physical_device) {
             },
             "node_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

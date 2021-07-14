@@ -26,7 +26,8 @@ const definition = {
         geometry: 'String',
         criteria_id: 'Int',
         devices_ids: '[Int]',
-        institutions_ids: '[Int]'
+        institutions_ids: '[Int]',
+        created_at: 'DateTime'
     },
     associations: {
         nodes: {
@@ -104,6 +105,9 @@ module.exports = class cumulus extends Sequelize.Model {
             institutions_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

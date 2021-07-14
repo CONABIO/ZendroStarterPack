@@ -4,7 +4,8 @@
     "attributes": {
         "user_id": "Int",
         "device_id": "Int",
-        "calendar_id": "Int"
+        "calendar_id": "Int",
+        "created_at": "DateTime"
     },
     "associations": {
         "calendar": {

@@ -34,6 +34,20 @@ module.exports.validator_patch = function(calendar) {
             },
             "node_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
+            },
+            "updated_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

@@ -22,6 +22,12 @@ module.exports = `
     """
     calendar_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     calendar(search: searchCalendarInput): calendar
     
     }
@@ -52,6 +58,7 @@ type VisitEdge{
     user_id
     device_id
     calendar_id
+    created_at
   }
   input searchVisitInput {
     field: visitField
@@ -81,8 +88,8 @@ type VisitEdge{
   }
 
   type Mutation {
-    addVisit( user_id: Int, device_id: Int , addCalendar:ID   , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, user_id: Int, device_id: Int , addCalendar:ID, removeCalendar:ID    , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( user_id: Int, device_id: Int, created_at: DateTime , addCalendar:ID   , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, user_id: Int, device_id: Int, created_at: DateTime , addCalendar:ID, removeCalendar:ID    , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
     bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

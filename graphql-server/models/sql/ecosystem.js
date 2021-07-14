@@ -23,7 +23,8 @@ const definition = {
     storageType: 'sql',
     attributes: {
         name: 'String',
-        node_id: 'Int'
+        node_id: 'Int',
+        created_at: 'DateTime'
     },
     associations: {
         unique_node: {
@@ -61,6 +62,9 @@ module.exports = class ecosystem extends Sequelize.Model {
             },
             node_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

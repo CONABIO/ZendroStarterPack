@@ -70,6 +70,12 @@ module.exports = `
     """
     cumulus_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     cumulus(search: searchCumulusInput): cumulus
   unique_ecosystem(search: searchEcosystemInput): ecosystem
   unique_calendar(search: searchCalendarInput): calendar
@@ -126,6 +132,7 @@ type NodeEdge{
     by_fauna
     integrity
     cumulus_id
+    created_at
   }
   input searchNodeInput {
     field: nodeField
@@ -155,8 +162,8 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean , addCumulus:ID, addUnique_ecosystem:ID, addUnique_calendar:ID  , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean , addCumulus:ID, removeCumulus:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addUnique_calendar:ID, removeUnique_calendar:ID   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, addUnique_ecosystem:ID, addUnique_calendar:ID  , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, removeCumulus:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addUnique_calendar:ID, removeUnique_calendar:ID   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

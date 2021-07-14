@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('device_catalogs', {
+        return queryInterface.createTable('role_to_users', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,21 +30,14 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            brand: {
-                type: Sequelize[dict['String']]
+            user_id: {
+                type: Sequelize[dict['Int']]
             },
-            model: {
-                type: Sequelize[dict['String']]
+            role_id: {
+                type: Sequelize[dict['Int']]
             },
-            type: {
-                type: Sequelize[dict['String']]
-            },
-            serial_number: {
-                type: Sequelize[dict['String']]
-            },
-            cumulus_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
         });
@@ -58,7 +51,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('device_catalogs');
+        return queryInterface.dropTable('role_to_users');
     }
 
 };

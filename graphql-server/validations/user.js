@@ -54,6 +54,13 @@ module.exports.validator_patch = function(user) {
             },
             "institution_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

@@ -24,7 +24,9 @@ const definition = {
     attributes: {
         date_started: 'Date',
         date_finished: 'Date',
-        node_id: 'Int'
+        node_id: 'Int',
+        created_at: 'DateTime',
+        updated_at: 'DateTime'
     },
     associations: {
         unique_node: {
@@ -74,6 +76,12 @@ module.exports = class calendar extends Sequelize.Model {
             },
             node_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
+            },
+            updated_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
 

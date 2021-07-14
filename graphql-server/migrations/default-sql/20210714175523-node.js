@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('institutions', {
+        return queryInterface.createTable('nodes', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,18 +30,41 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            name: {
+            has_partner: {
+                type: Sequelize[dict['Boolean']]
+            },
+            id_sipe: {
                 type: Sequelize[dict['String']]
             },
-            address: {
-                type: Sequelize[dict['String']]
-            },
-            phone_number: {
+            fid: {
                 type: Sequelize[dict['Int']]
             },
-            cumulus_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
+            latitude: {
+                type: Sequelize[dict['Float']]
+            },
+            longitude: {
+                type: Sequelize[dict['Float']]
+            },
+            altitude: {
+                type: Sequelize[dict['Float']]
+            },
+            cat_integr: {
+                type: Sequelize[dict['String']]
+            },
+            anpmarcelo: {
+                type: Sequelize[dict['Boolean']]
+            },
+            by_fauna: {
+                type: Sequelize[dict['Int']]
+            },
+            integrity: {
+                type: Sequelize[dict['Boolean']]
+            },
+            cumulus_id: {
+                type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
         });
@@ -55,7 +78,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('institutions');
+        return queryInterface.dropTable('nodes');
     }
 
 };

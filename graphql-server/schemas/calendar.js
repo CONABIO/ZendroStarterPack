@@ -22,6 +22,18 @@ module.exports = `
     """
     node_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
+    """
+    @original-field
+    
+    """
+    updated_at: DateTime
+
     unique_node(search: searchNodeInput): node
     
     """
@@ -68,6 +80,8 @@ type CalendarEdge{
     date_started
     date_finished
     node_id
+    created_at
+    updated_at
   }
   input searchCalendarInput {
     field: calendarField
@@ -97,8 +111,8 @@ type CalendarEdge{
   }
 
   type Mutation {
-    addCalendar( date_started: Date, date_finished: Date , addUnique_node:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
-    updateCalendar(id: ID!, date_started: Date, date_finished: Date , addUnique_node:ID, removeUnique_node:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime , addUnique_node:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime , addUnique_node:ID, removeUnique_node:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
     deleteCalendar(id: ID!): String!
     bulkAddCalendarCsv: String!
     bulkAssociateCalendarWithNode_id(bulkAssociationInput: [bulkAssociationCalendarWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

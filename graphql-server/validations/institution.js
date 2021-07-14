@@ -29,6 +29,13 @@ module.exports.validator_patch = function(institution) {
             },
             "cumulus_ids": {
                 "type": ["array", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

@@ -46,6 +46,12 @@ module.exports = `
     """
     device_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     device(search: searchPhysical_deviceInput): physical_device
     
     }
@@ -80,6 +86,7 @@ type DeploymentEdge{
     altitude
     comments
     device_id
+    created_at
   }
   input searchDeploymentInput {
     field: deploymentField
@@ -109,8 +116,8 @@ type DeploymentEdge{
   }
 
   type Mutation {
-    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String , addDevice:ID   , skipAssociationsExistenceChecks:Boolean = false): deployment!
-    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String , addDevice:ID, removeDevice:ID    , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID   , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID    , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
     bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('ecosystems', {
+        return queryInterface.createTable('deployments', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,11 +30,29 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            name: {
+            date_started: {
+                type: Sequelize[dict['Date']]
+            },
+            date_finished: {
+                type: Sequelize[dict['Date']]
+            },
+            latitude: {
+                type: Sequelize[dict['Float']]
+            },
+            longitude: {
+                type: Sequelize[dict['Float']]
+            },
+            altitude: {
+                type: Sequelize[dict['Float']]
+            },
+            comments: {
                 type: Sequelize[dict['String']]
             },
-            node_id: {
+            device_id: {
                 type: Sequelize[dict['Int']]
+            },
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
         });
@@ -48,7 +66,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('ecosystems');
+        return queryInterface.dropTable('deployments');
     }
 
 };

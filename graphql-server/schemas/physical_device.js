@@ -22,6 +22,12 @@ module.exports = `
     """
     node_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
     node(search: searchNodeInput): node
   device(search: searchDevice_catalogInput): device_catalog
     
@@ -69,6 +75,7 @@ type Physical_deviceEdge{
     serial
     device_id
     node_id
+    created_at
   }
   input searchPhysical_deviceInput {
     field: physical_deviceField
@@ -101,8 +108,8 @@ type Physical_deviceEdge{
   }
 
   type Mutation {
-    addPhysical_device( serial: String , addNode:ID, addDevice:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
-    updatePhysical_device(id: ID!, serial: String , addNode:ID, removeNode:ID , addDevice:ID, removeDevice:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    addPhysical_device( serial: String, created_at: DateTime , addNode:ID, addDevice:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addNode:ID, removeNode:ID , addDevice:ID, removeDevice:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
     deletePhysical_device(id: ID!): String!
     bulkAddPhysical_deviceCsv: String!
     bulkAssociatePhysical_deviceWithNode_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

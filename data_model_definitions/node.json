@@ -12,7 +12,8 @@
       "anpmarcelo": "Boolean",
       "by_fauna": "Int",
       "integrity": "Boolean",
-      "cumulus_id": "Int"
+      "cumulus_id": "Int",
+      "created_at": "DateTime"
     },
     "associations": {
       "cumulus": {

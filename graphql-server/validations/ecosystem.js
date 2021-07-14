@@ -23,6 +23,13 @@ module.exports.validator_patch = function(ecosystem) {
             },
             "node_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }

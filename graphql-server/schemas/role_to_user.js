@@ -16,6 +16,12 @@ module.exports = `
     """
     role_id: Int
 
+    """
+    @original-field
+    
+    """
+    created_at: DateTime
+
       
     }
 type Role_to_userConnection{
@@ -44,6 +50,7 @@ type Role_to_userEdge{
     id
     user_id
     role_id
+    created_at
   }
   input searchRole_to_userInput {
     field: role_to_userField
@@ -70,8 +77,8 @@ type Role_to_userEdge{
   }
 
   type Mutation {
-    addRole_to_user( user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
-    updateRole_to_user(id: ID!, user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
+    addRole_to_user( user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
+    updateRole_to_user(id: ID!, user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
     deleteRole_to_user(id: ID!): String!
     bulkAddRole_to_userCsv: String!
       }

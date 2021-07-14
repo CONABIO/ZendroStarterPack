@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('users', {
+        return queryInterface.createTable('device_catalogs', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,38 +30,24 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            username: {
+            brand: {
                 type: Sequelize[dict['String']]
             },
-            password: {
+            model: {
                 type: Sequelize[dict['String']]
             },
-            first_name: {
+            type: {
                 type: Sequelize[dict['String']]
             },
-            last_name: {
+            serial_number: {
                 type: Sequelize[dict['String']]
             },
-            grade: {
-                type: Sequelize[dict['String']]
+            cumulus_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             },
-            email: {
-                type: Sequelize[dict['String']]
-            },
-            address: {
-                type: Sequelize[dict['String']]
-            },
-            is_active: {
-                type: Sequelize[dict['Boolean']]
-            },
-            comments: {
-                type: Sequelize[dict['String']]
-            },
-            last_login: {
+            created_at: {
                 type: Sequelize[dict['DateTime']]
-            },
-            institution_id: {
-                type: Sequelize[dict['Int']]
             }
 
         });
@@ -75,7 +61,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('users');
+        return queryInterface.dropTable('device_catalogs');
     }
 
 };

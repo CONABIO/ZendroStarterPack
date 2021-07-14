@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('physical_devices', {
+        return queryInterface.createTable('users', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,14 +30,41 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            serial: {
+            username: {
                 type: Sequelize[dict['String']]
             },
-            device_id: {
+            password: {
+                type: Sequelize[dict['String']]
+            },
+            first_name: {
+                type: Sequelize[dict['String']]
+            },
+            last_name: {
+                type: Sequelize[dict['String']]
+            },
+            grade: {
+                type: Sequelize[dict['String']]
+            },
+            email: {
+                type: Sequelize[dict['String']]
+            },
+            address: {
+                type: Sequelize[dict['String']]
+            },
+            is_active: {
+                type: Sequelize[dict['Boolean']]
+            },
+            comments: {
+                type: Sequelize[dict['String']]
+            },
+            last_login: {
+                type: Sequelize[dict['DateTime']]
+            },
+            institution_id: {
                 type: Sequelize[dict['Int']]
             },
-            node_id: {
-                type: Sequelize[dict['Int']]
+            created_at: {
+                type: Sequelize[dict['DateTime']]
             }
 
         });
@@ -51,7 +78,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('physical_devices');
+        return queryInterface.dropTable('users');
     }
 
 };

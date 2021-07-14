@@ -12,7 +12,8 @@
         "is_active": "Boolean",
         "comments": "String",
         "last_login": "DateTime",
-        "institution_id": "Int"
+        "institution_id": "Int",
+        "created_at": "DateTime"
     },
     "associations": {
         "roles": {

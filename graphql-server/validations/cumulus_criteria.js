@@ -23,6 +23,13 @@ module.exports.validator_patch = function(cumulus_criteria) {
             },
             "cumulus_id": {
                 "type": ["integer", "null"]
+            },
+            "created_at": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             }
         }
     }
