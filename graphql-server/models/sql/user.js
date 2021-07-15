@@ -55,6 +55,15 @@ const definition = {
             targetKey: 'institution_id',
             keysIn: 'user',
             targetStorageType: 'sql'
+        },
+        visits: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'user_visit',
+            target: 'visit',
+            targetKey: 'user_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -164,6 +173,10 @@ module.exports = class user extends Sequelize.Model {
         user.belongsTo(models.institution, {
             as: 'institutions',
             foreignKey: 'institution_id'
+        });
+        user.hasMany(models.visit, {
+            as: 'visits',
+            foreignKey: 'user_id'
         });
         user.belongsToMany(models.role, {
             as: 'roles',

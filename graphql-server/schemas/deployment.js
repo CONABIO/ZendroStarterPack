@@ -50,9 +50,23 @@ module.exports = `
     @original-field
     
     """
+    node_id: Int
+
+    """
+    @original-field
+    
+    """
+    visit_id: Int
+
+    """
+    @original-field
+    
+    """
     created_at: DateTime
 
     device(search: searchPhysical_deviceInput): physical_device
+  visit_deployment(search: searchVisitInput): visit
+  node_deployment(search: searchNodeInput): node
     
     }
 type DeploymentConnection{
@@ -86,6 +100,8 @@ type DeploymentEdge{
     altitude
     comments
     device_id
+    node_id
+    visit_id
     created_at
   }
   input searchDeploymentInput {
@@ -104,6 +120,12 @@ type DeploymentEdge{
   input bulkAssociationDeploymentWithDevice_idInput{
     id: ID!
     device_id: ID!
+  }  input bulkAssociationDeploymentWithVisit_idInput{
+    id: ID!
+    visit_id: ID!
+  }  input bulkAssociationDeploymentWithNode_idInput{
+    id: ID!
+    node_id: ID!
   }
 
   type Query {
@@ -116,11 +138,15 @@ type DeploymentEdge{
   }
 
   type Mutation {
-    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID   , skipAssociationsExistenceChecks:Boolean = false): deployment!
-    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID    , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, addVisit_deployment:ID, addNode_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addVisit_deployment:ID, removeVisit_deployment:ID , addNode_deployment:ID, removeNode_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
     bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateDeploymentWithVisit_id(bulkAssociationInput: [bulkAssociationDeploymentWithVisit_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateDeploymentWithVisit_id(bulkAssociationInput: [bulkAssociationDeploymentWithVisit_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateDeploymentWithNode_id(bulkAssociationInput: [bulkAssociationDeploymentWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput: [bulkAssociationDeploymentWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

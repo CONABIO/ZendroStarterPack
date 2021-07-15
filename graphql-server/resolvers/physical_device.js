@@ -14,51 +14,12 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addNode': 'node',
     'addDevice': 'device_catalog',
     'addDevice_deployments': 'deployment'
 }
 
 
 
-/**
- * physical_device.prototype.node - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-physical_device.prototype.node = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.node_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneNode({
-                [models.node.idAttribute()]: this.node_id
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.node.idAttribute(),
-                "value": this.node_id,
-                "operator": "eq"
-            });
-            let found = (await resolvers.nodesConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
 /**
  * physical_device.prototype.device - Return associated record
  *
@@ -201,9 +162,6 @@ physical_device.prototype.handleAssociations = async function(input, benignError
     if (helper.isNonEmptyArray(input.addDevice_deployments)) {
         promises_add.push(this.add_device_deployments(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addNode)) {
-        promises_add.push(this.add_node(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.addDevice)) {
         promises_add.push(this.add_device(input, benignErrorReporter));
     }
@@ -212,9 +170,6 @@ physical_device.prototype.handleAssociations = async function(input, benignError
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeDevice_deployments)) {
         promises_remove.push(this.remove_device_deployments(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeNode)) {
-        promises_remove.push(this.remove_node(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeDevice)) {
         promises_remove.push(this.remove_device(input, benignErrorReporter));
@@ -239,17 +194,6 @@ physical_device.prototype.add_device_deployments = async function(input, benignE
         }
     });
     await models.deployment.bulkAssociateDeploymentWithDevice_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * add_node - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-physical_device.prototype.add_node = async function(input, benignErrorReporter) {
-    await physical_device.add_node_id(this.getIdValue(), input.addNode, benignErrorReporter);
-    this.node_id = input.addNode;
 }
 
 /**
@@ -279,19 +223,6 @@ physical_device.prototype.remove_device_deployments = async function(input, beni
         }
     });
     await models.deployment.bulkDisAssociateDeploymentWithDevice_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_node - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-physical_device.prototype.remove_node = async function(input, benignErrorReporter) {
-    if (input.removeNode == this.node_id) {
-        await physical_device.remove_node_id(this.getIdValue(), input.removeNode, benignErrorReporter);
-        this.node_id = null;
-    }
 }
 
 /**
@@ -327,7 +258,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(physical_device.countFilteredDevice_deployments({}, context));
-    promises_to_one.push(physical_device.node({}, context));
     promises_to_one.push(physical_device.device({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -546,26 +476,6 @@ module.exports = {
     },
 
     /**
-     * bulkAssociatePhysical_deviceWithNode_id - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociatePhysical_deviceWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), physical_device);
-        }
-        return await physical_device.bulkAssociatePhysical_deviceWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
      * bulkAssociatePhysical_deviceWithDevice_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -584,26 +494,6 @@ module.exports = {
             }) => id)), physical_device);
         }
         return await physical_device.bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
-     * bulkDisAssociatePhysical_deviceWithNode_id - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociatePhysical_deviceWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), physical_device);
-        }
-        return await physical_device.bulkDisAssociatePhysical_deviceWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
      * bulkDisAssociatePhysical_deviceWithDevice_id - bulkDisAssociaton resolver of given ids

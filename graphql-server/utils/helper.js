@@ -13,6 +13,16 @@ const {
   GraphQLDate,
   GraphQLTime,
 } = require("graphql-iso-date");
+const { 
+  Point,
+  MultiPoint,
+  LineString,
+  MultiLineString,
+  Polygon,
+  MultiPolygon,
+  GeometryCollection,
+  Feature,
+  FeatureCollection } = require('graphql-geojson-scalar-types');
 var { graphql } = require("graphql");
 const searchArg = require("./search-argument");
 const { Sequelize } = require("sequelize");
@@ -2038,7 +2048,7 @@ module.exports.differenceIds = function (ids, ids_to_remove) {
   return ids;
 };
 /**
- * mergeSchemaSetScalerTypes - merge schema and set scaler types for dates.
+ * mergeSchemaSetScalerTypes - merge schema and set scaler types for dates and GeometryTypes.
  *
  * @param {string} path  the path of schema folder.
  * @returns {GraphQLSchema} the processed GraphQLSchema
@@ -2050,6 +2060,17 @@ module.exports.mergeSchemaSetScalarTypes = (path) => {
   Object.assign(Schema._typeMap.DateTime, GraphQLDateTime);
   Object.assign(Schema._typeMap.Date, GraphQLDate);
   Object.assign(Schema._typeMap.Time, GraphQLTime);
+
+  /*set scalar types for geometries */
+  Object.assign(Schema._typeMap.Point, Point);
+  Object.assign(Schema._typeMap.MultiPoint, MultiPoint);
+  Object.assign(Schema._typeMap.LineString, LineString);
+  Object.assign(Schema._typeMap.MultiLineString, MultiLineString);
+  Object.assign(Schema._typeMap.Polygon, Polygon);
+  Object.assign(Schema._typeMap.MultiPolygon, MultiPolygon);
+  Object.assign(Schema._typeMap.GeometryCollection, GeometryCollection);
+  Object.assign(Schema._typeMap.Feature, Feature);
+  Object.assign(Schema._typeMap.FeatureCollection, FeatureCollection);
   return Schema;
 };
 

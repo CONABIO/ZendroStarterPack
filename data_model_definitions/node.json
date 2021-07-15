@@ -5,9 +5,7 @@
       "has_partner" : "Boolean",
       "id_sipe": "String",
       "fid": "Int",
-      "latitude": "Float",
-      "longitude": "Float",
-      "altitude": "Float",
+      "location": "Point",
       "cat_integr": "String",
       "anpmarcelo": "Boolean",
       "by_fauna": "Int",
@@ -34,14 +32,14 @@
         "keysIn": "ecosystem",
         "targetStorageType": "sql"
       },
-      "physical_devices": {
-        "type": "one_to_many",
-        "implementation": "foreignkeys",
-        "reverseAssociation": "node",
-        "target": "physical_device",
-        "targetKey": "node_id",
-        "keysIn": "physical_device",
-        "targetStorageType": "sql"
+      "device_deployments": {
+          "type": "one_to_many",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "node_deployment",
+          "target": "deployment",
+          "targetKey": "node_id",
+          "keysIn": "deployment",
+          "targetStorageType": "sql"
       },
       "unique_calendar": {
         "type": "one_to_one",

@@ -27,14 +27,8 @@ module.exports.validator_patch = function(node) {
             "fid": {
                 "type": ["integer", "null"]
             },
-            "latitude": {
-                "type": ["number", "null"]
-            },
-            "longitude": {
-                "type": ["number", "null"]
-            },
-            "altitude": {
-                "type": ["number", "null"]
+            "location": {
+                "type": ["object", "null"]
             },
             "cat_integr": {
                 "type": ["string", "null"]

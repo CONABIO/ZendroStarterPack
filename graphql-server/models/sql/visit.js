@@ -36,6 +36,24 @@ const definition = {
             targetKey: 'calendar_id',
             keysIn: 'visit',
             targetStorageType: 'sql'
+        },
+        deployments: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'visit_deployment',
+            target: 'deployment',
+            targetKey: 'visit_id',
+            keysIn: 'deployment',
+            targetStorageType: 'sql'
+        },
+        user_visit: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'visits',
+            target: 'user',
+            targetKey: 'user_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -121,6 +139,14 @@ module.exports = class visit extends Sequelize.Model {
         visit.belongsTo(models.calendar, {
             as: 'calendar',
             foreignKey: 'calendar_id'
+        });
+        visit.belongsTo(models.user, {
+            as: 'user_visit',
+            foreignKey: 'user_id'
+        });
+        visit.hasMany(models.deployment, {
+            as: 'deployments',
+            foreignKey: 'visit_id'
         });
     }
 
@@ -346,6 +372,22 @@ module.exports = class visit extends Sequelize.Model {
         });
         return updated;
     }
+    /**
+     * add_user_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_user_id(id, user_id) {
+        let updated = await visit.update({
+            user_id: user_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
     /**
      * remove_calendar_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -360,6 +402,23 @@ module.exports = class visit extends Sequelize.Model {
             where: {
                 id: id,
                 calendar_id: calendar_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_user_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_user_id(id, user_id) {
+        let updated = await visit.update({
+            user_id: null
+        }, {
+            where: {
+                id: id,
+                user_id: user_id
             }
         });
         return updated;
@@ -395,6 +454,32 @@ module.exports = class visit extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateVisitWithUser_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateVisitWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: user_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton of given ids
@@ -416,6 +501,33 @@ module.exports = class visit extends Sequelize.Model {
                 where: {
                     id: id,
                     calendar_id: calendar_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateVisitWithUser_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateVisitWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: null
+            }, {
+                where: {
+                    id: id,
+                    user_id: user_id
                 }
             }));
         })

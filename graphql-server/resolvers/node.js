@@ -17,7 +17,7 @@ const associationArgsDef = {
     'addCumulus': 'cumulus',
     'addUnique_ecosystem': 'ecosystem',
     'addUnique_calendar': 'calendar',
-    'addPhysical_devices': 'physical_device'
+    'addDevice_deployments': 'deployment'
 }
 
 
@@ -130,7 +130,7 @@ node.prototype.unique_calendar = async function({
 }
 
 /**
- * node.prototype.physical_devicesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * node.prototype.device_deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -140,7 +140,7 @@ node.prototype.unique_calendar = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-node.prototype.physical_devicesFilter = function({
+node.prototype.device_deploymentsFilter = function({
     search,
     order,
     pagination
@@ -155,7 +155,7 @@ node.prototype.physical_devicesFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.physical_devices({
+    return resolvers.deployments({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -163,13 +163,13 @@ node.prototype.physical_devicesFilter = function({
 }
 
 /**
- * node.prototype.countFilteredPhysical_devices - Count number of associated records that holds the conditions specified in the search argument
+ * node.prototype.countFilteredDevice_deployments - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-node.prototype.countFilteredPhysical_devices = function({
+node.prototype.countFilteredDevice_deployments = function({
     search
 }, context) {
 
@@ -180,13 +180,13 @@ node.prototype.countFilteredPhysical_devices = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countPhysical_devices({
+    return resolvers.countDeployments({
         search: nsearch
     }, context);
 }
 
 /**
- * node.prototype.physical_devicesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * node.prototype.device_deploymentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -196,7 +196,7 @@ node.prototype.countFilteredPhysical_devices = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-node.prototype.physical_devicesConnection = function({
+node.prototype.device_deploymentsConnection = function({
     search,
     order,
     pagination
@@ -210,7 +210,7 @@ node.prototype.physical_devicesConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.physical_devicesConnection({
+    return resolvers.deploymentsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -229,8 +229,8 @@ node.prototype.physical_devicesConnection = function({
 node.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addPhysical_devices)) {
-        promises_add.push(this.add_physical_devices(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addDevice_deployments)) {
+        promises_add.push(this.add_device_deployments(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addCumulus)) {
         promises_add.push(this.add_cumulus(input, benignErrorReporter));
@@ -244,8 +244,8 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removePhysical_devices)) {
-        promises_remove.push(this.remove_physical_devices(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeDevice_deployments)) {
+        promises_remove.push(this.remove_device_deployments(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus)) {
         promises_remove.push(this.remove_cumulus(input, benignErrorReporter));
@@ -261,21 +261,21 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
 }
 /**
- * add_physical_devices - field Mutation for to_many associations to add
+ * add_device_deployments - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.add_physical_devices = async function(input, benignErrorReporter) {
+node.prototype.add_device_deployments = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addPhysical_devices.map(associatedRecordId => {
+    let bulkAssociationInput = input.addDevice_deployments.map(associatedRecordId => {
         return {
             node_id: this.getIdValue(),
-            [models.physical_device.idAttribute()]: associatedRecordId
+            [models.deployment.idAttribute()]: associatedRecordId
         }
     });
-    await models.physical_device.bulkAssociatePhysical_deviceWithNode_id(bulkAssociationInput, benignErrorReporter);
+    await models.deployment.bulkAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -310,21 +310,21 @@ node.prototype.add_unique_calendar = async function(input, benignErrorReporter) 
 }
 
 /**
- * remove_physical_devices - field Mutation for to_many associations to remove
+ * remove_device_deployments - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.remove_physical_devices = async function(input, benignErrorReporter) {
+node.prototype.remove_device_deployments = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removePhysical_devices.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeDevice_deployments.map(associatedRecordId => {
         return {
             node_id: this.getIdValue(),
-            [models.physical_device.idAttribute()]: associatedRecordId
+            [models.deployment.idAttribute()]: associatedRecordId
         }
     });
-    await models.physical_device.bulkDisAssociatePhysical_deviceWithNode_id(bulkAssociationInput, benignErrorReporter);
+    await models.deployment.bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -379,7 +379,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(node.countFilteredPhysical_devices({}, context));
+    promises_to_many.push(node.countFilteredDevice_deployments({}, context));
     promises_to_one.push(node.cumulus({}, context));
     promises_to_one.push(node.unique_ecosystem({}, context));
     promises_to_one.push(node.unique_calendar({}, context));

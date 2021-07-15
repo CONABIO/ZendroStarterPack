@@ -20,16 +20,9 @@ module.exports = `
     @original-field
     
     """
-    node_id: Int
-
-    """
-    @original-field
-    
-    """
     created_at: DateTime
 
-    node(search: searchNodeInput): node
-  device(search: searchDevice_catalogInput): device_catalog
+    device(search: searchDevice_catalogInput): device_catalog
     
     """
     @search-request
@@ -74,7 +67,6 @@ type Physical_deviceEdge{
     id
     serial
     device_id
-    node_id
     created_at
   }
   input searchPhysical_deviceInput {
@@ -90,10 +82,7 @@ type Physical_deviceEdge{
     order: Order
   }
 
-  input bulkAssociationPhysical_deviceWithNode_idInput{
-    id: ID!
-    node_id: ID!
-  }  input bulkAssociationPhysical_deviceWithDevice_idInput{
+  input bulkAssociationPhysical_deviceWithDevice_idInput{
     id: ID!
     device_id: ID!
   }
@@ -108,13 +97,11 @@ type Physical_deviceEdge{
   }
 
   type Mutation {
-    addPhysical_device( serial: String, created_at: DateTime , addNode:ID, addDevice:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
-    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addNode:ID, removeNode:ID , addDevice:ID, removeDevice:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    addPhysical_device( serial: String, created_at: DateTime , addDevice:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addDevice:ID, removeDevice:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
     deletePhysical_device(id: ID!): String!
     bulkAddPhysical_deviceCsv: String!
-    bulkAssociatePhysical_deviceWithNode_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-    bulkDisAssociatePhysical_deviceWithNode_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

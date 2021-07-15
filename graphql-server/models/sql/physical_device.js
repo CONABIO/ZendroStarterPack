@@ -24,19 +24,9 @@ const definition = {
     attributes: {
         serial: 'String',
         device_id: 'Int',
-        node_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
-        node: {
-            type: 'many_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'physical_devices',
-            target: 'node',
-            targetKey: 'node_id',
-            keysIn: 'physical_device',
-            targetStorageType: 'sql'
-        },
         device: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
@@ -80,9 +70,6 @@ module.exports = class physical_device extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             device_id: {
-                type: Sequelize[dict['Int']]
-            },
-            node_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
@@ -136,10 +123,6 @@ module.exports = class physical_device extends Sequelize.Model {
     }
 
     static associate(models) {
-        physical_device.belongsTo(models.node, {
-            as: 'node',
-            foreignKey: 'node_id'
-        });
         physical_device.belongsTo(models.device_catalog, {
             as: 'device',
             foreignKey: 'device_id'
@@ -357,22 +340,6 @@ module.exports = class physical_device extends Sequelize.Model {
 
 
     /**
-     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_node_id(id, node_id) {
-        let updated = await physical_device.update({
-            node_id: node_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-    /**
      * add_device_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -389,23 +356,6 @@ module.exports = class physical_device extends Sequelize.Model {
         return updated;
     }
 
-    /**
-     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_node_id(id, node_id) {
-        let updated = await physical_device.update({
-            node_id: null
-        }, {
-            where: {
-                id: id,
-                node_id: node_id
-            }
-        });
-        return updated;
-    }
     /**
      * remove_device_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
@@ -427,32 +377,6 @@ module.exports = class physical_device extends Sequelize.Model {
 
 
 
-
-    /**
-     * bulkAssociatePhysical_deviceWithNode_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociatePhysical_deviceWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: node_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
     /**
      * bulkAssociatePhysical_deviceWithDevice_id - bulkAssociaton of given ids
@@ -480,33 +404,6 @@ module.exports = class physical_device extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
-
-    /**
-     * bulkDisAssociatePhysical_deviceWithNode_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociatePhysical_deviceWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: null
-            }, {
-                where: {
-                    id: id,
-                    node_id: node_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
     /**
      * bulkDisAssociatePhysical_deviceWithDevice_id - bulkDisAssociaton of given ids

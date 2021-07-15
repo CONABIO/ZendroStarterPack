@@ -25,9 +25,7 @@ const definition = {
         has_partner: 'Boolean',
         id_sipe: 'String',
         fid: 'Int',
-        latitude: 'Float',
-        longitude: 'Float',
-        altitude: 'Float',
+        location: 'Point',
         cat_integr: 'String',
         anpmarcelo: 'Boolean',
         by_fauna: 'Int',
@@ -54,13 +52,13 @@ const definition = {
             keysIn: 'ecosystem',
             targetStorageType: 'sql'
         },
-        physical_devices: {
+        device_deployments: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'node',
-            target: 'physical_device',
+            reverseAssociation: 'node_deployment',
+            target: 'deployment',
             targetKey: 'node_id',
-            keysIn: 'physical_device',
+            keysIn: 'deployment',
             targetStorageType: 'sql'
         },
         unique_calendar: {
@@ -102,14 +100,8 @@ module.exports = class node extends Sequelize.Model {
             fid: {
                 type: Sequelize[dict['Int']]
             },
-            latitude: {
-                type: Sequelize[dict['Float']]
-            },
-            longitude: {
-                type: Sequelize[dict['Float']]
-            },
-            altitude: {
-                type: Sequelize[dict['Float']]
+            location: {
+                type: Sequelize[dict['Point']]
             },
             cat_integr: {
                 type: Sequelize[dict['String']]
@@ -189,8 +181,8 @@ module.exports = class node extends Sequelize.Model {
             as: 'unique_calendar',
             foreignKey: 'node_id'
         });
-        node.hasMany(models.physical_device, {
-            as: 'physical_devices',
+        node.hasMany(models.deployment, {
+            as: 'device_deployments',
             foreignKey: 'node_id'
         });
     }

@@ -4,19 +4,9 @@
     "attributes": {
         "serial": "String",
         "device_id": "Int",
-        "node_id": "Int",
         "created_at": "DateTime"
     },
     "associations": {
-        "node": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "physical_devices",
-            "target": "node",
-            "targetKey": "node_id",
-            "keysIn": "physical_device",
-            "targetStorageType": "sql"
-        },
         "device": {
             "type": "many_to_one",
             "implementation": "foreignkeys",

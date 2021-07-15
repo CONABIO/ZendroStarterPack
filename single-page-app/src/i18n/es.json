@@ -40,7 +40,7 @@
   },
   "login-dialog": {
     "title": "Formulario de Ingreso",
-    "content": "Para iniciar sesión, por favor escriba su correo electrónico y contraseña a continuación.",
+    "content": "Para iniciar sesión, por favor escriba su nombre de usuario y contraseña a continuación.",
     "login-expired": "Credenciales caducadas",
     "login-failed": "Error al iniciar sesión",
     "login-loading": "Validando credenciales...",

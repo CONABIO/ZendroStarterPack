@@ -40,7 +40,7 @@
   },
   "login-dialog": {
     "title": "Login Formular",
-    "content": "Um sich auf der Website anzumelden, geben Sie bitte ihre E-Mail-Adresse und Passwort ein.",
+    "content": "Um sich auf der Website anzumelden, geben Sie bitte ihre Username und Passwort ein.",
     "login-expired": "Anmenldung abgelaufen",
     "login-failed": "Anmeldung fehlgeschlagen",
     "login-successful": "Anmeldung erfolgreich"
@@ -117,7 +117,7 @@
   },
   "success": {
     "assoc-update": "Assoziation erfolgreich aktualisiert",
-    "csv-import": "Die Daten wurden versendet. Ein Statusreport des Importiervorgangs wird an ihre Username versandt."
+    "csv-import": "Die Daten wurden versendet. Ein Statusreport des Importiervorgangs wird an ihre Email versandt."
   },
   "toolbar": {
     "change-language": "Sprache ändern",

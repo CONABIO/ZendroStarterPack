@@ -9,6 +9,8 @@
         "altitude": "Float",
         "comments": "String",
         "device_id": "Int",
+        "node_id": "Int",
+        "visit_id": "Int",
         "created_at": "DateTime"
     },
     "associations": {
@@ -18,6 +20,24 @@
             "reverseAssociation": "device_deployments",
             "target": "physical_device",
             "targetKey": "device_id",
+            "keysIn": "deployment",
+            "targetStorageType": "sql"
+        },
+        "visit_deployment": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "deployments",
+            "target": "visit",
+            "targetKey": "visit_id",
+            "keysIn": "deployment",
+            "targetStorageType": "sql"
+        },
+        "node_deployment": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "device_deployments",
+            "target": "node",
+            "targetKey": "node_id",
             "keysIn": "deployment",
             "targetStorageType": "sql"
         }

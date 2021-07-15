@@ -26,19 +26,7 @@ module.exports = `
     @original-field
     
     """
-    latitude: Float
-
-    """
-    @original-field
-    
-    """
-    longitude: Float
-
-    """
-    @original-field
-    
-    """
-    altitude: Float
+    location: Point
 
     """
     @original-field
@@ -83,18 +71,18 @@ module.exports = `
     """
     @search-request
     """
-    physical_devicesFilter(search: searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationInput!): [physical_device]
+    device_deploymentsFilter(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationInput!): [deployment]
 
 
     """
     @search-request
     """
-    physical_devicesConnection(search: searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationCursorInput!): Physical_deviceConnection
+    device_deploymentsConnection(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput!): DeploymentConnection
 
     """
     @count-request
     """
-    countFilteredPhysical_devices(search: searchPhysical_deviceInput) : Int
+    countFilteredDevice_deployments(search: searchDeploymentInput) : Int
   
     }
 type NodeConnection{
@@ -124,9 +112,7 @@ type NodeEdge{
     has_partner
     id_sipe
     fid
-    latitude
-    longitude
-    altitude
+    location
     cat_integr
     anpmarcelo
     by_fauna
@@ -162,8 +148,8 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, addUnique_ecosystem:ID, addUnique_calendar:ID  , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, has_partner: Boolean, id_sipe: String, fid: Int, latitude: Float, longitude: Float, altitude: Float, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, removeCumulus:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addUnique_calendar:ID, removeUnique_calendar:ID   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( has_partner: Boolean, id_sipe: String, fid: Int, location: Point, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, addUnique_ecosystem:ID, addUnique_calendar:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, has_partner: Boolean, id_sipe: String, fid: Int, location: Point, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, removeCumulus:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addUnique_calendar:ID, removeUnique_calendar:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

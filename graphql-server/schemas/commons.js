@@ -76,4 +76,13 @@ module.exports = `
   scalar Date
   scalar Time
   scalar DateTime
+  scalar Point
+  scalar MultiPoint
+  scalar LineString
+  scalar MultiLineString
+  scalar Polygon
+  scalar MultiPolygon
+  scalar GeometryCollection
+  scalar Feature
+  scalar FeatureCollection
 `;

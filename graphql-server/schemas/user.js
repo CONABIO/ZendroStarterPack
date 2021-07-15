@@ -94,6 +94,22 @@ module.exports = `
     """
     countFilteredRoles(search: searchRoleInput) : Int
   
+    """
+    @search-request
+    """
+    visitsFilter(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationInput!): [visit]
+
+
+    """
+    @search-request
+    """
+    visitsConnection(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput!): VisitConnection
+
+    """
+    @count-request
+    """
+    countFilteredVisits(search: searchVisitInput) : Int
+  
     }
 type UserConnection{
   edges: [UserEdge]
@@ -160,8 +176,8 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAddUserCsv: String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

@@ -14,7 +14,9 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addCalendar': 'calendar'
+    'addCalendar': 'calendar',
+    'addUser_visit': 'user',
+    'addDeployments': 'deployment'
 }
 
 
@@ -57,7 +59,132 @@ visit.prototype.calendar = async function({
         }
     }
 }
+/**
+ * visit.prototype.user_visit - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+visit.prototype.user_visit = async function({
+    search
+}, context) {
 
+    if (helper.isNotUndefinedAndNotNull(this.user_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneUser({
+                [models.user.idAttribute()]: this.user_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.user.idAttribute(),
+                "value": this.user_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.usersConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+
+/**
+ * visit.prototype.deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+visit.prototype.deploymentsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "visit_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.deployments({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * visit.prototype.countFilteredDeployments - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+visit.prototype.countFilteredDeployments = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "visit_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countDeployments({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * visit.prototype.deploymentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+visit.prototype.deploymentsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "visit_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.deploymentsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -71,21 +198,49 @@ visit.prototype.calendar = async function({
 visit.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-
+    if (helper.isNonEmptyArray(input.addDeployments)) {
+        promises_add.push(this.add_deployments(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addCalendar)) {
         promises_add.push(this.add_calendar(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addUser_visit)) {
+        promises_add.push(this.add_user_visit(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-
+    if (helper.isNonEmptyArray(input.removeDeployments)) {
+        promises_remove.push(this.remove_deployments(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.removeCalendar)) {
         promises_remove.push(this.remove_calendar(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeUser_visit)) {
+        promises_remove.push(this.remove_user_visit(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
+/**
+ * add_deployments - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.add_deployments = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addDeployments.map(associatedRecordId => {
+        return {
+            visit_id: this.getIdValue(),
+            [models.deployment.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.deployment.bulkAssociateDeploymentWithVisit_id(bulkAssociationInput, benignErrorReporter);
+}
+
 /**
  * add_calendar - field Mutation for to_one associations to add
  *
@@ -98,6 +253,35 @@ visit.prototype.add_calendar = async function(input, benignErrorReporter) {
 }
 
 /**
+ * add_user_visit - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.add_user_visit = async function(input, benignErrorReporter) {
+    await visit.add_user_id(this.getIdValue(), input.addUser_visit, benignErrorReporter);
+    this.user_id = input.addUser_visit;
+}
+
+/**
+ * remove_deployments - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.remove_deployments = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeDeployments.map(associatedRecordId => {
+        return {
+            visit_id: this.getIdValue(),
+            [models.deployment.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.deployment.bulkDisAssociateDeploymentWithVisit_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_calendar - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -107,6 +291,19 @@ visit.prototype.remove_calendar = async function(input, benignErrorReporter) {
     if (input.removeCalendar == this.calendar_id) {
         await visit.remove_calendar_id(this.getIdValue(), input.removeCalendar, benignErrorReporter);
         this.calendar_id = null;
+    }
+}
+
+/**
+ * remove_user_visit - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.remove_user_visit = async function(input, benignErrorReporter) {
+    if (input.removeUser_visit == this.user_id) {
+        await visit.remove_user_id(this.getIdValue(), input.removeUser_visit, benignErrorReporter);
+        this.user_id = null;
     }
 }
 
@@ -129,7 +326,9 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_many.push(visit.countFilteredDeployments({}, context));
     promises_to_one.push(visit.calendar({}, context));
+    promises_to_one.push(visit.user_visit({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -367,6 +566,26 @@ module.exports = {
         return await visit.bulkAssociateVisitWithCalendar_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
+     * bulkAssociateVisitWithUser_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateVisitWithUser_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                user_id
+            }) => user_id)), models.user);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), visit);
+        }
+        return await visit.bulkAssociateVisitWithUser_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
      * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -385,6 +604,26 @@ module.exports = {
             }) => id)), visit);
         }
         return await visit.bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateVisitWithUser_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateVisitWithUser_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                user_id
+            }) => user_id)), models.user);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), visit);
+        }
+        return await visit.bulkDisAssociateVisitWithUser_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

@@ -29,6 +29,8 @@ const definition = {
         altitude: 'Float',
         comments: 'String',
         device_id: 'Int',
+        node_id: 'Int',
+        visit_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
@@ -38,6 +40,24 @@ const definition = {
             reverseAssociation: 'device_deployments',
             target: 'physical_device',
             targetKey: 'device_id',
+            keysIn: 'deployment',
+            targetStorageType: 'sql'
+        },
+        visit_deployment: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'deployments',
+            target: 'visit',
+            targetKey: 'visit_id',
+            keysIn: 'deployment',
+            targetStorageType: 'sql'
+        },
+        node_deployment: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'device_deployments',
+            target: 'node',
+            targetKey: 'node_id',
             keysIn: 'deployment',
             targetStorageType: 'sql'
         }
@@ -81,6 +101,12 @@ module.exports = class deployment extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             device_id: {
+                type: Sequelize[dict['Int']]
+            },
+            node_id: {
+                type: Sequelize[dict['Int']]
+            },
+            visit_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
@@ -137,6 +163,14 @@ module.exports = class deployment extends Sequelize.Model {
         deployment.belongsTo(models.physical_device, {
             as: 'device',
             foreignKey: 'device_id'
+        });
+        deployment.belongsTo(models.visit, {
+            as: 'visit_deployment',
+            foreignKey: 'visit_id'
+        });
+        deployment.belongsTo(models.node, {
+            as: 'node_deployment',
+            foreignKey: 'node_id'
         });
     }
 
@@ -362,6 +396,38 @@ module.exports = class deployment extends Sequelize.Model {
         });
         return updated;
     }
+    /**
+     * add_visit_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   visit_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_visit_id(id, visit_id) {
+        let updated = await deployment.update({
+            visit_id: visit_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+    /**
+     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_node_id(id, node_id) {
+        let updated = await deployment.update({
+            node_id: node_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
     /**
      * remove_device_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -376,6 +442,40 @@ module.exports = class deployment extends Sequelize.Model {
             where: {
                 id: id,
                 device_id: device_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_visit_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   visit_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_visit_id(id, visit_id) {
+        let updated = await deployment.update({
+            visit_id: null
+        }, {
+            where: {
+                id: id,
+                visit_id: visit_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_node_id(id, node_id) {
+        let updated = await deployment.update({
+            node_id: null
+        }, {
+            where: {
+                id: id,
+                node_id: node_id
             }
         });
         return updated;
@@ -411,6 +511,58 @@ module.exports = class deployment extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateDeploymentWithVisit_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateDeploymentWithVisit_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "visit_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            visit_id,
+            id
+        }) => {
+            promises.push(super.update({
+                visit_id: visit_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateDeploymentWithNode_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateDeploymentWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            node_id,
+            id
+        }) => {
+            promises.push(super.update({
+                node_id: node_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateDeploymentWithDevice_id - bulkDisAssociaton of given ids
@@ -432,6 +584,60 @@ module.exports = class deployment extends Sequelize.Model {
                 where: {
                     id: id,
                     device_id: device_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateDeploymentWithVisit_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateDeploymentWithVisit_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "visit_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            visit_id,
+            id
+        }) => {
+            promises.push(super.update({
+                visit_id: null
+            }, {
+                where: {
+                    id: id,
+                    visit_id: visit_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateDeploymentWithNode_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            node_id,
+            id
+        }) => {
+            promises.push(super.update({
+                node_id: null
+            }, {
+                where: {
+                    id: id,
+                    node_id: node_id
                 }
             }));
         })

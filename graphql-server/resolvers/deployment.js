@@ -14,7 +14,9 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addDevice': 'physical_device'
+    'addDevice': 'physical_device',
+    'addVisit_deployment': 'visit',
+    'addNode_deployment': 'node'
 }
 
 
@@ -57,6 +59,82 @@ deployment.prototype.device = async function({
         }
     }
 }
+/**
+ * deployment.prototype.visit_deployment - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+deployment.prototype.visit_deployment = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.visit_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneVisit({
+                [models.visit.idAttribute()]: this.visit_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.visit.idAttribute(),
+                "value": this.visit_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.visitsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+/**
+ * deployment.prototype.node_deployment - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+deployment.prototype.node_deployment = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.node_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneNode({
+                [models.node.idAttribute()]: this.node_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.node.idAttribute(),
+                "value": this.node_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.nodesConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -75,12 +153,24 @@ deployment.prototype.handleAssociations = async function(input, benignErrorRepor
     if (helper.isNotUndefinedAndNotNull(input.addDevice)) {
         promises_add.push(this.add_device(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addVisit_deployment)) {
+        promises_add.push(this.add_visit_deployment(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addNode_deployment)) {
+        promises_add.push(this.add_node_deployment(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
     if (helper.isNotUndefinedAndNotNull(input.removeDevice)) {
         promises_remove.push(this.remove_device(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeVisit_deployment)) {
+        promises_remove.push(this.remove_visit_deployment(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeNode_deployment)) {
+        promises_remove.push(this.remove_node_deployment(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -98,6 +188,28 @@ deployment.prototype.add_device = async function(input, benignErrorReporter) {
 }
 
 /**
+ * add_visit_deployment - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.add_visit_deployment = async function(input, benignErrorReporter) {
+    await deployment.add_visit_id(this.getIdValue(), input.addVisit_deployment, benignErrorReporter);
+    this.visit_id = input.addVisit_deployment;
+}
+
+/**
+ * add_node_deployment - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.add_node_deployment = async function(input, benignErrorReporter) {
+    await deployment.add_node_id(this.getIdValue(), input.addNode_deployment, benignErrorReporter);
+    this.node_id = input.addNode_deployment;
+}
+
+/**
  * remove_device - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -107,6 +219,32 @@ deployment.prototype.remove_device = async function(input, benignErrorReporter) 
     if (input.removeDevice == this.device_id) {
         await deployment.remove_device_id(this.getIdValue(), input.removeDevice, benignErrorReporter);
         this.device_id = null;
+    }
+}
+
+/**
+ * remove_visit_deployment - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.remove_visit_deployment = async function(input, benignErrorReporter) {
+    if (input.removeVisit_deployment == this.visit_id) {
+        await deployment.remove_visit_id(this.getIdValue(), input.removeVisit_deployment, benignErrorReporter);
+        this.visit_id = null;
+    }
+}
+
+/**
+ * remove_node_deployment - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.remove_node_deployment = async function(input, benignErrorReporter) {
+    if (input.removeNode_deployment == this.node_id) {
+        await deployment.remove_node_id(this.getIdValue(), input.removeNode_deployment, benignErrorReporter);
+        this.node_id = null;
     }
 }
 
@@ -130,6 +268,8 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_one.push(deployment.device({}, context));
+    promises_to_one.push(deployment.visit_deployment({}, context));
+    promises_to_one.push(deployment.node_deployment({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -367,6 +507,46 @@ module.exports = {
         return await deployment.bulkAssociateDeploymentWithDevice_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
+     * bulkAssociateDeploymentWithVisit_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateDeploymentWithVisit_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                visit_id
+            }) => visit_id)), models.visit);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), deployment);
+        }
+        return await deployment.bulkAssociateDeploymentWithVisit_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkAssociateDeploymentWithNode_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateDeploymentWithNode_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                node_id
+            }) => node_id)), models.node);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), deployment);
+        }
+        return await deployment.bulkAssociateDeploymentWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
      * bulkDisAssociateDeploymentWithDevice_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -385,6 +565,46 @@ module.exports = {
             }) => id)), deployment);
         }
         return await deployment.bulkDisAssociateDeploymentWithDevice_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateDeploymentWithVisit_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateDeploymentWithVisit_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                visit_id
+            }) => visit_id)), models.visit);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), deployment);
+        }
+        return await deployment.bulkDisAssociateDeploymentWithVisit_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateDeploymentWithNode_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateDeploymentWithNode_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                node_id
+            }) => node_id)), models.node);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), deployment);
+        }
+        return await deployment.bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

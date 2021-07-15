@@ -29,7 +29,24 @@ module.exports = `
     created_at: DateTime
 
     calendar(search: searchCalendarInput): calendar
+  user_visit(search: searchUserInput): user
     
+    """
+    @search-request
+    """
+    deploymentsFilter(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationInput!): [deployment]
+
+
+    """
+    @search-request
+    """
+    deploymentsConnection(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput!): DeploymentConnection
+
+    """
+    @count-request
+    """
+    countFilteredDeployments(search: searchDeploymentInput) : Int
+  
     }
 type VisitConnection{
   edges: [VisitEdge]
@@ -76,6 +93,9 @@ type VisitEdge{
   input bulkAssociationVisitWithCalendar_idInput{
     id: ID!
     calendar_id: ID!
+  }  input bulkAssociationVisitWithUser_idInput{
+    id: ID!
+    user_id: ID!
   }
 
   type Query {
@@ -88,11 +108,13 @@ type VisitEdge{
   }
 
   type Mutation {
-    addVisit( user_id: Int, device_id: Int, created_at: DateTime , addCalendar:ID   , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, user_id: Int, device_id: Int, created_at: DateTime , addCalendar:ID, removeCalendar:ID    , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( device_id: Int, created_at: DateTime , addCalendar:ID, addUser_visit:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, device_id: Int, created_at: DateTime , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
     bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;
