@@ -1,0 +1,39 @@
+{
+    "model": "visit",
+    "storageType": "sql",
+    "attributes": {
+        "user_id": "Int",
+        "device_id": "Int",
+        "calendar_id": "Int",
+        "created_at": "DateTime"
+    },
+    "associations": {
+        "calendar": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visits",
+            "target": "calendar",
+            "targetKey": "calendar_id",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
+        },
+        "deployments": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visit_deployment",
+            "target": "deployment",
+            "targetKey": "visit_id",
+            "keysIn": "deployment",
+            "targetStorageType": "sql"
+        },
+        "user_visit": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visits",
+            "target": "user",
+            "targetKey": "user_id",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
+        }
+    }
+}
