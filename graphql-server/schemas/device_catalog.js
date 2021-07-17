@@ -32,12 +32,6 @@ module.exports = `
     @original-field
     
     """
-    cumulus_ids: [Int]
-
-    """
-    @original-field
-    
-    """
     created_at: DateTime
 
       
@@ -56,22 +50,6 @@ module.exports = `
     @count-request
     """
     countFilteredPhysical_devices(search: searchPhysical_deviceInput) : Int
-  
-    """
-    @search-request
-    """
-    cumulusFilter(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput!): [cumulus]
-
-
-    """
-    @search-request
-    """
-    cumulusConnection(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput!): CumulusConnection
-
-    """
-    @count-request
-    """
-    countFilteredCumulus(search: searchCumulusInput) : Int
   
     }
 type Device_catalogConnection{
@@ -102,7 +80,6 @@ type Device_catalogEdge{
     model
     type
     serial_number
-    cumulus_ids
     created_at
   }
   input searchDevice_catalogInput {
@@ -130,8 +107,8 @@ type Device_catalogEdge{
   }
 
   type Mutation {
-    addDevice_catalog( brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID], addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
-    updateDevice_catalog(id: ID!, brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID], removePhysical_devices:[ID] , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
+    addDevice_catalog( brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
+    updateDevice_catalog(id: ID!, brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
     deleteDevice_catalog(id: ID!): String!
     bulkAddDevice_catalogCsv: String!
       }

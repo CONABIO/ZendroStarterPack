@@ -36,6 +36,9 @@ module.exports = {
             device_id: {
                 type: Sequelize[dict['Int']]
             },
+            cumulus_id: {
+                type: Sequelize[dict['Int']]
+            },
             created_at: {
                 type: Sequelize[dict['DateTime']]
             }

@@ -16,7 +16,7 @@ const errorHelper = require('../utils/errors');
 const associationArgsDef = {
     'addDevice': 'physical_device',
     'addVisit_deployment': 'visit',
-    'addNode_deployment': 'node'
+    'addMonitors': 'monitor'
 }
 
 
@@ -97,45 +97,118 @@ deployment.prototype.visit_deployment = async function({
         }
     }
 }
+
 /**
- * deployment.prototype.node_deployment - Return associated record
+ * deployment.prototype.monitorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-deployment.prototype.node_deployment = async function({
+deployment.prototype.monitorsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
+        return [];
+    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.monitor.idAttribute(),
+        "value": this.monitor_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.monitors({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * deployment.prototype.countFilteredMonitors - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+deployment.prototype.countFilteredMonitors = function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.node_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneNode({
-                [models.node.idAttribute()]: this.node_id
-            }, context)
-        } else {
 
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.node.idAttribute(),
-                "value": this.node_id,
-                "operator": "eq"
-            });
-            let found = (await resolvers.nodesConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
+        return 0;
     }
+
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.monitor.idAttribute(),
+        "value": this.monitor_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.countMonitors({
+        search: nsearch
+    }, context);
 }
 
+/**
+ * deployment.prototype.monitorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+deployment.prototype.monitorsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
+        return {
+            edges: [],
+            monitors: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
+
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.monitor.idAttribute(),
+        "value": this.monitor_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.monitorsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -149,33 +222,44 @@ deployment.prototype.node_deployment = async function({
 deployment.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-
+    if (helper.isNonEmptyArray(input.addMonitors)) {
+        promises_add.push(this.add_monitors(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addDevice)) {
         promises_add.push(this.add_device(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addVisit_deployment)) {
         promises_add.push(this.add_visit_deployment(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addNode_deployment)) {
-        promises_add.push(this.add_node_deployment(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-
+    if (helper.isNonEmptyArray(input.removeMonitors)) {
+        promises_remove.push(this.remove_monitors(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.removeDevice)) {
         promises_remove.push(this.remove_device(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeVisit_deployment)) {
         promises_remove.push(this.remove_visit_deployment(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeNode_deployment)) {
-        promises_remove.push(this.remove_node_deployment(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_remove);
 
 }
+/**
+ * add_monitors - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.add_monitors = async function(input, benignErrorReporter) {
+
+    await deployment.add_monitor_ids(this.getIdValue(), input.addMonitors, benignErrorReporter);
+    this.monitor_ids = helper.unionIds(this.monitor_ids, input.addMonitors);
+}
+
 /**
  * add_device - field Mutation for to_one associations to add
  *
@@ -199,14 +283,16 @@ deployment.prototype.add_visit_deployment = async function(input, benignErrorRep
 }
 
 /**
- * add_node_deployment - field Mutation for to_one associations to add
+ * remove_monitors - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
- * @param {object} input   Info of input Ids to add  the association
+ * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-deployment.prototype.add_node_deployment = async function(input, benignErrorReporter) {
-    await deployment.add_node_id(this.getIdValue(), input.addNode_deployment, benignErrorReporter);
-    this.node_id = input.addNode_deployment;
+deployment.prototype.remove_monitors = async function(input, benignErrorReporter) {
+
+    await deployment.remove_monitor_ids(this.getIdValue(), input.removeMonitors, benignErrorReporter);
+    this.monitor_ids = helper.differenceIds(this.monitor_ids, input.removeMonitors);
 }
 
 /**
@@ -235,19 +321,6 @@ deployment.prototype.remove_visit_deployment = async function(input, benignError
     }
 }
 
-/**
- * remove_node_deployment - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-deployment.prototype.remove_node_deployment = async function(input, benignErrorReporter) {
-    if (input.removeNode_deployment == this.node_id) {
-        await deployment.remove_node_id(this.getIdValue(), input.removeNode_deployment, benignErrorReporter);
-        this.node_id = null;
-    }
-}
-
 
 
 /**
@@ -267,9 +340,9 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_many.push(deployment.countFilteredMonitors({}, context));
     promises_to_one.push(deployment.device({}, context));
     promises_to_one.push(deployment.visit_deployment({}, context));
-    promises_to_one.push(deployment.node_deployment({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -527,26 +600,6 @@ module.exports = {
         return await deployment.bulkAssociateDeploymentWithVisit_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkAssociateDeploymentWithNode_id - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateDeploymentWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), deployment);
-        }
-        return await deployment.bulkAssociateDeploymentWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
      * bulkDisAssociateDeploymentWithDevice_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -585,26 +638,6 @@ module.exports = {
             }) => id)), deployment);
         }
         return await deployment.bulkDisAssociateDeploymentWithVisit_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
-     * bulkDisAssociateDeploymentWithNode_id - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateDeploymentWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), deployment);
-        }
-        return await deployment.bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

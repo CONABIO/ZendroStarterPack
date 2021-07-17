@@ -22,19 +22,18 @@ const definition = {
     model: 'node',
     storageType: 'sql',
     attributes: {
+        nomenclatura: 'String',
         has_partner: 'Boolean',
-        id_sipe: 'String',
         fid: 'Int',
         location: 'Point',
         cat_integr: 'String',
-        anpmarcelo: 'Boolean',
-        by_fauna: 'Int',
         integrity: 'Boolean',
         cumulus_id: 'Int',
+        ecosystem_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
-        cumulus: {
+        cumulus_node: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'nodes',
@@ -43,31 +42,22 @@ const definition = {
             keysIn: 'node',
             targetStorageType: 'sql'
         },
-        unique_ecosystem: {
+        unique_visit: {
             type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'unique_node',
+            target: 'visit',
+            targetKey: 'node_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
+        },
+        ecosystems: {
+            type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'unique_node',
             target: 'ecosystem',
-            targetKey: 'node_id',
-            keysIn: 'ecosystem',
-            targetStorageType: 'sql'
-        },
-        device_deployments: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'node_deployment',
-            target: 'deployment',
-            targetKey: 'node_id',
-            keysIn: 'deployment',
-            targetStorageType: 'sql'
-        },
-        unique_calendar: {
-            type: 'one_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'unique_node',
-            target: 'calendar',
-            targetKey: 'node_id',
-            keysIn: 'calendar',
+            targetKey: 'ecosystem_id',
+            keysIn: 'node',
             targetStorageType: 'sql'
         }
     },
@@ -91,11 +81,11 @@ module.exports = class node extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
+            nomenclatura: {
+                type: Sequelize[dict['String']]
+            },
             has_partner: {
                 type: Sequelize[dict['Boolean']]
-            },
-            id_sipe: {
-                type: Sequelize[dict['String']]
             },
             fid: {
                 type: Sequelize[dict['Int']]
@@ -106,16 +96,13 @@ module.exports = class node extends Sequelize.Model {
             cat_integr: {
                 type: Sequelize[dict['String']]
             },
-            anpmarcelo: {
-                type: Sequelize[dict['Boolean']]
-            },
-            by_fauna: {
-                type: Sequelize[dict['Int']]
-            },
             integrity: {
                 type: Sequelize[dict['Boolean']]
             },
             cumulus_id: {
+                type: Sequelize[dict['Int']]
+            },
+            ecosystem_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
@@ -170,20 +157,16 @@ module.exports = class node extends Sequelize.Model {
 
     static associate(models) {
         node.belongsTo(models.cumulus, {
-            as: 'cumulus',
+            as: 'cumulus_node',
             foreignKey: 'cumulus_id'
         });
-        node.hasOne(models.ecosystem, {
-            as: 'unique_ecosystem',
+        node.hasOne(models.visit, {
+            as: 'unique_visit',
             foreignKey: 'node_id'
         });
-        node.hasOne(models.calendar, {
-            as: 'unique_calendar',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.deployment, {
-            as: 'device_deployments',
-            foreignKey: 'node_id'
+        node.belongsTo(models.ecosystem, {
+            as: 'ecosystems',
+            foreignKey: 'ecosystem_id'
         });
     }
 
@@ -409,6 +392,22 @@ module.exports = class node extends Sequelize.Model {
         });
         return updated;
     }
+    /**
+     * add_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_ecosystem_id(id, ecosystem_id) {
+        let updated = await node.update({
+            ecosystem_id: ecosystem_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
     /**
      * remove_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -423,6 +422,23 @@ module.exports = class node extends Sequelize.Model {
             where: {
                 id: id,
                 cumulus_id: cumulus_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_ecosystem_id(id, ecosystem_id) {
+        let updated = await node.update({
+            ecosystem_id: null
+        }, {
+            where: {
+                id: id,
+                ecosystem_id: ecosystem_id
             }
         });
         return updated;
@@ -458,6 +474,32 @@ module.exports = class node extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateNodeWithEcosystem_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateNodeWithEcosystem_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            ecosystem_id,
+            id
+        }) => {
+            promises.push(super.update({
+                ecosystem_id: ecosystem_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateNodeWithCumulus_id - bulkDisAssociaton of given ids
@@ -479,6 +521,33 @@ module.exports = class node extends Sequelize.Model {
                 where: {
                     id: id,
                     cumulus_id: cumulus_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateNodeWithEcosystem_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            ecosystem_id,
+            id
+        }) => {
+            promises.push(super.update({
+                ecosystem_id: null
+            }, {
+                where: {
+                    id: id,
+                    ecosystem_id: ecosystem_id
                 }
             }));
         })

@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('users', {
+        return queryInterface.createTable('institutions', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,37 +30,13 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            username: {
-                type: Sequelize[dict['String']]
-            },
-            password: {
-                type: Sequelize[dict['String']]
-            },
-            first_name: {
-                type: Sequelize[dict['String']]
-            },
-            last_name: {
-                type: Sequelize[dict['String']]
-            },
-            grade: {
-                type: Sequelize[dict['String']]
-            },
-            email: {
+            name: {
                 type: Sequelize[dict['String']]
             },
             address: {
                 type: Sequelize[dict['String']]
             },
-            is_active: {
-                type: Sequelize[dict['Boolean']]
-            },
-            comments: {
-                type: Sequelize[dict['String']]
-            },
-            last_login: {
-                type: Sequelize[dict['DateTime']]
-            },
-            institution_id: {
+            phone_number: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
@@ -78,7 +54,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('users');
+        return queryInterface.dropTable('institutions');
     }
 
 };

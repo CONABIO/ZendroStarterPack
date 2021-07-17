@@ -8,13 +8,13 @@ module.exports = `
     @original-field
     
     """
-    has_partner: Boolean
+    nomenclatura: String
 
     """
     @original-field
     
     """
-    id_sipe: String
+    has_partner: Boolean
 
     """
     @original-field
@@ -38,18 +38,6 @@ module.exports = `
     @original-field
     
     """
-    anpmarcelo: Boolean
-
-    """
-    @original-field
-    
-    """
-    by_fauna: Int
-
-    """
-    @original-field
-    
-    """
     integrity: Boolean
 
     """
@@ -62,28 +50,18 @@ module.exports = `
     @original-field
     
     """
-    created_at: DateTime
+    ecosystem_id: Int
 
-    cumulus(search: searchCumulusInput): cumulus
-  unique_ecosystem(search: searchEcosystemInput): ecosystem
-  unique_calendar(search: searchCalendarInput): calendar
+    """
+    @original-field
     
     """
-    @search-request
-    """
-    device_deploymentsFilter(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationInput!): [deployment]
+    created_at: DateTime
 
-
-    """
-    @search-request
-    """
-    device_deploymentsConnection(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput!): DeploymentConnection
-
-    """
-    @count-request
-    """
-    countFilteredDevice_deployments(search: searchDeploymentInput) : Int
-  
+    cumulus_node(search: searchCumulusInput): cumulus
+  unique_visit(search: searchVisitInput): visit
+  ecosystems(search: searchEcosystemInput): ecosystem
+    
     }
 type NodeConnection{
   edges: [NodeEdge]
@@ -109,15 +87,14 @@ type NodeEdge{
   }
   enum nodeField {
     id
+    nomenclatura
     has_partner
-    id_sipe
     fid
     location
     cat_integr
-    anpmarcelo
-    by_fauna
     integrity
     cumulus_id
+    ecosystem_id
     created_at
   }
   input searchNodeInput {
@@ -136,6 +113,9 @@ type NodeEdge{
   input bulkAssociationNodeWithCumulus_idInput{
     id: ID!
     cumulus_id: ID!
+  }  input bulkAssociationNodeWithEcosystem_idInput{
+    id: ID!
+    ecosystem_id: ID!
   }
 
   type Query {
@@ -148,11 +128,13 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( has_partner: Boolean, id_sipe: String, fid: Int, location: Point, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, addUnique_ecosystem:ID, addUnique_calendar:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, has_partner: Boolean, id_sipe: String, fid: Int, location: Point, cat_integr: String, anpmarcelo: Boolean, by_fauna: Int, integrity: Boolean, created_at: DateTime , addCumulus:ID, removeCumulus:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addUnique_calendar:ID, removeUnique_calendar:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, addUnique_visit:ID, addEcosystems:ID   , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit:ID, removeUnique_visit:ID , addEcosystems:ID, removeEcosystems:ID    , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateNodeWithEcosystem_id(bulkAssociationInput: [bulkAssociationNodeWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput: [bulkAssociationNodeWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

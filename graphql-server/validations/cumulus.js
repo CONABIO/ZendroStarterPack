@@ -22,15 +22,12 @@ module.exports.validator_patch = function(cumulus) {
                 "type": ["string", "null"]
             },
             "geometry": {
-                "type": ["string", "null"]
+                "type": ["object", "null"]
             },
             "criteria_id": {
                 "type": ["integer", "null"]
             },
-            "devices_ids": {
-                "type": ["array", "null"]
-            },
-            "institutions_ids": {
+            "user_ids": {
                 "type": ["array", "null"]
             },
             "created_at": {

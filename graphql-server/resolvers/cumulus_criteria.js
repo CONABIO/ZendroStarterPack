@@ -14,21 +14,30 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_cumulus': 'cumulus'
+    'addCumulus': 'cumulus'
 }
 
 
 
+
 /**
- * cumulus_criteria.prototype.unique_cumulus - Return associated record
+ * cumulus_criteria.prototype.cumulusFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-cumulus_criteria.prototype.unique_cumulus = async function({
-    search
+cumulus_criteria.prototype.cumulusFilter = function({
+    search,
+    order,
+    pagination
 }, context) {
+
+
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -37,23 +46,67 @@ cumulus_criteria.prototype.unique_cumulus = async function({
         "operator": "eq"
     });
 
-    let found = (await resolvers.cumulusConnection({
+    return resolvers.cumulus({
         search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 cumulus matching cumulus_criteria with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the cumulus_criteria model. Returning first cumulus.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
+/**
+ * cumulus_criteria.prototype.countFilteredCumulus - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+cumulus_criteria.prototype.countFilteredCumulus = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "criteria_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countCumulus({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * cumulus_criteria.prototype.cumulusConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+cumulus_criteria.prototype.cumulusConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "criteria_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.cumulusConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -67,39 +120,53 @@ cumulus_criteria.prototype.unique_cumulus = async function({
 cumulus_criteria.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_cumulus)) {
-        promises_add.push(this.add_unique_cumulus(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addCumulus)) {
+        promises_add.push(this.add_cumulus(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_cumulus)) {
-        promises_remove.push(this.remove_unique_cumulus(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeCumulus)) {
+        promises_remove.push(this.remove_cumulus(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_unique_cumulus - field Mutation for to_one associations to add
+ * add_cumulus - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-cumulus_criteria.prototype.add_unique_cumulus = async function(input, benignErrorReporter) {
-    await models.cumulus.add_criteria_id(input.addUnique_cumulus, this.getIdValue(), benignErrorReporter);
+cumulus_criteria.prototype.add_cumulus = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addCumulus.map(associatedRecordId => {
+        return {
+            criteria_id: this.getIdValue(),
+            [models.cumulus.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cumulus.bulkAssociateCumulusWithCriteria_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
- * remove_unique_cumulus - field Mutation for to_one associations to remove
+ * remove_cumulus - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-cumulus_criteria.prototype.remove_unique_cumulus = async function(input, benignErrorReporter) {
-    await models.cumulus.remove_criteria_id(input.removeUnique_cumulus, this.getIdValue(), benignErrorReporter);
+cumulus_criteria.prototype.remove_cumulus = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeCumulus.map(associatedRecordId => {
+        return {
+            criteria_id: this.getIdValue(),
+            [models.cumulus.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cumulus.bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -121,7 +188,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(cumulus_criteria.unique_cumulus({}, context));
+    promises_to_many.push(cumulus_criteria.countFilteredCumulus({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

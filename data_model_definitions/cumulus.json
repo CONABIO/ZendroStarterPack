@@ -3,50 +3,66 @@
     "storageType" : "sql",
     "attributes" : {
       "name" : "String",
-      "geometry": "String",
+      "geometry": "Polygon",
       "criteria_id": "Int",
-      "devices_ids": "[Int]",
-      "institutions_ids": "[Int]",
+      "user_ids": "[Int]",
       "created_at": "DateTime"
     },
     "associations": {
-      "nodes": {
-        "type": "one_to_many",
+      "cumulus_criteria": {
+        "type": "many_to_one",
         "implementation": "foreignkeys",
         "reverseAssociation": "cumulus",
-        "target": "node",
-        "targetKey": "cumulus_id",
-        "keysIn": "node",
-        "targetStorageType": "sql"
-      },
-      "unique_cumulus_criteria": {
-        "type": "one_to_one",
-        "implementation": "foreignkeys",
-        "reverseAssociation": "unique_cumulus",
         "target": "cumulus_criteria",
         "targetKey": "criteria_id",
         "keysIn": "cumulus",
         "targetStorageType": "sql"
       }, 
       "devices": {
-        "type": "many_to_many",
+        "type": "one_to_many",
         "implementation": "foreignkeys",
-        "reverseAssociation": "cumulus",
-        "target": "device_catalog",
-        "targetKey": "cumulus_ids",
-        "sourceKey": "devices_ids",
-        "keysIn": "cumulus",
+        "reverseAssociation": "cumulus_device",
+        "target": "physical_device",
+        "targetKey": "cumulus_id",
+        "keysIn": "physical_device",
         "targetStorageType": "sql"
       },
-      "associated_institutions": {
+      "associated_partners": {
           "type": "many_to_many",
           "implementation": "foreignkeys",
           "reverseAssociation": "associated_cumulus",
-          "target": "institution",
+          "target": "user",
           "targetKey": "cumulus_ids",
-          "sourceKey": "institutions_ids",
+          "sourceKey": "user_ids",
           "keysIn": "cumulus",
           "targetStorageType": "sql"
+      },
+      "visits": {
+          "type": "one_to_many",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "cumulus_visit",
+          "target": "visit",
+          "targetKey": "cumulus_id",
+          "keysIn": "visit",
+          "targetStorageType": "sql"
+      },
+      "monitors": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "cumulus_monitor",
+        "target": "monitor",
+        "targetKey": "cumulus_id",
+        "keysIn": "monitor",
+        "targetStorageType": "sql"
+      },
+      "nodes": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "cumulus_node",
+        "target": "node",
+        "targetKey": "cumulus_id",
+        "keysIn": "node",
+        "targetStorageType": "sql"
       }
     }
 }

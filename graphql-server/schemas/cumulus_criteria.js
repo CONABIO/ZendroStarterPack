@@ -14,16 +14,25 @@ module.exports = `
     @original-field
     
     """
-    cumulus_id: Int
-
-    """
-    @original-field
-    
-    """
     created_at: DateTime
 
-    unique_cumulus(search: searchCumulusInput): cumulus
-    
+      
+    """
+    @search-request
+    """
+    cumulusFilter(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput!): [cumulus]
+
+
+    """
+    @search-request
+    """
+    cumulusConnection(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput!): CumulusConnection
+
+    """
+    @count-request
+    """
+    countFilteredCumulus(search: searchCumulusInput) : Int
+  
     }
 type Cumulus_criteriaConnection{
   edges: [Cumulus_criteriaEdge]
@@ -50,7 +59,6 @@ type Cumulus_criteriaEdge{
   enum cumulus_criteriaField {
     id
     name
-    cumulus_id
     created_at
   }
   input searchCumulus_criteriaInput {
@@ -78,8 +86,8 @@ type Cumulus_criteriaEdge{
   }
 
   type Mutation {
-    addCumulus_criteria( name: String, cumulus_id: Int, created_at: DateTime , addUnique_cumulus:ID   , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
-    updateCumulus_criteria(id: ID!, name: String, cumulus_id: Int, created_at: DateTime , addUnique_cumulus:ID, removeUnique_cumulus:ID    , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    addCumulus_criteria( name: String, created_at: DateTime   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    updateCumulus_criteria(id: ID!, name: String, created_at: DateTime   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
     deleteCumulus_criteria(id: ID!): String!
     bulkAddCumulus_criteriaCsv: String!
       }

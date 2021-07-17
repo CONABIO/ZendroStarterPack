@@ -1,0 +1,33 @@
+{
+    "model": "monitor",
+    "storageType": "sql",
+    "attributes":  {
+        "first_name": "String",
+        "last_name": "String",
+        "second_last_name": "String",
+        "contact": "String",
+        "cumulus_id": "Int",
+        "deployment_ids": "[Int]"
+    },
+    "associations": {
+        "cumulus_monitor": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "monitors",
+            "target": "cumulus",
+            "targetKey": "cumulus_id",
+            "keysIn": "monitor",
+            "targetStorageType": "sql"
+        },
+        "deployments": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "monitors",
+            "target": "deployment",
+            "targetKey": "monitor_ids",
+            "sourceKey": "deployment_ids",
+            "keysIn": "monitor",
+            "targetStorageType": "sql"
+        }
+    }
+}

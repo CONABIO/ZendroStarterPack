@@ -26,13 +26,11 @@ const definition = {
         password: 'String',
         first_name: 'String',
         last_name: 'String',
-        grade: 'String',
         email: 'String',
-        address: 'String',
         is_active: 'Boolean',
-        comments: 'String',
         last_login: 'DateTime',
         institution_id: 'Int',
+        cumulus_ids: '[Int]',
         created_at: 'DateTime'
     },
     associations: {
@@ -63,6 +61,16 @@ const definition = {
             target: 'visit',
             targetKey: 'user_id',
             keysIn: 'visit',
+            targetStorageType: 'sql'
+        },
+        associated_cumulus: {
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'associated_partners',
+            target: 'cumulus',
+            targetKey: 'user_ids',
+            sourceKey: 'cumulus_ids',
+            keysIn: 'user',
             targetStorageType: 'sql'
         }
     },
@@ -98,26 +106,21 @@ module.exports = class user extends Sequelize.Model {
             last_name: {
                 type: Sequelize[dict['String']]
             },
-            grade: {
-                type: Sequelize[dict['String']]
-            },
             email: {
-                type: Sequelize[dict['String']]
-            },
-            address: {
                 type: Sequelize[dict['String']]
             },
             is_active: {
                 type: Sequelize[dict['Boolean']]
-            },
-            comments: {
-                type: Sequelize[dict['String']]
             },
             last_login: {
                 type: Sequelize[dict['DateTime']]
             },
             institution_id: {
                 type: Sequelize[dict['Int']]
+            },
+            cumulus_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -457,6 +460,31 @@ module.exports = class user extends Sequelize.Model {
         return updated;
     }
     /**
+     * add_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            cumulus_ids.forEach(idx => {
+                promises.push(models.cumulus.add_user_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.cumulus_ids), cumulus_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                cumulus_ids: updated_ids
+            });
+        }
+    }
+    /**
      * add_role_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -487,6 +515,31 @@ module.exports = class user extends Sequelize.Model {
             }
         });
         return updated;
+    }
+    /**
+     * remove_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            cumulus_ids.forEach(idx => {
+                promises.push(models.cumulus.remove_user_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.cumulus_ids), cumulus_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                cumulus_ids: updated_ids
+            });
+        }
     }
     /**
      * remove_role_id - field Mutation (model-layer) for to_one associationsArguments to remove

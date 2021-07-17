@@ -26,7 +26,6 @@ const definition = {
         model: 'String',
         type: 'String',
         serial_number: 'String',
-        cumulus_ids: '[Int]',
         created_at: 'DateTime'
     },
     associations: {
@@ -37,16 +36,6 @@ const definition = {
             target: 'physical_device',
             targetKey: 'device_id',
             keysIn: 'physical_device',
-            targetStorageType: 'sql'
-        },
-        cumulus: {
-            type: 'many_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'devices',
-            target: 'cumulus',
-            targetKey: 'devices_ids',
-            sourceKey: 'cumulus_ids',
-            keysIn: 'device_catalog',
             targetStorageType: 'sql'
         }
     },
@@ -81,10 +70,6 @@ module.exports = class device_catalog extends Sequelize.Model {
             },
             serial_number: {
                 type: Sequelize[dict['String']]
-            },
-            cumulus_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -349,57 +334,7 @@ module.exports = class device_catalog extends Sequelize.Model {
 
 
 
-    /**
-     * add_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            cumulus_ids.forEach(idx => {
-                promises.push(models.cumulus.add_devices_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
 
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.cumulus_ids), cumulus_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                cumulus_ids: updated_ids
-            });
-        }
-    }
-
-    /**
-     * remove_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            cumulus_ids.forEach(idx => {
-                promises.push(models.cumulus.remove_devices_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.cumulus_ids), cumulus_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                cumulus_ids: updated_ids
-            });
-        }
-    }
 
 
 

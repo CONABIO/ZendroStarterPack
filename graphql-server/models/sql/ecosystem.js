@@ -22,18 +22,16 @@ const definition = {
     model: 'ecosystem',
     storageType: 'sql',
     attributes: {
-        name: 'String',
-        node_id: 'Int',
-        created_at: 'DateTime'
+        name: 'String'
     },
     associations: {
         unique_node: {
-            type: 'one_to_one',
+            type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'unique_ecosystem',
+            reverseAssociation: 'ecosystems',
             target: 'node',
-            targetKey: 'node_id',
-            keysIn: 'ecosystem',
+            targetKey: 'ecosystem_id',
+            keysIn: 'node',
             targetStorageType: 'sql'
         }
     },
@@ -59,12 +57,6 @@ module.exports = class ecosystem extends Sequelize.Model {
 
             name: {
                 type: Sequelize[dict['String']]
-            },
-            node_id: {
-                type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 
@@ -114,9 +106,9 @@ module.exports = class ecosystem extends Sequelize.Model {
     }
 
     static associate(models) {
-        ecosystem.belongsTo(models.node, {
+        ecosystem.hasMany(models.node, {
             as: 'unique_node',
-            foreignKey: 'node_id'
+            foreignKey: 'ecosystem_id'
         });
     }
 
@@ -326,98 +318,12 @@ module.exports = class ecosystem extends Sequelize.Model {
 
 
 
-    /**
-     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_node_id(id, node_id) {
-        let updated = await ecosystem.update({
-            node_id: node_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-
-    /**
-     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_node_id(id, node_id) {
-        let updated = await ecosystem.update({
-            node_id: null
-        }, {
-            where: {
-                id: id,
-                node_id: node_id
-            }
-        });
-        return updated;
-    }
 
 
 
 
 
-    /**
-     * bulkAssociateEcosystemWithNode_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateEcosystemWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: node_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-
-    /**
-     * bulkDisAssociateEcosystemWithNode_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateEcosystemWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: null
-            }, {
-                where: {
-                    id: id,
-                    node_id: node_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
 

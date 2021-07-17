@@ -47,9 +47,6 @@ module.exports.validator_patch = function(deployment) {
             "device_id": {
                 "type": ["integer", "null"]
             },
-            "node_id": {
-                "type": ["integer", "null"]
-            },
             "visit_id": {
                 "type": ["integer", "null"]
             },
@@ -59,6 +56,9 @@ module.exports.validator_patch = function(deployment) {
                 }, {
                     "type": "null"
                 }]
+            },
+            "monitor_ids": {
+                "type": ["array", "null"]
             }
         }
     }

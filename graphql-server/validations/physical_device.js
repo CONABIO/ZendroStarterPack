@@ -24,6 +24,9 @@ module.exports.validator_patch = function(physical_device) {
             "device_id": {
                 "type": ["integer", "null"]
             },
+            "cumulus_id": {
+                "type": ["integer", "null"]
+            },
             "created_at": {
                 "anyOf": [{
                     "isoDateTime": true

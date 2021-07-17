@@ -10,20 +10,23 @@ module.exports = `
     """
     name: String
 
+      
     """
-    @original-field
-    
+    @search-request
     """
-    node_id: Int
+    unique_nodeFilter(search: searchNodeInput, order: [ orderNodeInput ], pagination: paginationInput!): [node]
+
 
     """
-    @original-field
-    
+    @search-request
     """
-    created_at: DateTime
+    unique_nodeConnection(search: searchNodeInput, order: [ orderNodeInput ], pagination: paginationCursorInput!): NodeConnection
 
-    unique_node(search: searchNodeInput): node
-    
+    """
+    @count-request
+    """
+    countFilteredUnique_node(search: searchNodeInput) : Int
+  
     }
 type EcosystemConnection{
   edges: [EcosystemEdge]
@@ -50,8 +53,6 @@ type EcosystemEdge{
   enum ecosystemField {
     id
     name
-    node_id
-    created_at
   }
   input searchEcosystemInput {
     field: ecosystemField
@@ -66,10 +67,7 @@ type EcosystemEdge{
     order: Order
   }
 
-  input bulkAssociationEcosystemWithNode_idInput{
-    id: ID!
-    node_id: ID!
-  }
+
 
   type Query {
     ecosystems(search: searchEcosystemInput, order: [ orderEcosystemInput ], pagination: paginationInput! ): [ecosystem]
@@ -81,11 +79,9 @@ type EcosystemEdge{
   }
 
   type Mutation {
-    addEcosystem( name: String, created_at: DateTime , addUnique_node:ID   , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
-    updateEcosystem(id: ID!, name: String, created_at: DateTime , addUnique_node:ID, removeUnique_node:ID    , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    addEcosystem( name: String   , addUnique_node:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    updateEcosystem(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     deleteEcosystem(id: ID!): String!
     bulkAddEcosystemCsv: String!
-    bulkAssociateEcosystemWithNode_id(bulkAssociationInput: [bulkAssociationEcosystemWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-    bulkDisAssociateEcosystemWithNode_id(bulkAssociationInput: [bulkAssociationEcosystemWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-  }
+      }
 `;

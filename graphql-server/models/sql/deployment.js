@@ -29,9 +29,9 @@ const definition = {
         altitude: 'Float',
         comments: 'String',
         device_id: 'Int',
-        node_id: 'Int',
         visit_id: 'Int',
-        created_at: 'DateTime'
+        created_at: 'DateTime',
+        monitor_ids: '[Int]'
     },
     associations: {
         device: {
@@ -52,12 +52,13 @@ const definition = {
             keysIn: 'deployment',
             targetStorageType: 'sql'
         },
-        node_deployment: {
-            type: 'many_to_one',
+        monitors: {
+            type: 'many_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'device_deployments',
-            target: 'node',
-            targetKey: 'node_id',
+            reverseAssociation: 'deployments',
+            target: 'monitor',
+            targetKey: 'deployment_ids',
+            sourceKey: 'monitor_ids',
             keysIn: 'deployment',
             targetStorageType: 'sql'
         }
@@ -103,14 +104,15 @@ module.exports = class deployment extends Sequelize.Model {
             device_id: {
                 type: Sequelize[dict['Int']]
             },
-            node_id: {
-                type: Sequelize[dict['Int']]
-            },
             visit_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
+            },
+            monitor_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             }
 
 
@@ -167,10 +169,6 @@ module.exports = class deployment extends Sequelize.Model {
         deployment.belongsTo(models.visit, {
             as: 'visit_deployment',
             foreignKey: 'visit_id'
-        });
-        deployment.belongsTo(models.node, {
-            as: 'node_deployment',
-            foreignKey: 'node_id'
         });
     }
 
@@ -413,20 +411,29 @@ module.exports = class deployment extends Sequelize.Model {
         return updated;
     }
     /**
-     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_monitor_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   monitor_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_node_id(id, node_id) {
-        let updated = await deployment.update({
-            node_id: node_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
+    static async add_monitor_ids(id, monitor_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            monitor_ids.forEach(idx => {
+                promises.push(models.monitor.add_deployment_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.monitor_ids), monitor_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                monitor_ids: updated_ids
+            });
+        }
     }
 
     /**
@@ -464,21 +471,29 @@ module.exports = class deployment extends Sequelize.Model {
         return updated;
     }
     /**
-     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_monitor_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   monitor_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_node_id(id, node_id) {
-        let updated = await deployment.update({
-            node_id: null
-        }, {
-            where: {
-                id: id,
-                node_id: node_id
-            }
-        });
-        return updated;
+    static async remove_monitor_ids(id, monitor_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            monitor_ids.forEach(idx => {
+                promises.push(models.monitor.remove_deployment_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.monitor_ids), monitor_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                monitor_ids: updated_ids
+            });
+        }
     }
 
 
@@ -537,32 +552,6 @@ module.exports = class deployment extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
-    /**
-     * bulkAssociateDeploymentWithNode_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateDeploymentWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: node_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
 
     /**
      * bulkDisAssociateDeploymentWithDevice_id - bulkDisAssociaton of given ids
@@ -611,33 +600,6 @@ module.exports = class deployment extends Sequelize.Model {
                 where: {
                     id: id,
                     visit_id: visit_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateDeploymentWithNode_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: null
-            }, {
-                where: {
-                    id: id,
-                    node_id: node_id
                 }
             }));
         })

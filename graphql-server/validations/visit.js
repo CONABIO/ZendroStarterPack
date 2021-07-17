@@ -21,9 +21,6 @@ module.exports.validator_patch = function(visit) {
             "user_id": {
                 "type": ["integer", "null"]
             },
-            "device_id": {
-                "type": ["integer", "null"]
-            },
             "calendar_id": {
                 "type": ["integer", "null"]
             },
@@ -33,6 +30,12 @@ module.exports.validator_patch = function(visit) {
                 }, {
                     "type": "null"
                 }]
+            },
+            "cumulus_id": {
+                "type": ["integer", "null"]
+            },
+            "node_id": {
+                "type": ["integer", "null"]
             }
         }
     }

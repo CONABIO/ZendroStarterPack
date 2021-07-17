@@ -14,7 +14,7 @@ module.exports = `
     @original-field
     
     """
-    geometry: String
+    geometry: Polygon
 
     """
     @original-field
@@ -26,13 +26,7 @@ module.exports = `
     @original-field
     
     """
-    devices_ids: [Int]
-
-    """
-    @original-field
-    
-    """
-    institutions_ids: [Int]
+    user_ids: [Int]
 
     """
     @original-field
@@ -40,8 +34,72 @@ module.exports = `
     """
     created_at: DateTime
 
-    unique_cumulus_criteria(search: searchCumulus_criteriaInput): cumulus_criteria
+    cumulus_criteria(search: searchCumulus_criteriaInput): cumulus_criteria
     
+    """
+    @search-request
+    """
+    devicesFilter(search: searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationInput!): [physical_device]
+
+
+    """
+    @search-request
+    """
+    devicesConnection(search: searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationCursorInput!): Physical_deviceConnection
+
+    """
+    @count-request
+    """
+    countFilteredDevices(search: searchPhysical_deviceInput) : Int
+  
+    """
+    @search-request
+    """
+    associated_partnersFilter(search: searchUserInput, order: [ orderUserInput ], pagination: paginationInput!): [user]
+
+
+    """
+    @search-request
+    """
+    associated_partnersConnection(search: searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput!): UserConnection
+
+    """
+    @count-request
+    """
+    countFilteredAssociated_partners(search: searchUserInput) : Int
+  
+    """
+    @search-request
+    """
+    visitsFilter(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationInput!): [visit]
+
+
+    """
+    @search-request
+    """
+    visitsConnection(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput!): VisitConnection
+
+    """
+    @count-request
+    """
+    countFilteredVisits(search: searchVisitInput) : Int
+  
+    """
+    @search-request
+    """
+    monitorsFilter(search: searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationInput!): [monitor]
+
+
+    """
+    @search-request
+    """
+    monitorsConnection(search: searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationCursorInput!): MonitorConnection
+
+    """
+    @count-request
+    """
+    countFilteredMonitors(search: searchMonitorInput) : Int
+  
     """
     @search-request
     """
@@ -57,38 +115,6 @@ module.exports = `
     @count-request
     """
     countFilteredNodes(search: searchNodeInput) : Int
-  
-    """
-    @search-request
-    """
-    devicesFilter(search: searchDevice_catalogInput, order: [ orderDevice_catalogInput ], pagination: paginationInput!): [device_catalog]
-
-
-    """
-    @search-request
-    """
-    devicesConnection(search: searchDevice_catalogInput, order: [ orderDevice_catalogInput ], pagination: paginationCursorInput!): Device_catalogConnection
-
-    """
-    @count-request
-    """
-    countFilteredDevices(search: searchDevice_catalogInput) : Int
-  
-    """
-    @search-request
-    """
-    associated_institutionsFilter(search: searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationInput!): [institution]
-
-
-    """
-    @search-request
-    """
-    associated_institutionsConnection(search: searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationCursorInput!): InstitutionConnection
-
-    """
-    @count-request
-    """
-    countFilteredAssociated_institutions(search: searchInstitutionInput) : Int
   
     }
 type CumulusConnection{
@@ -118,8 +144,7 @@ type CumulusEdge{
     name
     geometry
     criteria_id
-    devices_ids
-    institutions_ids
+    user_ids
     created_at
   }
   input searchCumulusInput {
@@ -150,8 +175,8 @@ type CumulusEdge{
   }
 
   type Mutation {
-    addCumulus( name: String, geometry: String, created_at: DateTime , addUnique_cumulus_criteria:ID  , addNodes:[ID], addDevices:[ID], addAssociated_institutions:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
-    updateCumulus(id: ID!, name: String, geometry: String, created_at: DateTime , addUnique_cumulus_criteria:ID, removeUnique_cumulus_criteria:ID   , addNodes:[ID], removeNodes:[ID] , addDevices:[ID], removeDevices:[ID] , addAssociated_institutions:[ID], removeAssociated_institutions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    addCumulus( name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    updateCumulus(id: ID!, name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID, removeCumulus_criteria:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
     bulkAddCumulusCsv: String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

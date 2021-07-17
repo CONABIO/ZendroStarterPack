@@ -23,9 +23,10 @@ const definition = {
     storageType: 'sql',
     attributes: {
         user_id: 'Int',
-        device_id: 'Int',
         calendar_id: 'Int',
-        created_at: 'DateTime'
+        created_at: 'DateTime',
+        cumulus_id: 'Int',
+        node_id: 'Int'
     },
     associations: {
         calendar: {
@@ -54,6 +55,24 @@ const definition = {
             targetKey: 'user_id',
             keysIn: 'visit',
             targetStorageType: 'sql'
+        },
+        cumulus_visit: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'visits',
+            target: 'cumulus',
+            targetKey: 'cumulus_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
+        },
+        unique_node: {
+            type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'unique_visit',
+            target: 'node',
+            targetKey: 'node_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -79,14 +98,17 @@ module.exports = class visit extends Sequelize.Model {
             user_id: {
                 type: Sequelize[dict['Int']]
             },
-            device_id: {
-                type: Sequelize[dict['Int']]
-            },
             calendar_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
+            },
+            cumulus_id: {
+                type: Sequelize[dict['Int']]
+            },
+            node_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -143,6 +165,14 @@ module.exports = class visit extends Sequelize.Model {
         visit.belongsTo(models.user, {
             as: 'user_visit',
             foreignKey: 'user_id'
+        });
+        visit.belongsTo(models.cumulus, {
+            as: 'cumulus_visit',
+            foreignKey: 'cumulus_id'
+        });
+        visit.belongsTo(models.node, {
+            as: 'unique_node',
+            foreignKey: 'node_id'
         });
         visit.hasMany(models.deployment, {
             as: 'deployments',
@@ -388,6 +418,38 @@ module.exports = class visit extends Sequelize.Model {
         });
         return updated;
     }
+    /**
+     * add_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_cumulus_id(id, cumulus_id) {
+        let updated = await visit.update({
+            cumulus_id: cumulus_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+    /**
+     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_node_id(id, node_id) {
+        let updated = await visit.update({
+            node_id: node_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
     /**
      * remove_calendar_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -419,6 +481,40 @@ module.exports = class visit extends Sequelize.Model {
             where: {
                 id: id,
                 user_id: user_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_cumulus_id(id, cumulus_id) {
+        let updated = await visit.update({
+            cumulus_id: null
+        }, {
+            where: {
+                id: id,
+                cumulus_id: cumulus_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_node_id(id, node_id) {
+        let updated = await visit.update({
+            node_id: null
+        }, {
+            where: {
+                id: id,
+                node_id: node_id
             }
         });
         return updated;
@@ -480,6 +576,58 @@ module.exports = class visit extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateVisitWithCumulus_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateVisitWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cumulus_id,
+            id
+        }) => {
+            promises.push(super.update({
+                cumulus_id: cumulus_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateVisitWithNode_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateVisitWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            node_id,
+            id
+        }) => {
+            promises.push(super.update({
+                node_id: node_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton of given ids
@@ -528,6 +676,60 @@ module.exports = class visit extends Sequelize.Model {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateVisitWithCumulus_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cumulus_id,
+            id
+        }) => {
+            promises.push(super.update({
+                cumulus_id: null
+            }, {
+                where: {
+                    id: id,
+                    cumulus_id: cumulus_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateVisitWithNode_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateVisitWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            node_id,
+            id
+        }) => {
+            promises.push(super.update({
+                node_id: null
+            }, {
+                where: {
+                    id: id,
+                    node_id: node_id
                 }
             }));
         })

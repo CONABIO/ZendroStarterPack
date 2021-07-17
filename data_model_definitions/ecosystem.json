@@ -2,18 +2,16 @@
     "model": "ecosystem",
     "storageType": "sql",
     "attributes": {
-        "name": "String",
-        "node_id": "Int",
-        "created_at": "DateTime"
+        "name": "String"
     },
     "associations": {
         "unique_node": {
-            "type": "one_to_one",
+            "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "unique_ecosystem",
+            "reverseAssociation": "ecosystems",
             "target": "node",
-            "targetKey": "node_id",
-            "keysIn": "ecosystem",
+            "targetKey": "ecosystem_id",
+            "keysIn": "node",
             "targetStorageType": "sql"
         }
     }

@@ -27,9 +27,6 @@ module.exports.validator_patch = function(institution) {
             "phone_number": {
                 "type": ["integer", "null"]
             },
-            "cumulus_ids": {
-                "type": ["array", "null"]
-            },
             "created_at": {
                 "anyOf": [{
                     "isoDateTime": true

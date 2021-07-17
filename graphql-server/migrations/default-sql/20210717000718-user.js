@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('nodes', {
+        return queryInterface.createTable('users', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,32 +30,33 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            has_partner: {
-                type: Sequelize[dict['Boolean']]
-            },
-            id_sipe: {
+            username: {
                 type: Sequelize[dict['String']]
             },
-            fid: {
-                type: Sequelize[dict['Int']]
-            },
-            location: {
-                type: Sequelize[dict['Point']]
-            },
-            cat_integr: {
+            password: {
                 type: Sequelize[dict['String']]
             },
-            anpmarcelo: {
+            first_name: {
+                type: Sequelize[dict['String']]
+            },
+            last_name: {
+                type: Sequelize[dict['String']]
+            },
+            email: {
+                type: Sequelize[dict['String']]
+            },
+            is_active: {
                 type: Sequelize[dict['Boolean']]
             },
-            by_fauna: {
+            last_login: {
+                type: Sequelize[dict['DateTime']]
+            },
+            institution_id: {
                 type: Sequelize[dict['Int']]
             },
-            integrity: {
-                type: Sequelize[dict['Boolean']]
-            },
-            cumulus_id: {
-                type: Sequelize[dict['Int']]
+            cumulus_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -72,7 +73,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('nodes');
+        return queryInterface.dropTable('users');
     }
 
 };

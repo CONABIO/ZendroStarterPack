@@ -20,9 +20,16 @@ module.exports = `
     @original-field
     
     """
+    cumulus_id: Int
+
+    """
+    @original-field
+    
+    """
     created_at: DateTime
 
     device(search: searchDevice_catalogInput): device_catalog
+  cumulus_device(search: searchCumulusInput): cumulus
     
     """
     @search-request
@@ -67,6 +74,7 @@ type Physical_deviceEdge{
     id
     serial
     device_id
+    cumulus_id
     created_at
   }
   input searchPhysical_deviceInput {
@@ -85,6 +93,9 @@ type Physical_deviceEdge{
   input bulkAssociationPhysical_deviceWithDevice_idInput{
     id: ID!
     device_id: ID!
+  }  input bulkAssociationPhysical_deviceWithCumulus_idInput{
+    id: ID!
+    cumulus_id: ID!
   }
 
   type Query {
@@ -97,11 +108,13 @@ type Physical_deviceEdge{
   }
 
   type Mutation {
-    addPhysical_device( serial: String, created_at: DateTime , addDevice:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
-    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addDevice:ID, removeDevice:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    addPhysical_device( serial: String, created_at: DateTime , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
     deletePhysical_device(id: ID!): String!
     bulkAddPhysical_deviceCsv: String!
     bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

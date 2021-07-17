@@ -18,11 +18,11 @@ module.exports.validator_patch = function(node) {
     node.prototype.validatorSchema = {
         "$async": true,
         "properties": {
+            "nomenclatura": {
+                "type": ["string", "null"]
+            },
             "has_partner": {
                 "type": ["boolean", "null"]
-            },
-            "id_sipe": {
-                "type": ["string", "null"]
             },
             "fid": {
                 "type": ["integer", "null"]
@@ -33,16 +33,13 @@ module.exports.validator_patch = function(node) {
             "cat_integr": {
                 "type": ["string", "null"]
             },
-            "anpmarcelo": {
-                "type": ["boolean", "null"]
-            },
-            "by_fauna": {
-                "type": ["integer", "null"]
-            },
             "integrity": {
                 "type": ["boolean", "null"]
             },
             "cumulus_id": {
+                "type": ["integer", "null"]
+            },
+            "ecosystem_id": {
                 "type": ["integer", "null"]
             },
             "created_at": {

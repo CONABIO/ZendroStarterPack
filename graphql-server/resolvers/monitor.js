@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const ecosystem = require(path.join(__dirname, '..', 'models', 'index.js')).ecosystem;
+const monitor = require(path.join(__dirname, '..', 'models', 'index.js')).monitor;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,14 +14,53 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_node': 'node'
+    'addCumulus_monitor': 'cumulus',
+    'addDeployments': 'deployment'
 }
 
 
 
+/**
+ * monitor.prototype.cumulus_monitor - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+monitor.prototype.cumulus_monitor = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.cumulus_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneCumulus({
+                [models.cumulus.idAttribute()]: this.cumulus_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.cumulus.idAttribute(),
+                "value": this.cumulus_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.cumulusConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 /**
- * ecosystem.prototype.unique_nodeFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * monitor.prototype.deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -31,22 +70,25 @@ const associationArgsDef = {
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-ecosystem.prototype.unique_nodeFilter = function({
+monitor.prototype.deploymentsFilter = function({
     search,
     order,
     pagination
 }, context) {
 
 
-    //build new search filter
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.deployment_ids) || this.deployment_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "ecosystem_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.deployment.idAttribute(),
+        "value": this.deployment_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-
-    return resolvers.nodes({
+    return resolvers.deployments({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -54,30 +96,37 @@ ecosystem.prototype.unique_nodeFilter = function({
 }
 
 /**
- * ecosystem.prototype.countFilteredUnique_node - Count number of associated records that holds the conditions specified in the search argument
+ * monitor.prototype.countFilteredDeployments - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-ecosystem.prototype.countFilteredUnique_node = function({
+monitor.prototype.countFilteredDeployments = function({
     search
 }, context) {
 
-    //build new search filter
+
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.deployment_ids) || this.deployment_ids.length === 0) {
+        return 0;
+    }
+
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "ecosystem_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.deployment.idAttribute(),
+        "value": this.deployment_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-    return resolvers.countNodes({
+
+    return resolvers.countDeployments({
         search: nsearch
     }, context);
 }
 
 /**
- * ecosystem.prototype.unique_nodeConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * monitor.prototype.deploymentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -87,21 +136,35 @@ ecosystem.prototype.countFilteredUnique_node = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-ecosystem.prototype.unique_nodeConnection = function({
+monitor.prototype.deploymentsConnection = function({
     search,
     order,
     pagination
 }, context) {
 
 
-    //build new search filter
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.deployment_ids) || this.deployment_ids.length === 0) {
+        return {
+            edges: [],
+            deployments: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
+
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "ecosystem_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.deployment.idAttribute(),
+        "value": this.deployment_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-    return resolvers.nodesConnection({
+    return resolvers.deploymentsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -117,56 +180,76 @@ ecosystem.prototype.unique_nodeConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.handleAssociations = async function(input, benignErrorReporter) {
+monitor.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addUnique_node)) {
-        promises_add.push(this.add_unique_node(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addDeployments)) {
+        promises_add.push(this.add_deployments(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addCumulus_monitor)) {
+        promises_add.push(this.add_cumulus_monitor(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeUnique_node)) {
-        promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeDeployments)) {
+        promises_remove.push(this.remove_deployments(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeCumulus_monitor)) {
+        promises_remove.push(this.remove_cumulus_monitor(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_unique_node - field Mutation for to_many associations to add
+ * add_deployments - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter) {
+monitor.prototype.add_deployments = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addUnique_node.map(associatedRecordId => {
-        return {
-            ecosystem_id: this.getIdValue(),
-            [models.node.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.node.bulkAssociateNodeWithEcosystem_id(bulkAssociationInput, benignErrorReporter);
+    await monitor.add_deployment_ids(this.getIdValue(), input.addDeployments, benignErrorReporter);
+    this.deployment_ids = helper.unionIds(this.deployment_ids, input.addDeployments);
 }
 
 /**
- * remove_unique_node - field Mutation for to_many associations to remove
+ * add_cumulus_monitor - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+monitor.prototype.add_cumulus_monitor = async function(input, benignErrorReporter) {
+    await monitor.add_cumulus_id(this.getIdValue(), input.addCumulus_monitor, benignErrorReporter);
+    this.cumulus_id = input.addCumulus_monitor;
+}
+
+/**
+ * remove_deployments - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_unique_node = async function(input, benignErrorReporter) {
+monitor.prototype.remove_deployments = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeUnique_node.map(associatedRecordId => {
-        return {
-            ecosystem_id: this.getIdValue(),
-            [models.node.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.node.bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput, benignErrorReporter);
+    await monitor.remove_deployment_ids(this.getIdValue(), input.removeDeployments, benignErrorReporter);
+    this.deployment_ids = helper.differenceIds(this.deployment_ids, input.removeDeployments);
+}
+
+/**
+ * remove_cumulus_monitor - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+monitor.prototype.remove_cumulus_monitor = async function(input, benignErrorReporter) {
+    if (input.removeCumulus_monitor == this.cumulus_id) {
+        await monitor.remove_cumulus_id(this.getIdValue(), input.removeCumulus_monitor, benignErrorReporter);
+        this.cumulus_id = null;
+    }
 }
 
 
@@ -180,15 +263,16 @@ ecosystem.prototype.remove_unique_node = async function(input, benignErrorReport
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let ecosystem = await resolvers.readOneEcosystem({
+    let monitor = await resolvers.readOneMonitor({
         id: id
     }, context);
     //check that record actually exists
-    if (ecosystem === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (monitor === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(ecosystem.countFilteredUnique_node({}, context));
+    promises_to_many.push(monitor.countFilteredDeployments({}, context));
+    promises_to_one.push(monitor.cumulus_monitor({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -208,14 +292,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`ecosystem with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`monitor with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * ecosystems - Check user authorization and return certain number, specified in pagination argument, of records that
+     * monitors - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -224,22 +308,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    ecosystems: async function({
+    monitors: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "ecosystems");
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "monitors");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readAll(search, order, pagination, benignErrorReporter);
+            return await monitor.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * ecosystemsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * monitorsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -248,76 +332,76 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    ecosystemsConnection: async function({
+    monitorsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "ecosystemsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "monitorsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await monitor.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneEcosystem - Check user authorization and return one record with the specified id in the id argument.
+     * readOneMonitor - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneEcosystem: async function({
+    readOneMonitor: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneEcosystem");
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneMonitor");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readById(id, benignErrorReporter);
+            return await monitor.readById(id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countEcosystems - Counts number of records that holds the conditions specified in the search argument
+     * countMonitors - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countEcosystems: async function({
+    countMonitors: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.countRecords(search, benignErrorReporter);
+            return await monitor.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableEcosystem - Return table of records as needed for displaying a vuejs table
+     * vueTableMonitor - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableEcosystem: async function(_, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            return helper.vueTable(context.request, ecosystem, ["id", "name"]);
+    vueTableMonitor: async function(_, context) {
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
+            return helper.vueTable(context.request, monitor, ["id", "first_name", "last_name", "second_last_name", "contact"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addEcosystem - Check user authorization and creates a new record with data specified in the input argument.
+     * addMonitor - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -325,8 +409,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addEcosystem: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'ecosystem', 'create');
+    addMonitor: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'monitor', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -335,43 +419,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdEcosystem = await ecosystem.addOne(inputSanitized, benignErrorReporter);
-            await createdEcosystem.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdEcosystem;
+            let createdMonitor = await monitor.addOne(inputSanitized, benignErrorReporter);
+            await createdMonitor.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdMonitor;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddEcosystemCsv - Load csv file of records
+     * bulkAddMonitorCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddEcosystemCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'create') === true) {
+    bulkAddMonitorCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'monitor', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ecosystem.bulkAddCsv(context, benignErrorReporter);
+            return monitor.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteEcosystem - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteMonitor - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteEcosystem: async function({
+    deleteMonitor: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'delete') === true) {
+        if (await checkAuthorization(context, 'monitor', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return ecosystem.deleteOne(id, benignErrorReporter);
+                return monitor.deleteOne(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -379,7 +463,7 @@ module.exports = {
     },
 
     /**
-     * updateEcosystem - Check user authorization and update the record specified in the input argument
+     * updateMonitor - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -387,8 +471,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateEcosystem: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'ecosystem', 'update');
+    updateMonitor: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'monitor', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -397,26 +481,66 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedEcosystem = await ecosystem.updateOne(inputSanitized, benignErrorReporter);
-            await updatedEcosystem.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedEcosystem;
+            let updatedMonitor = await monitor.updateOne(inputSanitized, benignErrorReporter);
+            await updatedMonitor.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedMonitor;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
+    /**
+     * bulkAssociateMonitorWithCumulus_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateMonitorWithCumulus_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cumulus_id
+            }) => cumulus_id)), models.cumulus);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), monitor);
+        }
+        return await monitor.bulkAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateMonitorWithCumulus_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateMonitorWithCumulus_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cumulus_id
+            }) => cumulus_id)), models.cumulus);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), monitor);
+        }
+        return await monitor.bulkDisAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
-     * csvTableTemplateEcosystem - Returns table's template
+     * csvTableTemplateMonitor - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateEcosystem: async function(_, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
+    csvTableTemplateMonitor: async function(_, context) {
+        if (await checkAuthorization(context, 'monitor', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ecosystem.csvTableTemplate(benignErrorReporter);
+            return monitor.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

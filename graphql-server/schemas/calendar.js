@@ -20,12 +20,6 @@ module.exports = `
     @original-field
     
     """
-    node_id: Int
-
-    """
-    @original-field
-    
-    """
     created_at: DateTime
 
     """
@@ -79,7 +73,6 @@ type CalendarEdge{
     id
     date_started
     date_finished
-    node_id
     created_at
     updated_at
   }

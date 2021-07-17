@@ -32,31 +32,13 @@ module.exports = `
     @original-field
     
     """
-    grade: String
-
-    """
-    @original-field
-    
-    """
     email: String
 
     """
     @original-field
     
     """
-    address: String
-
-    """
-    @original-field
-    
-    """
     is_active: Boolean
-
-    """
-    @original-field
-    
-    """
-    comments: String
 
     """
     @original-field
@@ -69,6 +51,12 @@ module.exports = `
     
     """
     institution_id: Int
+
+    """
+    @original-field
+    
+    """
+    cumulus_ids: [Int]
 
     """
     @original-field
@@ -110,6 +98,22 @@ module.exports = `
     """
     countFilteredVisits(search: searchVisitInput) : Int
   
+    """
+    @search-request
+    """
+    associated_cumulusFilter(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput!): [cumulus]
+
+
+    """
+    @search-request
+    """
+    associated_cumulusConnection(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput!): CumulusConnection
+
+    """
+    @count-request
+    """
+    countFilteredAssociated_cumulus(search: searchCumulusInput) : Int
+  
     }
 type UserConnection{
   edges: [UserEdge]
@@ -139,13 +143,11 @@ type UserEdge{
     password
     first_name
     last_name
-    grade
     email
-    address
     is_active
-    comments
     last_login
     institution_id
+    cumulus_ids
     created_at
   }
   input searchUserInput {
@@ -176,8 +178,8 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, grade: String, email: String, address: String, is_active: Boolean, comments: String, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAddUserCsv: String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

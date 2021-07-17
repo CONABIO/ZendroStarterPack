@@ -35,6 +35,42 @@ module.exports = {
           '(SELECT (id) FROM roles WHERE name = \'monitor\') )'
         )
       }).then(function(x) {
+        return queryInterface.bulkInsert('cumulus_criteria', [
+          {
+            name: "Modelo IE"
+          }, 
+          {
+            name: "Integridad Fauna"
+          }, 
+          {
+            name: "Propuesto y Justificado por Socio"
+          }
+        ]) 
+      }).then(function(x) {
+        return queryInterface.bulkInsert('ecosystems', [
+          {
+            name: "Bosques templados"
+          },
+          {
+            name: "Bosques mesofilos"
+          },
+          {
+            name: "Selvas humedas"
+          },
+          {
+            name: "Selvas secas"
+          },
+          {
+            name: "Matorrales xerofilos"
+          },
+          {
+            name: "Pastizales"
+          },
+          {
+            name: "Manglar"
+          }
+        ]) 
+      }).then(function(x) {
         return queryInterface.sequelize.query(
           'CREATE TABLE db_was_seeded ( seeded INT )')
       }).then(function(x) {

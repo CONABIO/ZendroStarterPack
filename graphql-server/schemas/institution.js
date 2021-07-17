@@ -26,31 +26,9 @@ module.exports = `
     @original-field
     
     """
-    cumulus_ids: [Int]
-
-    """
-    @original-field
-    
-    """
     created_at: DateTime
 
       
-    """
-    @search-request
-    """
-    associated_cumulusFilter(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput!): [cumulus]
-
-
-    """
-    @search-request
-    """
-    associated_cumulusConnection(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput!): CumulusConnection
-
-    """
-    @count-request
-    """
-    countFilteredAssociated_cumulus(search: searchCumulusInput) : Int
-  
     """
     @search-request
     """
@@ -95,7 +73,6 @@ type InstitutionEdge{
     name
     address
     phone_number
-    cumulus_ids
     created_at
   }
   input searchInstitutionInput {
@@ -123,8 +100,8 @@ type InstitutionEdge{
   }
 
   type Mutation {
-    addInstitution( name: String, address: String, phone_number: Int, created_at: DateTime   , addAssociated_cumulus:[ID], addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
-    updateInstitution(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
+    addInstitution( name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
+    updateInstitution(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
     deleteInstitution(id: ID!): String!
     bulkAddInstitutionCsv: String!
       }

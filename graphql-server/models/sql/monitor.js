@@ -19,69 +19,34 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'cumulus',
+    model: 'monitor',
     storageType: 'sql',
     attributes: {
-        name: 'String',
-        geometry: 'Polygon',
-        criteria_id: 'Int',
-        user_ids: '[Int]',
-        created_at: 'DateTime'
+        first_name: 'String',
+        last_name: 'String',
+        second_last_name: 'String',
+        contact: 'String',
+        cumulus_id: 'Int',
+        deployment_ids: '[Int]'
     },
     associations: {
-        cumulus_criteria: {
+        cumulus_monitor: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'cumulus',
-            target: 'cumulus_criteria',
-            targetKey: 'criteria_id',
-            keysIn: 'cumulus',
-            targetStorageType: 'sql'
-        },
-        devices: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'cumulus_device',
-            target: 'physical_device',
-            targetKey: 'cumulus_id',
-            keysIn: 'physical_device',
-            targetStorageType: 'sql'
-        },
-        associated_partners: {
-            type: 'many_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'associated_cumulus',
-            target: 'user',
-            targetKey: 'cumulus_ids',
-            sourceKey: 'user_ids',
-            keysIn: 'cumulus',
-            targetStorageType: 'sql'
-        },
-        visits: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'cumulus_visit',
-            target: 'visit',
-            targetKey: 'cumulus_id',
-            keysIn: 'visit',
-            targetStorageType: 'sql'
-        },
-        monitors: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'cumulus_monitor',
-            target: 'monitor',
+            reverseAssociation: 'monitors',
+            target: 'cumulus',
             targetKey: 'cumulus_id',
             keysIn: 'monitor',
             targetStorageType: 'sql'
         },
-        nodes: {
-            type: 'one_to_many',
+        deployments: {
+            type: 'many_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'cumulus_node',
-            target: 'node',
-            targetKey: 'cumulus_id',
-            keysIn: 'node',
+            reverseAssociation: 'monitors',
+            target: 'deployment',
+            targetKey: 'monitor_ids',
+            sourceKey: 'deployment_ids',
+            keysIn: 'monitor',
             targetStorageType: 'sql'
         }
     },
@@ -100,32 +65,35 @@ const DataLoader = require("dataloader");
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class cumulus extends Sequelize.Model {
+module.exports = class monitor extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            name: {
+            first_name: {
                 type: Sequelize[dict['String']]
             },
-            geometry: {
-                type: Sequelize[dict['Polygon']]
+            last_name: {
+                type: Sequelize[dict['String']]
             },
-            criteria_id: {
+            second_last_name: {
+                type: Sequelize[dict['String']]
+            },
+            contact: {
+                type: Sequelize[dict['String']]
+            },
+            cumulus_id: {
                 type: Sequelize[dict['Int']]
             },
-            user_ids: {
+            deployment_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 
         }, {
-            modelName: "cumulus",
-            tableName: "cumulus",
+            modelName: "monitor",
+            tableName: "monitors",
             sequelize
         });
     }
@@ -169,24 +137,8 @@ module.exports = class cumulus extends Sequelize.Model {
     }
 
     static associate(models) {
-        cumulus.belongsTo(models.cumulus_criteria, {
-            as: 'cumulus_criteria',
-            foreignKey: 'criteria_id'
-        });
-        cumulus.hasMany(models.physical_device, {
-            as: 'devices',
-            foreignKey: 'cumulus_id'
-        });
-        cumulus.hasMany(models.visit, {
-            as: 'visits',
-            foreignKey: 'cumulus_id'
-        });
-        cumulus.hasMany(models.monitor, {
-            as: 'monitors',
-            foreignKey: 'cumulus_id'
-        });
-        cumulus.hasMany(models.node, {
-            as: 'nodes',
+        monitor.belongsTo(models.cumulus, {
+            as: 'cumulus_monitor',
             foreignKey: 'cumulus_id'
         });
     }
@@ -199,13 +151,13 @@ module.exports = class cumulus extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: cumulus.idAttribute(),
+            field: monitor.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await cumulus.readAllCursor(queryArg);
-        cursorRes = cursorRes.cumulus.reduce(
-            (map, obj) => ((map[obj[cumulus.idAttribute()]] = obj), map), {}
+        let cursorRes = await monitor.readAllCursor(queryArg);
+        cursorRes = cursorRes.monitors.reduce(
+            (map, obj) => ((map[obj[monitor.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -213,16 +165,16 @@ module.exports = class cumulus extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(cumulus.batchReadById, {
+    static readByIdLoader = new DataLoader(monitor.batchReadById, {
         cache: false,
     });
 
     static async readById(id) {
-        return await cumulus.readByIdLoader.load(id);
+        return await monitor.readByIdLoader.load(id);
     }
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, cumulus.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, monitor.definition.attributes);
         return super.count(options);
     }
 
@@ -230,9 +182,9 @@ module.exports = class cumulus extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), cumulus.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), monitor.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => cumulus.postReadCast(x))
+        records = records.map(x => monitor.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -242,10 +194,10 @@ module.exports = class cumulus extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), cumulus.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), monitor.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => cumulus.postReadCast(x))
+        records = records.map(x => monitor.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -256,7 +208,7 @@ module.exports = class cumulus extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), cumulus.definition.attributes);
+            }, this.idAttribute(), monitor.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -265,14 +217,14 @@ module.exports = class cumulus extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            cumulus: edges.map((edge) => edge.node)
+            monitors: edges.map((edge) => edge.node)
         };
     }
 
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = cumulus.preWriteCast(input)
+        input = monitor.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -280,8 +232,8 @@ module.exports = class cumulus extends Sequelize.Model {
                 });
                 return item;
             });
-            cumulus.postReadCast(result.dataValues)
-            cumulus.postReadCast(result._previousDataValues)
+            monitor.postReadCast(result.dataValues)
+            monitor.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -307,7 +259,7 @@ module.exports = class cumulus extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = cumulus.preWriteCast(input)
+        input = monitor.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -320,8 +272,8 @@ module.exports = class cumulus extends Sequelize.Model {
                 });
                 return updated;
             });
-            cumulus.postReadCast(result.dataValues)
-            cumulus.postReadCast(result._previousDataValues)
+            monitor.postReadCast(result.dataValues)
+            monitor.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -379,7 +331,7 @@ module.exports = class cumulus extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of cumulus records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of monitor records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -398,14 +350,14 @@ module.exports = class cumulus extends Sequelize.Model {
 
 
     /**
-     * add_criteria_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   criteria_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_criteria_id(id, criteria_id) {
-        let updated = await cumulus.update({
-            criteria_id: criteria_id
+    static async add_cumulus_id(id, cumulus_id) {
+        let updated = await monitor.update({
+            cumulus_id: cumulus_id
         }, {
             where: {
                 id: id
@@ -414,70 +366,70 @@ module.exports = class cumulus extends Sequelize.Model {
         return updated;
     }
     /**
-     * add_user_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_deployment_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   user_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   deployment_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_user_ids(id, user_ids, benignErrorReporter, handle_inverse = true) {
+    static async add_deployment_ids(id, deployment_ids, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            user_ids.forEach(idx => {
-                promises.push(models.user.add_cumulus_ids(idx, [`${id}`], benignErrorReporter, false));
+            deployment_ids.forEach(idx => {
+                promises.push(models.deployment.add_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.user_ids), user_ids);
+            let updated_ids = helper.unionIds(JSON.parse(record.deployment_ids), deployment_ids);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                user_ids: updated_ids
+                deployment_ids: updated_ids
             });
         }
     }
 
     /**
-     * remove_criteria_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   criteria_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_criteria_id(id, criteria_id) {
-        let updated = await cumulus.update({
-            criteria_id: null
+    static async remove_cumulus_id(id, cumulus_id) {
+        let updated = await monitor.update({
+            cumulus_id: null
         }, {
             where: {
                 id: id,
-                criteria_id: criteria_id
+                cumulus_id: cumulus_id
             }
         });
         return updated;
     }
     /**
-     * remove_user_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * remove_deployment_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   user_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   deployment_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_user_ids(id, user_ids, benignErrorReporter, handle_inverse = true) {
+    static async remove_deployment_ids(id, deployment_ids, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            user_ids.forEach(idx => {
-                promises.push(models.user.remove_cumulus_ids(idx, [`${id}`], benignErrorReporter, false));
+            deployment_ids.forEach(idx => {
+                promises.push(models.deployment.remove_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.user_ids), user_ids);
+            let updated_ids = helper.differenceIds(JSON.parse(record.deployment_ids), deployment_ids);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                user_ids: updated_ids
+                deployment_ids: updated_ids
             });
         }
     }
@@ -487,21 +439,21 @@ module.exports = class cumulus extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateCumulusWithCriteria_id - bulkAssociaton of given ids
+     * bulkAssociateMonitorWithCumulus_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateCumulusWithCriteria_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "criteria_id");
+    static async bulkAssociateMonitorWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            criteria_id,
+            cumulus_id,
             id
         }) => {
             promises.push(super.update({
-                criteria_id: criteria_id
+                cumulus_id: cumulus_id
             }, {
                 where: {
                     id: id
@@ -514,25 +466,25 @@ module.exports = class cumulus extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateCumulusWithCriteria_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateMonitorWithCumulus_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "criteria_id");
+    static async bulkDisAssociateMonitorWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            criteria_id,
+            cumulus_id,
             id
         }) => {
             promises.push(super.update({
-                criteria_id: null
+                cumulus_id: null
             }, {
                 where: {
                     id: id,
-                    criteria_id: criteria_id
+                    cumulus_id: cumulus_id
                 }
             }));
         })
@@ -548,7 +500,7 @@ module.exports = class cumulus extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return cumulus.definition.id.name;
+        return monitor.definition.id.name;
     }
 
     /**
@@ -557,16 +509,16 @@ module.exports = class cumulus extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return cumulus.definition.id.type;
+        return monitor.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of cumulus.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of monitor.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[cumulus.idAttribute()]
+        return this[monitor.idAttribute()]
     }
 
     static get definition() {
@@ -582,7 +534,7 @@ module.exports = class cumulus extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(cumulus.definition.attributes);
+        let attributes = Object.keys(monitor.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;

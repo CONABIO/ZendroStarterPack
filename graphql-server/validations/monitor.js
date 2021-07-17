@@ -6,53 +6,52 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(device_catalog) {
+module.exports.validator_patch = function(monitor) {
 
-    device_catalog.prototype.validationControl = {
+    monitor.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    device_catalog.prototype.validatorSchema = {
+    monitor.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "brand": {
+            "first_name": {
                 "type": ["string", "null"]
             },
-            "model": {
+            "last_name": {
                 "type": ["string", "null"]
             },
-            "type": {
+            "second_last_name": {
                 "type": ["string", "null"]
             },
-            "serial_number": {
+            "contact": {
                 "type": ["string", "null"]
             },
-            "created_at": {
-                "anyOf": [{
-                    "isoDateTime": true
-                }, {
-                    "type": "null"
-                }]
+            "cumulus_id": {
+                "type": ["integer", "null"]
+            },
+            "deployment_ids": {
+                "type": ["array", "null"]
             }
         }
     }
 
-    device_catalog.prototype.asyncValidate = ajv.compile(
-        device_catalog.prototype.validatorSchema
+    monitor.prototype.asyncValidate = ajv.compile(
+        monitor.prototype.validatorSchema
     )
 
-    device_catalog.prototype.validateForCreate = async function(record) {
-        return await device_catalog.prototype.asyncValidate(record)
+    monitor.prototype.validateForCreate = async function(record) {
+        return await monitor.prototype.asyncValidate(record)
     }
 
-    device_catalog.prototype.validateForUpdate = async function(record) {
-        return await device_catalog.prototype.asyncValidate(record)
+    monitor.prototype.validateForUpdate = async function(record) {
+        return await monitor.prototype.asyncValidate(record)
     }
 
-    device_catalog.prototype.validateForDelete = async function(id) {
+    monitor.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -63,9 +62,9 @@ module.exports.validator_patch = function(device_catalog) {
         }
     }
 
-    device_catalog.prototype.validateAfterRead = async function(record) {
-        return await device_catalog.prototype.asyncValidate(record)
+    monitor.prototype.validateAfterRead = async function(record) {
+        return await monitor.prototype.asyncValidate(record)
     }
 
-    return device_catalog
+    return monitor
 }

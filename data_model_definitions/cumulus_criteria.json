@@ -3,14 +3,13 @@
     "storageType": "sql",
     "attributes": {
         "name": "String",
-        "cumulus_id": "Int",
         "created_at": "DateTime"
     },
     "associations": {
-        "unique_cumulus": {
-            "type": "one_to_one",
+        "cumulus": {
+            "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "unique_cumulus_criteria",
+            "reverseAssociation": "cumulus_criteria",
             "target": "cumulus",
             "targetKey": "criteria_id",
             "keysIn": "cumulus",

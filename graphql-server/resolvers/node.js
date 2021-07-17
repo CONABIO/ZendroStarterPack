@@ -14,22 +14,21 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addCumulus': 'cumulus',
-    'addUnique_ecosystem': 'ecosystem',
-    'addUnique_calendar': 'calendar',
-    'addDevice_deployments': 'deployment'
+    'addCumulus_node': 'cumulus',
+    'addUnique_visit': 'visit',
+    'addEcosystems': 'ecosystem'
 }
 
 
 
 /**
- * node.prototype.cumulus - Return associated record
+ * node.prototype.cumulus_node - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-node.prototype.cumulus = async function({
+node.prototype.cumulus_node = async function({
     search
 }, context) {
 
@@ -61,13 +60,13 @@ node.prototype.cumulus = async function({
     }
 }
 /**
- * node.prototype.unique_ecosystem - Return associated record
+ * node.prototype.unique_visit - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-node.prototype.unique_ecosystem = async function({
+node.prototype.unique_visit = async function({
     search
 }, context) {
     //build new search filter
@@ -78,7 +77,7 @@ node.prototype.unique_ecosystem = async function({
         "operator": "eq"
     });
 
-    let found = (await resolvers.ecosystemsConnection({
+    let found = (await resolvers.visitsConnection({
         search: nsearch,
         pagination: {
             first: 2
@@ -87,7 +86,7 @@ node.prototype.unique_ecosystem = async function({
     if (found.length > 0) {
         if (found.length > 1) {
             context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 ecosystems matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first ecosystem.`
+                `Not unique "to_one" association Error: Found > 1 visits matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first visit.`
             ));
         }
         return found[0].node;
@@ -95,127 +94,44 @@ node.prototype.unique_ecosystem = async function({
     return null;
 }
 /**
- * node.prototype.unique_calendar - Return associated record
+ * node.prototype.ecosystems - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-node.prototype.unique_calendar = async function({
+node.prototype.ecosystems = async function({
     search
 }, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
 
-    let found = (await resolvers.calendarsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
+    if (helper.isNotUndefinedAndNotNull(this.ecosystem_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneEcosystem({
+                [models.ecosystem.idAttribute()]: this.ecosystem_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.ecosystem.idAttribute(),
+                "value": this.ecosystem_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.ecosystemsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
         }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 calendars matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first calendar.`
-            ));
-        }
-        return found[0].node;
     }
-    return null;
 }
 
-/**
- * node.prototype.device_deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-node.prototype.device_deploymentsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.deployments({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * node.prototype.countFilteredDevice_deployments - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-node.prototype.countFilteredDevice_deployments = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countDeployments({
-        search: nsearch
-    }, context);
-}
-
-/**
- * node.prototype.device_deploymentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-node.prototype.device_deploymentsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.deploymentsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -229,135 +145,99 @@ node.prototype.device_deploymentsConnection = function({
 node.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addDevice_deployments)) {
-        promises_add.push(this.add_device_deployments(input, benignErrorReporter));
+
+    if (helper.isNotUndefinedAndNotNull(input.addCumulus_node)) {
+        promises_add.push(this.add_cumulus_node(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addCumulus)) {
-        promises_add.push(this.add_cumulus(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_visit)) {
+        promises_add.push(this.add_unique_visit(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_ecosystem)) {
-        promises_add.push(this.add_unique_ecosystem(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_calendar)) {
-        promises_add.push(this.add_unique_calendar(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addEcosystems)) {
+        promises_add.push(this.add_ecosystems(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeDevice_deployments)) {
-        promises_remove.push(this.remove_device_deployments(input, benignErrorReporter));
+
+    if (helper.isNotUndefinedAndNotNull(input.removeCumulus_node)) {
+        promises_remove.push(this.remove_cumulus_node(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeCumulus)) {
-        promises_remove.push(this.remove_cumulus(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_visit)) {
+        promises_remove.push(this.remove_unique_visit(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_ecosystem)) {
-        promises_remove.push(this.remove_unique_ecosystem(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_calendar)) {
-        promises_remove.push(this.remove_unique_calendar(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeEcosystems)) {
+        promises_remove.push(this.remove_ecosystems(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_device_deployments - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_cumulus_node - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.add_device_deployments = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addDevice_deployments.map(associatedRecordId => {
-        return {
-            node_id: this.getIdValue(),
-            [models.deployment.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.deployment.bulkAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
+node.prototype.add_cumulus_node = async function(input, benignErrorReporter) {
+    await node.add_cumulus_id(this.getIdValue(), input.addCumulus_node, benignErrorReporter);
+    this.cumulus_id = input.addCumulus_node;
 }
 
 /**
- * add_cumulus - field Mutation for to_one associations to add
+ * add_unique_visit - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.add_cumulus = async function(input, benignErrorReporter) {
-    await node.add_cumulus_id(this.getIdValue(), input.addCumulus, benignErrorReporter);
-    this.cumulus_id = input.addCumulus;
+node.prototype.add_unique_visit = async function(input, benignErrorReporter) {
+    await models.visit.add_node_id(input.addUnique_visit, this.getIdValue(), benignErrorReporter);
 }
 
 /**
- * add_unique_ecosystem - field Mutation for to_one associations to add
+ * add_ecosystems - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.add_unique_ecosystem = async function(input, benignErrorReporter) {
-    await models.ecosystem.add_node_id(input.addUnique_ecosystem, this.getIdValue(), benignErrorReporter);
+node.prototype.add_ecosystems = async function(input, benignErrorReporter) {
+    await node.add_ecosystem_id(this.getIdValue(), input.addEcosystems, benignErrorReporter);
+    this.ecosystem_id = input.addEcosystems;
 }
 
 /**
- * add_unique_calendar - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.add_unique_calendar = async function(input, benignErrorReporter) {
-    await models.calendar.add_node_id(input.addUnique_calendar, this.getIdValue(), benignErrorReporter);
-}
-
-/**
- * remove_device_deployments - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_cumulus_node - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.remove_device_deployments = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removeDevice_deployments.map(associatedRecordId => {
-        return {
-            node_id: this.getIdValue(),
-            [models.deployment.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.deployment.bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_cumulus - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.remove_cumulus = async function(input, benignErrorReporter) {
-    if (input.removeCumulus == this.cumulus_id) {
-        await node.remove_cumulus_id(this.getIdValue(), input.removeCumulus, benignErrorReporter);
+node.prototype.remove_cumulus_node = async function(input, benignErrorReporter) {
+    if (input.removeCumulus_node == this.cumulus_id) {
+        await node.remove_cumulus_id(this.getIdValue(), input.removeCumulus_node, benignErrorReporter);
         this.cumulus_id = null;
     }
 }
 
 /**
- * remove_unique_ecosystem - field Mutation for to_one associations to remove
+ * remove_unique_visit - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.remove_unique_ecosystem = async function(input, benignErrorReporter) {
-    await models.ecosystem.remove_node_id(input.removeUnique_ecosystem, this.getIdValue(), benignErrorReporter);
+node.prototype.remove_unique_visit = async function(input, benignErrorReporter) {
+    await models.visit.remove_node_id(input.removeUnique_visit, this.getIdValue(), benignErrorReporter);
 }
 
 /**
- * remove_unique_calendar - field Mutation for to_one associations to remove
+ * remove_ecosystems - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.remove_unique_calendar = async function(input, benignErrorReporter) {
-    await models.calendar.remove_node_id(input.removeUnique_calendar, this.getIdValue(), benignErrorReporter);
+node.prototype.remove_ecosystems = async function(input, benignErrorReporter) {
+    if (input.removeEcosystems == this.ecosystem_id) {
+        await node.remove_ecosystem_id(this.getIdValue(), input.removeEcosystems, benignErrorReporter);
+        this.ecosystem_id = null;
+    }
 }
 
 
@@ -379,10 +259,9 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(node.countFilteredDevice_deployments({}, context));
-    promises_to_one.push(node.cumulus({}, context));
-    promises_to_one.push(node.unique_ecosystem({}, context));
-    promises_to_one.push(node.unique_calendar({}, context));
+    promises_to_one.push(node.cumulus_node({}, context));
+    promises_to_one.push(node.unique_visit({}, context));
+    promises_to_one.push(node.ecosystems({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -504,7 +383,7 @@ module.exports = {
      */
     vueTableNode: async function(_, context) {
         if (await checkAuthorization(context, 'node', 'read') === true) {
-            return helper.vueTable(context.request, node, ["id", "id_sipe", "cat_integr"]);
+            return helper.vueTable(context.request, node, ["id", "nomenclatura", "cat_integr"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -620,6 +499,26 @@ module.exports = {
         return await node.bulkAssociateNodeWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
+     * bulkAssociateNodeWithEcosystem_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateNodeWithEcosystem_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                ecosystem_id
+            }) => ecosystem_id)), models.ecosystem);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), node);
+        }
+        return await node.bulkAssociateNodeWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
      * bulkDisAssociateNodeWithCumulus_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -638,6 +537,26 @@ module.exports = {
             }) => id)), node);
         }
         return await node.bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateNodeWithEcosystem_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateNodeWithEcosystem_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                ecosystem_id
+            }) => ecosystem_id)), models.ecosystem);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), node);
+        }
+        return await node.bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

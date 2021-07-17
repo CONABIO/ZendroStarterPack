@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('ecosystems', {
+        return queryInterface.createTable('device_catalogs', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,11 +30,17 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            name: {
+            brand: {
                 type: Sequelize[dict['String']]
             },
-            node_id: {
-                type: Sequelize[dict['Int']]
+            model: {
+                type: Sequelize[dict['String']]
+            },
+            type: {
+                type: Sequelize[dict['String']]
+            },
+            serial_number: {
+                type: Sequelize[dict['String']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -51,7 +57,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('ecosystems');
+        return queryInterface.dropTable('device_catalogs');
     }
 
 };

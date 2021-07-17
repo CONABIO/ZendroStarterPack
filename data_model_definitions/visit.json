@@ -3,9 +3,10 @@
     "storageType": "sql",
     "attributes": {
         "user_id": "Int",
-        "device_id": "Int",
         "calendar_id": "Int",
-        "created_at": "DateTime"
+        "created_at": "DateTime",
+        "cumulus_id": "Int",
+        "node_id": "Int"
     },
     "associations": {
         "calendar": {
@@ -34,6 +35,24 @@
             "targetKey": "user_id",
             "keysIn": "visit",
             "targetStorageType": "sql"
+        },
+        "cumulus_visit": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visits",
+            "target": "cumulus",
+            "targetKey": "cumulus_id",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
+        },
+        "unique_node": {
+          "type": "one_to_one",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "unique_visit",
+          "target": "node",
+          "targetKey": "node_id",
+          "keysIn": "visit",
+          "targetStorageType": "sql"
         }
     }
 }

@@ -6,7 +6,6 @@
         "model": "String",
         "type": "String",
         "serial_number": "String",
-        "cumulus_ids": "[Int]",
         "created_at": "DateTime"
     },
     "associations": {
@@ -17,16 +16,6 @@
             "target": "physical_device",
             "targetKey": "device_id",
             "keysIn": "physical_device",
-            "targetStorageType": "sql"
-        },
-        "cumulus": {
-            "type": "many_to_many",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "devices",
-            "target": "cumulus",
-            "targetKey": "devices_ids",
-            "sourceKey": "cumulus_ids",
-            "keysIn": "device_catalog",
             "targetStorageType": "sql"
         }
     }

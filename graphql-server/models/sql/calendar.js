@@ -24,7 +24,6 @@ const definition = {
     attributes: {
         date_started: 'Date',
         date_finished: 'Date',
-        node_id: 'Int',
         created_at: 'DateTime',
         updated_at: 'DateTime'
     },
@@ -73,9 +72,6 @@ module.exports = class calendar extends Sequelize.Model {
             },
             date_finished: {
                 type: Sequelize[dict['Date']]
-            },
-            node_id: {
-                type: Sequelize[dict['Int']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]

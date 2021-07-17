@@ -23,14 +23,13 @@ const definition = {
     storageType: 'sql',
     attributes: {
         name: 'String',
-        cumulus_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
-        unique_cumulus: {
-            type: 'one_to_one',
+        cumulus: {
+            type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'unique_cumulus_criteria',
+            reverseAssociation: 'cumulus_criteria',
             target: 'cumulus',
             targetKey: 'criteria_id',
             keysIn: 'cumulus',
@@ -59,9 +58,6 @@ module.exports = class cumulus_criteria extends Sequelize.Model {
 
             name: {
                 type: Sequelize[dict['String']]
-            },
-            cumulus_id: {
-                type: Sequelize[dict['Int']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -114,8 +110,8 @@ module.exports = class cumulus_criteria extends Sequelize.Model {
     }
 
     static associate(models) {
-        cumulus_criteria.hasOne(models.cumulus, {
-            as: 'unique_cumulus',
+        cumulus_criteria.hasMany(models.cumulus, {
+            as: 'cumulus',
             foreignKey: 'criteria_id'
         });
     }

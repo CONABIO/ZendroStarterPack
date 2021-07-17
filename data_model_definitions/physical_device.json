@@ -4,6 +4,7 @@
     "attributes": {
         "serial": "String",
         "device_id": "Int",
+        "cumulus_id": "Int",
         "created_at": "DateTime"
     },
     "associations": {
@@ -24,6 +25,15 @@
             "targetKey": "device_id",
             "keysIn": "deployment",
             "targetStorageType": "sql"
+        },
+        "cumulus_device": {
+          "type": "many_to_one",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "devices",
+          "target": "cumulus",
+          "targetKey": "cumulus_id",
+          "keysIn": "physical_device",
+          "targetStorageType": "sql"
         }
     }
 }

@@ -24,6 +24,7 @@ const definition = {
     attributes: {
         serial: 'String',
         device_id: 'Int',
+        cumulus_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
@@ -43,6 +44,15 @@ const definition = {
             target: 'deployment',
             targetKey: 'device_id',
             keysIn: 'deployment',
+            targetStorageType: 'sql'
+        },
+        cumulus_device: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'devices',
+            target: 'cumulus',
+            targetKey: 'cumulus_id',
+            keysIn: 'physical_device',
             targetStorageType: 'sql'
         }
     },
@@ -70,6 +80,9 @@ module.exports = class physical_device extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             device_id: {
+                type: Sequelize[dict['Int']]
+            },
+            cumulus_id: {
                 type: Sequelize[dict['Int']]
             },
             created_at: {
@@ -126,6 +139,10 @@ module.exports = class physical_device extends Sequelize.Model {
         physical_device.belongsTo(models.device_catalog, {
             as: 'device',
             foreignKey: 'device_id'
+        });
+        physical_device.belongsTo(models.cumulus, {
+            as: 'cumulus_device',
+            foreignKey: 'cumulus_id'
         });
         physical_device.hasMany(models.deployment, {
             as: 'device_deployments',
@@ -355,6 +372,22 @@ module.exports = class physical_device extends Sequelize.Model {
         });
         return updated;
     }
+    /**
+     * add_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_cumulus_id(id, cumulus_id) {
+        let updated = await physical_device.update({
+            cumulus_id: cumulus_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
     /**
      * remove_device_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -369,6 +402,23 @@ module.exports = class physical_device extends Sequelize.Model {
             where: {
                 id: id,
                 device_id: device_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_cumulus_id(id, cumulus_id) {
+        let updated = await physical_device.update({
+            cumulus_id: null
+        }, {
+            where: {
+                id: id,
+                cumulus_id: cumulus_id
             }
         });
         return updated;
@@ -404,6 +454,32 @@ module.exports = class physical_device extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociatePhysical_deviceWithCumulus_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cumulus_id,
+            id
+        }) => {
+            promises.push(super.update({
+                cumulus_id: cumulus_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociatePhysical_deviceWithDevice_id - bulkDisAssociaton of given ids
@@ -425,6 +501,33 @@ module.exports = class physical_device extends Sequelize.Model {
                 where: {
                     id: id,
                     device_id: device_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociatePhysical_deviceWithCumulus_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cumulus_id,
+            id
+        }) => {
+            promises.push(super.update({
+                cumulus_id: null
+            }, {
+                where: {
+                    id: id,
+                    cumulus_id: cumulus_id
                 }
             }));
         })

@@ -2,19 +2,18 @@
     "model" : "node",
     "storageType" : "sql",
     "attributes" : {
+      "nomenclatura": "String",  
       "has_partner" : "Boolean",
-      "id_sipe": "String",
       "fid": "Int",
       "location": "Point",
       "cat_integr": "String",
-      "anpmarcelo": "Boolean",
-      "by_fauna": "Int",
       "integrity": "Boolean",
       "cumulus_id": "Int",
+      "ecosystem_id": "Int",
       "created_at": "DateTime"
     },
     "associations": {
-      "cumulus": {
+      "cumulus_node": {
         "type": "many_to_one",
         "implementation": "foreignkeys",
         "reverseAssociation": "nodes",
@@ -23,32 +22,23 @@
         "keysIn": "node",
         "targetStorageType": "sql"
       },
-      "unique_ecosystem": {
+      "unique_visit": {
         "type": "one_to_one",
         "implementation": "foreignkeys",
         "reverseAssociation": "unique_node",
-        "target": "ecosystem",
+        "target": "visit",
         "targetKey": "node_id",
-        "keysIn": "ecosystem",
+        "keysIn": "visit",
         "targetStorageType": "sql"
       },
-      "device_deployments": {
-          "type": "one_to_many",
+      "ecosystems": {
+          "type": "many_to_one",
           "implementation": "foreignkeys",
-          "reverseAssociation": "node_deployment",
-          "target": "deployment",
-          "targetKey": "node_id",
-          "keysIn": "deployment",
+          "reverseAssociation": "unique_node",
+          "target": "ecosystem",
+          "targetKey": "ecosystem_id",
+          "keysIn": "node",
           "targetStorageType": "sql"
-      },
-      "unique_calendar": {
-        "type": "one_to_one",
-        "implementation": "foreignkeys",
-        "reverseAssociation": "unique_node",
-        "target": "calendar",
-        "targetKey": "node_id",
-        "keysIn": "calendar",
-        "targetStorageType": "sql"
       }
     }
 }

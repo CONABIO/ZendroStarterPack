@@ -15,6 +15,7 @@ const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addDevice': 'device_catalog',
+    'addCumulus_device': 'cumulus',
     'addDevice_deployments': 'deployment'
 }
 
@@ -46,6 +47,44 @@ physical_device.prototype.device = async function({
                 "operator": "eq"
             });
             let found = (await resolvers.device_catalogsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+/**
+ * physical_device.prototype.cumulus_device - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+physical_device.prototype.cumulus_device = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.cumulus_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneCumulus({
+                [models.cumulus.idAttribute()]: this.cumulus_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.cumulus.idAttribute(),
+                "value": this.cumulus_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.cumulusConnection({
                 search: nsearch,
                 pagination: {
                     first: 1
@@ -165,6 +204,9 @@ physical_device.prototype.handleAssociations = async function(input, benignError
     if (helper.isNotUndefinedAndNotNull(input.addDevice)) {
         promises_add.push(this.add_device(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addCumulus_device)) {
+        promises_add.push(this.add_cumulus_device(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
@@ -173,6 +215,9 @@ physical_device.prototype.handleAssociations = async function(input, benignError
     }
     if (helper.isNotUndefinedAndNotNull(input.removeDevice)) {
         promises_remove.push(this.remove_device(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeCumulus_device)) {
+        promises_remove.push(this.remove_cumulus_device(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -208,6 +253,17 @@ physical_device.prototype.add_device = async function(input, benignErrorReporter
 }
 
 /**
+ * add_cumulus_device - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+physical_device.prototype.add_cumulus_device = async function(input, benignErrorReporter) {
+    await physical_device.add_cumulus_id(this.getIdValue(), input.addCumulus_device, benignErrorReporter);
+    this.cumulus_id = input.addCumulus_device;
+}
+
+/**
  * remove_device_deployments - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -238,6 +294,19 @@ physical_device.prototype.remove_device = async function(input, benignErrorRepor
     }
 }
 
+/**
+ * remove_cumulus_device - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+physical_device.prototype.remove_cumulus_device = async function(input, benignErrorReporter) {
+    if (input.removeCumulus_device == this.cumulus_id) {
+        await physical_device.remove_cumulus_id(this.getIdValue(), input.removeCumulus_device, benignErrorReporter);
+        this.cumulus_id = null;
+    }
+}
+
 
 
 /**
@@ -259,6 +328,7 @@ async function countAllAssociatedRecords(id, context) {
 
     promises_to_many.push(physical_device.countFilteredDevice_deployments({}, context));
     promises_to_one.push(physical_device.device({}, context));
+    promises_to_one.push(physical_device.cumulus_device({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -496,6 +566,26 @@ module.exports = {
         return await physical_device.bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
+     * bulkAssociatePhysical_deviceWithCumulus_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociatePhysical_deviceWithCumulus_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cumulus_id
+            }) => cumulus_id)), models.cumulus);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), physical_device);
+        }
+        return await physical_device.bulkAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
      * bulkDisAssociatePhysical_deviceWithDevice_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -514,6 +604,26 @@ module.exports = {
             }) => id)), physical_device);
         }
         return await physical_device.bulkDisAssociatePhysical_deviceWithDevice_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociatePhysical_deviceWithCumulus_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociatePhysical_deviceWithCumulus_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cumulus_id
+            }) => cumulus_id)), models.cumulus);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), physical_device);
+        }
+        return await physical_device.bulkDisAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

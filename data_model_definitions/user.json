@@ -6,13 +6,11 @@
         "password": "String",
         "first_name": "String",
         "last_name": "String",
-        "grade": "String",
         "email": "String",
-        "address": "String",
         "is_active": "Boolean",
-        "comments": "String",
         "last_login": "DateTime",
         "institution_id": "Int",
+        "cumulus_ids": "[Int]",
         "created_at": "DateTime"
     },
     "associations": {
@@ -43,6 +41,16 @@
             "target": "visit",
             "targetKey": "user_id",
             "keysIn": "visit",
+            "targetStorageType": "sql"
+        },
+        "associated_cumulus": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "associated_partners",
+            "target": "cumulus",
+            "targetKey": "user_ids",
+            "sourceKey": "cumulus_ids",
+            "keysIn": "user",
             "targetStorageType": "sql"
         }
     }

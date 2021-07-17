@@ -20,16 +20,6 @@ module.exports.validator_patch = function(ecosystem) {
         "properties": {
             "name": {
                 "type": ["string", "null"]
-            },
-            "node_id": {
-                "type": ["integer", "null"]
-            },
-            "created_at": {
-                "anyOf": [{
-                    "isoDateTime": true
-                }, {
-                    "type": "null"
-                }]
             }
         }
     }

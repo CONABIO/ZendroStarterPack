@@ -30,20 +30,11 @@ module.exports.validator_patch = function(user) {
             "last_name": {
                 "type": ["string", "null"]
             },
-            "grade": {
-                "type": ["string", "null"]
-            },
             "email": {
-                "type": ["string", "null"]
-            },
-            "address": {
                 "type": ["string", "null"]
             },
             "is_active": {
                 "type": ["boolean", "null"]
-            },
-            "comments": {
-                "type": ["string", "null"]
             },
             "last_login": {
                 "anyOf": [{
@@ -54,6 +45,9 @@ module.exports.validator_patch = function(user) {
             },
             "institution_id": {
                 "type": ["integer", "null"]
+            },
+            "cumulus_ids": {
+                "type": ["array", "null"]
             },
             "created_at": {
                 "anyOf": [{
