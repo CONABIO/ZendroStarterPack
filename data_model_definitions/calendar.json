@@ -8,15 +8,6 @@
         "updated_at": "DateTime"
     },
     "associations": {
-        "unique_node": {
-          "type": "one_to_one",
-          "implementation": "foreignkeys",
-          "reverseAssociation": "unique_calendar",
-          "target": "node",
-          "targetKey": "node_id",
-          "keysIn": "calendar",
-          "targetStorageType": "sql"
-        },
         "visits": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
