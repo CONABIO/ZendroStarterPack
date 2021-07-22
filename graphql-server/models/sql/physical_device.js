@@ -22,7 +22,8 @@ const definition = {
     model: 'physical_device',
     storageType: 'sql',
     attributes: {
-        serial: 'String',
+        serial_number: 'String',
+        comments: 'String',
         device_id: 'Int',
         cumulus_id: 'Int',
         created_at: 'DateTime'
@@ -76,7 +77,10 @@ module.exports = class physical_device extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            serial: {
+            serial_number: {
+                type: Sequelize[dict['String']]
+            },
+            comments: {
                 type: Sequelize[dict['String']]
             },
             device_id: {

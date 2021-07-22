@@ -21,21 +21,8 @@ module.exports.validator_patch = function(device_catalog) {
             "brand": {
                 "type": ["string", "null"]
             },
-            "model": {
-                "type": ["string", "null"]
-            },
             "type": {
                 "type": ["string", "null"]
-            },
-            "serial_number": {
-                "type": ["string", "null"]
-            },
-            "created_at": {
-                "anyOf": [{
-                    "isoDateTime": true
-                }, {
-                    "type": "null"
-                }]
             }
         }
     }

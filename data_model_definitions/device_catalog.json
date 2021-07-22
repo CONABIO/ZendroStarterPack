@@ -3,10 +3,7 @@
     "storageType": "sql",
     "attributes": {
         "brand": "String",
-        "model": "String",
-        "type": "String",
-        "serial_number": "String",
-        "created_at": "DateTime"
+        "type": "String"
     },
     "associations": {
         "physical_devices": {

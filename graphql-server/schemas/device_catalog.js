@@ -14,25 +14,7 @@ module.exports = `
     @original-field
     
     """
-    model: String
-
-    """
-    @original-field
-    
-    """
     type: String
-
-    """
-    @original-field
-    
-    """
-    serial_number: String
-
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
 
       
     """
@@ -77,10 +59,7 @@ type Device_catalogEdge{
   enum device_catalogField {
     id
     brand
-    model
     type
-    serial_number
-    created_at
   }
   input searchDevice_catalogInput {
     field: device_catalogField
@@ -107,8 +86,8 @@ type Device_catalogEdge{
   }
 
   type Mutation {
-    addDevice_catalog( brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
-    updateDevice_catalog(id: ID!, brand: String, model: String, type: String, serial_number: String, created_at: DateTime   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
+    addDevice_catalog( brand: String, type: String   , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
+    updateDevice_catalog(id: ID!, brand: String, type: String   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): device_catalog!
     deleteDevice_catalog(id: ID!): String!
     bulkAddDevice_catalogCsv: String!
       }

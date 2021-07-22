@@ -28,8 +28,7 @@ module.exports = `
     """
     updated_at: DateTime
 
-    unique_node(search: searchNodeInput): node
-    
+      
     """
     @search-request
     """
@@ -89,10 +88,7 @@ type CalendarEdge{
     order: Order
   }
 
-  input bulkAssociationCalendarWithNode_idInput{
-    id: ID!
-    node_id: ID!
-  }
+
 
   type Query {
     calendars(search: searchCalendarInput, order: [ orderCalendarInput ], pagination: paginationInput! ): [calendar]
@@ -104,11 +100,9 @@ type CalendarEdge{
   }
 
   type Mutation {
-    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime , addUnique_node:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
-    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime , addUnique_node:ID, removeUnique_node:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
     deleteCalendar(id: ID!): String!
     bulkAddCalendarCsv: String!
-    bulkAssociateCalendarWithNode_id(bulkAssociationInput: [bulkAssociationCalendarWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-    bulkDisAssociateCalendarWithNode_id(bulkAssociationInput: [bulkAssociationCalendarWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-  }
+      }
 `;

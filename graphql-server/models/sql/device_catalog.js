@@ -23,10 +23,7 @@ const definition = {
     storageType: 'sql',
     attributes: {
         brand: 'String',
-        model: 'String',
-        type: 'String',
-        serial_number: 'String',
-        created_at: 'DateTime'
+        type: 'String'
     },
     associations: {
         physical_devices: {
@@ -62,17 +59,8 @@ module.exports = class device_catalog extends Sequelize.Model {
             brand: {
                 type: Sequelize[dict['String']]
             },
-            model: {
-                type: Sequelize[dict['String']]
-            },
             type: {
                 type: Sequelize[dict['String']]
-            },
-            serial_number: {
-                type: Sequelize[dict['String']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

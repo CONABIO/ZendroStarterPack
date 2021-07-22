@@ -450,7 +450,7 @@ module.exports = {
      */
     vueTablePhysical_device: async function(_, context) {
         if (await checkAuthorization(context, 'physical_device', 'read') === true) {
-            return helper.vueTable(context.request, physical_device, ["id", "serial"]);
+            return helper.vueTable(context.request, physical_device, ["id", "serial_number", "comments"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

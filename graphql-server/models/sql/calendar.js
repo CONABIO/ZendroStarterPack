@@ -28,15 +28,6 @@ const definition = {
         updated_at: 'DateTime'
     },
     associations: {
-        unique_node: {
-            type: 'one_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'unique_calendar',
-            target: 'node',
-            targetKey: 'node_id',
-            keysIn: 'calendar',
-            targetStorageType: 'sql'
-        },
         visits: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
@@ -127,10 +118,6 @@ module.exports = class calendar extends Sequelize.Model {
     }
 
     static associate(models) {
-        calendar.belongsTo(models.node, {
-            as: 'unique_node',
-            foreignKey: 'node_id'
-        });
         calendar.hasMany(models.visit, {
             as: 'visits',
             foreignKey: 'calendar_id'
@@ -343,98 +330,12 @@ module.exports = class calendar extends Sequelize.Model {
 
 
 
-    /**
-     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_node_id(id, node_id) {
-        let updated = await calendar.update({
-            node_id: node_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-
-    /**
-     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_node_id(id, node_id) {
-        let updated = await calendar.update({
-            node_id: null
-        }, {
-            where: {
-                id: id,
-                node_id: node_id
-            }
-        });
-        return updated;
-    }
 
 
 
 
 
-    /**
-     * bulkAssociateCalendarWithNode_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateCalendarWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: node_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-
-    /**
-     * bulkDisAssociateCalendarWithNode_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateCalendarWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            node_id,
-            id
-        }) => {
-            promises.push(super.update({
-                node_id: null
-            }, {
-                where: {
-                    id: id,
-                    node_id: node_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
 

@@ -14,50 +14,11 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_node': 'node',
     'addVisits': 'visit'
 }
 
 
 
-/**
- * calendar.prototype.unique_node - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-calendar.prototype.unique_node = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.node_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneNode({
-                [models.node.idAttribute()]: this.node_id
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.node.idAttribute(),
-                "value": this.node_id,
-                "operator": "eq"
-            });
-            let found = (await resolvers.nodesConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
 
 /**
  * calendar.prototype.visitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -162,17 +123,11 @@ calendar.prototype.handleAssociations = async function(input, benignErrorReporte
     if (helper.isNonEmptyArray(input.addVisits)) {
         promises_add.push(this.add_visits(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_node)) {
-        promises_add.push(this.add_unique_node(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeVisits)) {
         promises_remove.push(this.remove_visits(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_node)) {
-        promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -197,17 +152,6 @@ calendar.prototype.add_visits = async function(input, benignErrorReporter) {
 }
 
 /**
- * add_unique_node - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-calendar.prototype.add_unique_node = async function(input, benignErrorReporter) {
-    await calendar.add_node_id(this.getIdValue(), input.addUnique_node, benignErrorReporter);
-    this.node_id = input.addUnique_node;
-}
-
-/**
  * remove_visits - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -223,19 +167,6 @@ calendar.prototype.remove_visits = async function(input, benignErrorReporter) {
         }
     });
     await models.visit.bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_unique_node - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-calendar.prototype.remove_unique_node = async function(input, benignErrorReporter) {
-    if (input.removeUnique_node == this.node_id) {
-        await calendar.remove_node_id(this.getIdValue(), input.removeUnique_node, benignErrorReporter);
-        this.node_id = null;
-    }
 }
 
 
@@ -258,7 +189,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(calendar.countFilteredVisits({}, context));
-    promises_to_one.push(calendar.unique_node({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -475,46 +405,6 @@ module.exports = {
         }
     },
 
-    /**
-     * bulkAssociateCalendarWithNode_id - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateCalendarWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), calendar);
-        }
-        return await calendar.bulkAssociateCalendarWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
-     * bulkDisAssociateCalendarWithNode_id - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateCalendarWithNode_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), calendar);
-        }
-        return await calendar.bulkDisAssociateCalendarWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
 
     /**
      * csvTableTemplateCalendar - Returns table's template

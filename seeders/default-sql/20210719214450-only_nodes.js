@@ -4,7 +4,6 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     const seeds = await queryInterface.sequelize.query(
       'SELECT seeded FROM db_was_seeded')
-    //if (seeds)
     try {
       let seeded = seeds[0][2].seeded;
       console.log("Database was already seeded for nodes")
@@ -12,7 +11,7 @@ module.exports = {
         'SELECT 1 FROM db_was_seeded')
     } catch {
       const rawData = await queryInterface.sequelize.query(
-        `SELECT id,name FROM cumulus;` // en postgresql la tabla se debe escribir \"Roles\"
+        `SELECT id,name FROM cumulus;` 
       );
       const cumulus = rawData[0];
 

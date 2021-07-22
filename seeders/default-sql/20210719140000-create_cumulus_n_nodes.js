@@ -4,7 +4,6 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     const seeds = await queryInterface.sequelize.query(
       'SELECT seeded FROM db_was_seeded')
-    //if (seeds)
     try {
       let seeded = seeds[0][1].seeded;
       console.log("Database was already seeded for cumulus and nodes")

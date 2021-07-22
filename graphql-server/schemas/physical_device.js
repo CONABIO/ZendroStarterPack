@@ -8,7 +8,13 @@ module.exports = `
     @original-field
     
     """
-    serial: String
+    serial_number: String
+
+    """
+    @original-field
+    
+    """
+    comments: String
 
     """
     @original-field
@@ -72,7 +78,8 @@ type Physical_deviceEdge{
   }
   enum physical_deviceField {
     id
-    serial
+    serial_number
+    comments
     device_id
     cumulus_id
     created_at
@@ -108,8 +115,8 @@ type Physical_deviceEdge{
   }
 
   type Mutation {
-    addPhysical_device( serial: String, created_at: DateTime , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
-    updatePhysical_device(id: ID!, serial: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    addPhysical_device( serial_number: String, comments: String, created_at: DateTime , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    updatePhysical_device(id: ID!, serial_number: String, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
     deletePhysical_device(id: ID!): String!
     bulkAddPhysical_deviceCsv: String!
     bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

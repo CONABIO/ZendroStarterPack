@@ -310,7 +310,7 @@ module.exports = {
      */
     vueTableDevice_catalog: async function(_, context) {
         if (await checkAuthorization(context, 'device_catalog', 'read') === true) {
-            return helper.vueTable(context.request, device_catalog, ["id", "brand", "model", "type", "serial_number"]);
+            return helper.vueTable(context.request, device_catalog, ["id", "brand", "type"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

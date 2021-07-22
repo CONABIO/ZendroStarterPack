@@ -2,7 +2,8 @@
     "model": "physical_device",
     "storageType": "sql",
     "attributes": {
-        "serial": "String",
+        "serial_number": "String",
+        "comments": "String",
         "device_id": "Int",
         "cumulus_id": "Int",
         "created_at": "DateTime"

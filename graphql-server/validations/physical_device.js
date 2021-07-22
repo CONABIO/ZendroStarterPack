@@ -18,7 +18,10 @@ module.exports.validator_patch = function(physical_device) {
     physical_device.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "serial": {
+            "serial_number": {
+                "type": ["string", "null"]
+            },
+            "comments": {
                 "type": ["string", "null"]
             },
             "device_id": {
