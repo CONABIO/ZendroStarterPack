@@ -7,6 +7,8 @@ const { Op } = require("sequelize");
 
 const globals = require("../config/globals");
 var mergeSchema = require("./merge-schemas");
+const { applyMiddleware } = require("graphql-middleware");
+const { permissions } = require("./permissions");
 var { buildSchema, GraphQLSchema } = require("graphql");
 const {
   GraphQLDateTime,
@@ -2055,7 +2057,8 @@ module.exports.differenceIds = function (ids, ids_to_remove) {
  */
 module.exports.mergeSchemaSetScalarTypes = (path) => {
   var merged_schema = mergeSchema(path);
-  var Schema = buildSchema(merged_schema);
+  var built = buildSchema(merged_schema);
+  let Schema = applyMiddleware(built, permissions);
   /*set scalar types for dates */
   Object.assign(Schema._typeMap.DateTime, GraphQLDateTime);
   Object.assign(Schema._typeMap.Date, GraphQLDate);

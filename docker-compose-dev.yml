@@ -28,7 +28,7 @@ services:
       JQ_PATH: /usr/bin/jq
       NODE_JQ_SKIP_INSTALL_BINARY: "true"
       # default for dev environment. Please change according to your needs.
-      REQUIRE_SIGN_IN: "false"
+      REQUIRE_SIGN_IN: "true"
     ports:
       - 3000:3000
     volumes:
