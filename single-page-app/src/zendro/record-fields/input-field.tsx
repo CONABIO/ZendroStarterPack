@@ -11,9 +11,11 @@ import { TextInputProps } from '@/components/text-input';
 
 import BoolField from './bool-field';
 import DateTimeField from './datetime-field';
+import DateField from './date-field';
 import FloatField from './float-field';
 import IntField from './int-field';
 import StringField from './string-field';
+import ObjectField from './object-field';
 import ArrayField from './array-field';
 
 export type InputFieldProps = Overwrite<
@@ -37,6 +39,8 @@ export default function InputField({
       return <BoolField {...props} value={value as boolean | null} />;
     case 'DateTime':
       return <DateTimeField {...props} value={value as Date | null} />;
+    case 'Date':
+      return <DateField {...props} value={value as Date | null} />;
 
     case 'Float':
       return (
@@ -52,6 +56,8 @@ export default function InputField({
       );
     case 'String':
       return <StringField {...props} value={value as string | null} />;
+    case 'Point' || 'Multipoint' || 'Polygon' || 'MultiPolygon':
+      return <ObjectField {...props} value={value as string | null} />;
     case '[String]':
       return (
         <ArrayField {...props} type={type} value={value as string[] | null} />

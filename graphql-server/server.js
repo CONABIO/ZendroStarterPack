@@ -125,8 +125,8 @@ app.use(
   graphqlHTTP((req) => ({
     schema: Schema,
     rootValue: resolvers,
-    pretty: true,
-    graphiql: true,
+    pretty: globals.REQUIRE_SIGN_IN ? false : true,
+    graphiql: globals.REQUIRE_SIGN_IN ? false : true,
     context: {
       request: req,
       acl: acl,

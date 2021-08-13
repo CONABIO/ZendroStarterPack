@@ -21,6 +21,9 @@ const hasPermission = rule()((parent,args,context,info) => {
 const permissions = shield({
     Query: hasPermission,
     Mutation: hasPermission
+},{
+    fallbackRule: hasPermission,
+    debug: true
 });
   
 module.exports = { permissions };

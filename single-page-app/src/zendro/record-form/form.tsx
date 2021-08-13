@@ -119,6 +119,16 @@ export default function AttributesForm({
 
   /* HANDLERS */
 
+  const geometries = [
+    'Point',
+    'Multipoint',
+    'LineString',
+    'MultiLineString',
+    'Polygon',
+    'MultiPolygon',
+    'GeometryCollection',
+    'Feature',
+    'FeatureCollection']
   const handleOnAction = ({
     handler,
   }: {
@@ -136,8 +146,22 @@ export default function AttributesForm({
       { clientErrors: 0, unset: 0 } as FormStats
     );
 
+    let cleanAttributes = formAttributes.map((field: any) => {
+      if(field.type == "Date") {
+        return {...field,
+          value: field.value ? 
+                field.value?.getFullYear() + '-' +
+                ("0" + (field.value?.getMonth() + 1)).slice(-2) + '-' +
+                field.value?.getDate() : field.value}
+      } else if(geometries.includes(field.type)) {
+        return {...field, 
+          value: field.value ? 
+                (typeof field.value != "object" ? JSON.parse(field.value) : field.value) 
+                : field.value}
+      } else return field;
+    })
     // let callback: (() => void) | undefined;
-    handler(formAttributes, formStats);
+    handler(cleanAttributes, formStats);
   };
 
   /**

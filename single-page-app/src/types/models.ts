@@ -6,17 +6,37 @@ import { Operator } from './queries';
 export type AttributeScalarType =
   | 'Boolean'
   | 'DateTime'
+  | 'Date'
   | 'Float'
   | 'Int'
   | 'String'
-  | 'Array';
+  | 'Array'
+  | 'Point'
+  | 'Multipoint'
+  | 'LineString'
+  | 'MultiLineString'
+  | 'Polygon'
+  | 'MultiPolygon'
+  | 'GeometryCollection'
+  | 'Feature'
+  | 'FeatureCollection';
 
 export type AttributeArrayType =
   | '[Boolean]'
   | '[DateTime]'
+  | '[Date]'
   | '[Float]'
   | '[Int]'
-  | '[String]';
+  | '[String]'
+  | '[Point]'
+  | '[MultiPoint]'
+  | '[LineString]'
+  | '[MultiLineString]'
+  | '[Polygon]'
+  | '[MultiPolygon]'
+  | '[GeometryCollection]'
+  | '[Feature]'
+  | '[FeatureCollection]';
 
 export type StorageType =
   | 'sql'
@@ -47,13 +67,14 @@ export interface Attributes {
 
 export type AttributeValue = AttributeScalarValue | AttributeArrayValue;
 
-export type AttributeScalarValue = boolean | Date | number | string | null;
+export type AttributeScalarValue = boolean | Date | number | string | object |null;
 
 export type AttributeArrayValue =
   | boolean[]
   | Date[]
   | number[]
   | string[]
+  | object[]
   | null[]
   | null;
 

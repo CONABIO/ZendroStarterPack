@@ -9,7 +9,8 @@ const actionsWhitelist = [
     "readOne",
     "count",
     "vueTable",
-    "csvTableTemplate"
+    "csvTableTemplate",
+    "Connection"
 ]
 
 module.exports = { modelWhitelist, actionsWhitelist };
