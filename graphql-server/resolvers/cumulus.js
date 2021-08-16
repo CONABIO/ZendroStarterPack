@@ -4,6 +4,7 @@
 
 const path = require('path');
 const cumulus = require(path.join(__dirname, '..', 'models', 'index.js')).cumulus;
+const node = require(path.join(__dirname, '..', 'models', 'index.js')).node;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -12,6 +13,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
+const hull = require("hull.js");
 
 const associationArgsDef = {
     'addCumulus_criteria': 'cumulus_criteria',
@@ -821,6 +823,68 @@ async function validForDeletion(id, context) {
     return true;
 }
 
+/**
+ * createAndSaveConvexHull - creates convex hull geometry for the given cumulus
+ * 
+ * @param   {number}    cumulusId   Cumulus id of the cumulus to modify its geom
+ * @param   {number}    nodeId      Node id of the node to add/remove from the geom
+ * @param   {boolean}   add         boolean to check if adds ore removes node
+ * @return  {boolean}               returns a boolean if the convex return with no errors
+ */
+ async function createAndSaveConvexHull(cumulusId,nodeId,add) {
+    // get cumulus whose geom we are going to change
+    let cumulusToChange = await cumulus.findOne({
+        where: { 
+            id: cumulusId 
+        }, 
+        include: [{
+            model: node,
+            as: "nodes"
+        }]
+    });
+    let pointsNodes = []; // var to store the points for the convex hull
+    /*
+     * filter the point of the node that is 
+     * going to be added or removed
+     */
+    cumulusToChange.nodes.forEach(node => {
+        if(!add && node.id != nodeId) { // filter removed point
+            pointsNodes.push([         
+                node.location.coordinates[0],
+                node.location.coordinates[1]
+            ]);
+        } else if (add) { // no filter if a node is going to be added
+            pointsNodes.push([
+                node.location.coordinates[0],
+                node.location.coordinates[1]
+            ]);
+        }
+    })
+
+    if(add) { // add point coordinates for the node that is going to be associated
+        let nodeToadd = await node.findOne({ where: { id: nodeId } });
+        pointsNodes.push([
+            nodeToadd.location.coordinates[0],
+            nodeToadd.location.coordinates[1]
+        ])
+    }
+
+    // Create convex hull with hull function from hull.js
+    let convexHull = hull(pointsNodes,80);
+    // Update cumulus with the new geometry created from hull.js function 
+    let updatedCumulus = cumulus.update(
+        { "geometry": {
+                "type": "Polygon",
+                "coordinates": [convexHull]
+            } 
+        },
+        { returning: true, where: {id: cumulusId} }
+    );
+
+    // return true if update was succesful
+    return updatedCumulus;
+}
+
 module.exports = {
     /**
      * cumulus - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -1068,6 +1132,29 @@ module.exports = {
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
+    },
+
+    /**
+     * updateOrCreateConvexHull - Updates cumulus geometry with convex hull created from all nodes associeted with it
+     * 
+     * @param   {object}  nodeCumulus            Object containing node id and cumulus id to create convex hull 
+     * @param   {number}  currentAssociation     Id of current cumulus associated with given node
+     * @param   {boolean} add                    boolean that indicates if node is going to be added or removed
+     * @return  {boolean}                        This function only return true
+     */
+    updateOrCreateConvexHull: async function(nodeCumulus,currentAssociation,add) {
+        // Remove node from convex hull geom for the previuos cumulus
+        //
+        // third value in createAndSaveConvexHull set to false, to indicate that
+        // is has to remove the point for the node from the convex hull geom
+        await createAndSaveConvexHull(currentAssociation,nodeCumulus.id,false); 
+
+        // Add node to convex hull geom for new cumulus association
+        if(add)
+            await createAndSaveConvexHull(nodeCumulus.addCumulus_node,nodeCumulus.id,true); 
+
+        return true;
     }
+
 
 }
