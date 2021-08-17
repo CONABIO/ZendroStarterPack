@@ -656,6 +656,13 @@ cumulus.prototype.add_monitors = async function(input, benignErrorReporter) {
  */
 cumulus.prototype.add_nodes = async function(input, benignErrorReporter) {
 
+    await input.addNodes.forEach(async nodeId => {
+        let findAssoc = await node.findOne({ where: { id: nodeId } });
+        if(findAssoc.cumulus_id) {
+            await createAndSaveConvexHull(findAssoc.cumulus_id,nodeId,false);
+        }
+    })
+
     let bulkAssociationInput = input.addNodes.map(associatedRecordId => {
         return {
             cumulus_id: this.getIdValue(),
@@ -663,6 +670,7 @@ cumulus.prototype.add_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
+    await createAndSaveConvexHull(this.getIdValue(),null,true);
 }
 
 /**
@@ -759,6 +767,7 @@ cumulus.prototype.remove_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
+    await createAndSaveConvexHull(this.getIdValue(),null,true);
 }
 
 /**
@@ -861,7 +870,9 @@ async function validForDeletion(id, context) {
         }
     })
 
-    if(add) { // add point coordinates for the node that is going to be associated
+    // if nodeId is null doesn't add new node and only creates convex hull
+    // from current associated nodes
+    if(add && nodeId) { // add point coordinates for the node that is going to be associated
         let nodeToadd = await node.findOne({ where: { id: nodeId } });
         pointsNodes.push([
             nodeToadd.location.coordinates[0],
