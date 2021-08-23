@@ -148,11 +148,12 @@ export default function AttributesForm({
 
     let cleanAttributes = formAttributes.map((field: any) => {
       if(field.type == "Date") {
+        if (typeof field.value === 'string') field.value = new Date(field.value.replaceAll('-','/'))
         return {...field,
           value: field.value ? 
                 field.value?.getFullYear() + '-' +
                 ("0" + (field.value?.getMonth() + 1)).slice(-2) + '-' +
-                field.value?.getDate() : field.value}
+                ("0" + field.value?.getDate()).slice(-2) : field.value}
       } else if(geometries.includes(field.type)) {
         return {...field, 
           value: field.value ? 

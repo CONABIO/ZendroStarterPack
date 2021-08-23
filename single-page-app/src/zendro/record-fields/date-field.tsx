@@ -26,9 +26,8 @@ export default function DateTimePicker({
   };
 
   const [showAdornment, toggleAdornment] = useReducer((state) => !state, true);
-
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} locale={localeMap['en']}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} locale={localeMap['es']}>
       <MobileDatePicker 
         clearable
         mask="____-__-__"

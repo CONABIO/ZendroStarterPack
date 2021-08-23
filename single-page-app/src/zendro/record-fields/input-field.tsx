@@ -40,6 +40,7 @@ export default function InputField({
     case 'DateTime':
       return <DateTimeField {...props} value={value as Date | null} />;
     case 'Date':
+      if(value && typeof value === "string") value = value.replaceAll('-','/'); 
       return <DateField {...props} value={value as Date | null} />;
 
     case 'Float':

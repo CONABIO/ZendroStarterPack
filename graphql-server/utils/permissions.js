@@ -22,7 +22,6 @@ const permissions = shield({
     Query: hasPermission,
     Mutation: hasPermission
 },{
-    fallbackRule: hasPermission,
     debug: true
 });
   
