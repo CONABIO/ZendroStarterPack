@@ -13,6 +13,15 @@
             "targetKey": "ecosystem_id",
             "keysIn": "node",
             "targetStorageType": "sql"
+        },
+        "cumulus_ecosystem": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "unique_ecosystem",
+            "target": "cumulus",
+            "targetKey": "ecosystem_id",
+            "keysIn": "cumulus",
+            "targetStorageType": "sql"
         }
     }
 }

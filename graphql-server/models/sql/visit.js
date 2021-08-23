@@ -26,7 +26,8 @@ const definition = {
         calendar_id: 'Int',
         created_at: 'DateTime',
         cumulus_id: 'Int',
-        node_id: 'Int'
+        pristine_id: 'Int',
+        disturbed_id: 'Int'
     },
     associations: {
         calendar: {
@@ -65,12 +66,21 @@ const definition = {
             keysIn: 'visit',
             targetStorageType: 'sql'
         },
-        unique_node: {
+        unique_node_pristine: {
             type: 'one_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'unique_visit',
+            reverseAssociation: 'unique_visit_pristine',
             target: 'node',
-            targetKey: 'node_id',
+            targetKey: 'pristine_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
+        },
+        unique_node_disturbed: {
+            type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'unique_visit_disturbed',
+            target: 'node',
+            targetKey: 'disturbed_id',
             keysIn: 'visit',
             targetStorageType: 'sql'
         }
@@ -107,7 +117,10 @@ module.exports = class visit extends Sequelize.Model {
             cumulus_id: {
                 type: Sequelize[dict['Int']]
             },
-            node_id: {
+            pristine_id: {
+                type: Sequelize[dict['Int']]
+            },
+            disturbed_id: {
                 type: Sequelize[dict['Int']]
             }
 
@@ -171,8 +184,12 @@ module.exports = class visit extends Sequelize.Model {
             foreignKey: 'cumulus_id'
         });
         visit.belongsTo(models.node, {
-            as: 'unique_node',
-            foreignKey: 'node_id'
+            as: 'unique_node_pristine',
+            foreignKey: 'pristine_id'
+        });
+        visit.belongsTo(models.node, {
+            as: 'unique_node_disturbed',
+            foreignKey: 'disturbed_id'
         });
         visit.hasMany(models.deployment, {
             as: 'deployments',
@@ -435,14 +452,30 @@ module.exports = class visit extends Sequelize.Model {
         return updated;
     }
     /**
-     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_pristine_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   pristine_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_node_id(id, node_id) {
+    static async add_pristine_id(id, pristine_id) {
         let updated = await visit.update({
-            node_id: node_id
+            pristine_id: pristine_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+    /**
+     * add_disturbed_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   disturbed_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_disturbed_id(id, disturbed_id) {
+        let updated = await visit.update({
+            disturbed_id: disturbed_id
         }, {
             where: {
                 id: id
@@ -503,18 +536,35 @@ module.exports = class visit extends Sequelize.Model {
         return updated;
     }
     /**
-     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_pristine_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   pristine_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_node_id(id, node_id) {
+    static async remove_pristine_id(id, pristine_id) {
         let updated = await visit.update({
-            node_id: null
+            pristine_id: null
         }, {
             where: {
                 id: id,
-                node_id: node_id
+                pristine_id: pristine_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_disturbed_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   disturbed_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_disturbed_id(id, disturbed_id) {
+        let updated = await visit.update({
+            disturbed_id: null
+        }, {
+            where: {
+                id: id,
+                disturbed_id: disturbed_id
             }
         });
         return updated;
@@ -603,21 +653,47 @@ module.exports = class visit extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateVisitWithNode_id - bulkAssociaton of given ids
+     * bulkAssociateVisitWithPristine_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateVisitWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+    static async bulkAssociateVisitWithPristine_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pristine_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            node_id,
+            pristine_id,
             id
         }) => {
             promises.push(super.update({
-                node_id: node_id
+                pristine_id: pristine_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateVisitWithDisturbed_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateVisitWithDisturbed_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "disturbed_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            disturbed_id,
+            id
+        }) => {
+            promises.push(super.update({
+                disturbed_id: disturbed_id
             }, {
                 where: {
                     id: id
@@ -711,25 +787,52 @@ module.exports = class visit extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateVisitWithNode_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateVisitWithPristine_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateVisitWithNode_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
+    static async bulkDisAssociateVisitWithPristine_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pristine_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            node_id,
+            pristine_id,
             id
         }) => {
             promises.push(super.update({
-                node_id: null
+                pristine_id: null
             }, {
                 where: {
                     id: id,
-                    node_id: node_id
+                    pristine_id: pristine_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateVisitWithDisturbed_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateVisitWithDisturbed_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "disturbed_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            disturbed_id,
+            id
+        }) => {
+            promises.push(super.update({
+                disturbed_id: null
+            }, {
+                where: {
+                    id: id,
+                    disturbed_id: disturbed_id
                 }
             }));
         })

@@ -32,9 +32,16 @@ module.exports = `
     @original-field
     
     """
+    ecosystem_id: Int
+
+    """
+    @original-field
+    
+    """
     created_at: DateTime
 
     cumulus_criteria(search: searchCumulus_criteriaInput): cumulus_criteria
+  unique_ecosystem(search: searchEcosystemInput): ecosystem
     
     """
     @search-request
@@ -145,6 +152,7 @@ type CumulusEdge{
     geometry
     criteria_id
     user_ids
+    ecosystem_id
     created_at
   }
   input searchCumulusInput {
@@ -163,6 +171,9 @@ type CumulusEdge{
   input bulkAssociationCumulusWithCriteria_idInput{
     id: ID!
     criteria_id: ID!
+  }  input bulkAssociationCumulusWithEcosystem_idInput{
+    id: ID!
+    ecosystem_id: ID!
   }
 
   type Query {
@@ -175,11 +186,13 @@ type CumulusEdge{
   }
 
   type Mutation {
-    addCumulus( name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
-    updateCumulus(id: ID!, name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID, removeCumulus_criteria:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    addCumulus( name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    updateCumulus(id: ID!, name: String, geometry: Polygon, created_at: DateTime , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
     bulkAddCumulusCsv: String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput: [bulkAssociationCumulusWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput: [bulkAssociationCumulusWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

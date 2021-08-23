@@ -42,12 +42,21 @@ const definition = {
             keysIn: 'node',
             targetStorageType: 'sql'
         },
-        unique_visit: {
+        unique_visit_pristine: {
             type: 'one_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'unique_node',
+            reverseAssociation: 'unique_node_pristine',
             target: 'visit',
-            targetKey: 'node_id',
+            targetKey: 'pristine_id',
+            keysIn: 'visit',
+            targetStorageType: 'sql'
+        },
+        unique_visit_disturbed: {
+            type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'unique_node_disturbed',
+            target: 'visit',
+            targetKey: 'disturbed_id',
             keysIn: 'visit',
             targetStorageType: 'sql'
         },
@@ -161,8 +170,12 @@ module.exports = class node extends Sequelize.Model {
             foreignKey: 'cumulus_id'
         });
         node.hasOne(models.visit, {
-            as: 'unique_visit',
-            foreignKey: 'node_id'
+            as: 'unique_visit_pristine',
+            foreignKey: 'pristine_id'
+        });
+        node.hasOne(models.visit, {
+            as: 'unique_visit_disturbed',
+            foreignKey: 'disturbed_id'
         });
         node.belongsTo(models.ecosystem, {
             as: 'ecosystems',

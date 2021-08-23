@@ -27,6 +27,22 @@ module.exports = `
     """
     countFilteredUnique_node(search: searchNodeInput) : Int
   
+    """
+    @search-request
+    """
+    cumulus_ecosystemFilter(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput!): [cumulus]
+
+
+    """
+    @search-request
+    """
+    cumulus_ecosystemConnection(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput!): CumulusConnection
+
+    """
+    @count-request
+    """
+    countFilteredCumulus_ecosystem(search: searchCumulusInput) : Int
+  
     }
 type EcosystemConnection{
   edges: [EcosystemEdge]
@@ -79,8 +95,8 @@ type EcosystemEdge{
   }
 
   type Mutation {
-    addEcosystem( name: String   , addUnique_node:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
-    updateEcosystem(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    addEcosystem( name: String   , addUnique_node:[ID], addCumulus_ecosystem:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    updateEcosystem(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID] , addCumulus_ecosystem:[ID], removeCumulus_ecosystem:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     deleteEcosystem(id: ID!): String!
     bulkAddEcosystemCsv: String!
       }

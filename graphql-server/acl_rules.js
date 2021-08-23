@@ -2,7 +2,7 @@ module.exports = {
     aclRules: [
         //administrator role permission
         {
-            roles: 'admin',
+            roles: 'administrator',
             allows: [{
                 resources: [
                     'role',
@@ -15,7 +15,7 @@ module.exports = {
 
         // model and adapter permissions
         {
-            roles: 'partner',
+            roles: 'editor',
             allows: [{
                 resources: [
                     'calendar',
@@ -38,7 +38,7 @@ module.exports = {
         },
 
         {
-            roles: 'monitor',
+            roles: 'reader',
             allows: [{
                 resources: [
                     'calendar',
@@ -58,6 +58,6 @@ module.exports = {
                 ],
                 permissions: ['read']
             }]
-        }
+        },
     ]
 }

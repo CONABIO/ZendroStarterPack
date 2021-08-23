@@ -26,6 +26,7 @@ const definition = {
         geometry: 'Polygon',
         criteria_id: 'Int',
         user_ids: '[Int]',
+        ecosystem_id: 'Int',
         created_at: 'DateTime'
     },
     associations: {
@@ -83,6 +84,15 @@ const definition = {
             targetKey: 'cumulus_id',
             keysIn: 'node',
             targetStorageType: 'sql'
+        },
+        unique_ecosystem: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'cumulus_ecosystem',
+            target: 'ecosystem',
+            targetKey: 'ecosystem_id',
+            keysIn: 'cumulus',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -117,6 +127,9 @@ module.exports = class cumulus extends Sequelize.Model {
             user_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
+            },
+            ecosystem_id: {
+                type: Sequelize[dict['Int']]
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
@@ -172,6 +185,10 @@ module.exports = class cumulus extends Sequelize.Model {
         cumulus.belongsTo(models.cumulus_criteria, {
             as: 'cumulus_criteria',
             foreignKey: 'criteria_id'
+        });
+        cumulus.belongsTo(models.ecosystem, {
+            as: 'unique_ecosystem',
+            foreignKey: 'ecosystem_id'
         });
         cumulus.hasMany(models.physical_device, {
             as: 'devices',
@@ -414,6 +431,22 @@ module.exports = class cumulus extends Sequelize.Model {
         return updated;
     }
     /**
+     * add_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_ecosystem_id(id, ecosystem_id) {
+        let updated = await cumulus.update({
+            ecosystem_id: ecosystem_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+    /**
      * add_user_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -452,6 +485,23 @@ module.exports = class cumulus extends Sequelize.Model {
             where: {
                 id: id,
                 criteria_id: criteria_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_ecosystem_id(id, ecosystem_id) {
+        let updated = await cumulus.update({
+            ecosystem_id: null
+        }, {
+            where: {
+                id: id,
+                ecosystem_id: ecosystem_id
             }
         });
         return updated;
@@ -512,6 +562,32 @@ module.exports = class cumulus extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateCumulusWithEcosystem_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            ecosystem_id,
+            id
+        }) => {
+            promises.push(super.update({
+                ecosystem_id: ecosystem_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateCumulusWithCriteria_id - bulkDisAssociaton of given ids
@@ -533,6 +609,33 @@ module.exports = class cumulus extends Sequelize.Model {
                 where: {
                     id: id,
                     criteria_id: criteria_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateCumulusWithEcosystem_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            ecosystem_id,
+            id
+        }) => {
+            promises.push(super.update({
+                ecosystem_id: null
+            }, {
+                where: {
+                    id: id,
+                    ecosystem_id: ecosystem_id
                 }
             }));
         })

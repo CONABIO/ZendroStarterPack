@@ -32,12 +32,19 @@ module.exports = `
     @original-field
     
     """
-    node_id: Int
+    pristine_id: Int
+
+    """
+    @original-field
+    
+    """
+    disturbed_id: Int
 
     calendar(search: searchCalendarInput): calendar
   user_visit(search: searchUserInput): user
   cumulus_visit(search: searchCumulusInput): cumulus
-  unique_node(search: searchNodeInput): node
+  unique_node_pristine(search: searchNodeInput): node
+  unique_node_disturbed(search: searchNodeInput): node
     
     """
     @search-request
@@ -84,7 +91,8 @@ type VisitEdge{
     calendar_id
     created_at
     cumulus_id
-    node_id
+    pristine_id
+    disturbed_id
   }
   input searchVisitInput {
     field: visitField
@@ -108,9 +116,12 @@ type VisitEdge{
   }  input bulkAssociationVisitWithCumulus_idInput{
     id: ID!
     cumulus_id: ID!
-  }  input bulkAssociationVisitWithNode_idInput{
+  }  input bulkAssociationVisitWithPristine_idInput{
     id: ID!
-    node_id: ID!
+    pristine_id: ID!
+  }  input bulkAssociationVisitWithDisturbed_idInput{
+    id: ID!
+    disturbed_id: ID!
   }
 
   type Query {
@@ -123,8 +134,8 @@ type VisitEdge{
   }
 
   type Mutation {
-    addVisit( created_at: DateTime , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, created_at: DateTime , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node:ID, removeUnique_node:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( created_at: DateTime , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, created_at: DateTime , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
     bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
@@ -133,7 +144,9 @@ bulkAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUse
     bulkDisAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-bulkAssociateVisitWithNode_id(bulkAssociationInput: [bulkAssociationVisitWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-    bulkDisAssociateVisitWithNode_id(bulkAssociationInput: [bulkAssociationVisitWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateVisitWithPristine_id(bulkAssociationInput: [bulkAssociationVisitWithPristine_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateVisitWithPristine_id(bulkAssociationInput: [bulkAssociationVisitWithPristine_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateVisitWithDisturbed_id(bulkAssociationInput: [bulkAssociationVisitWithDisturbed_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateVisitWithDisturbed_id(bulkAssociationInput: [bulkAssociationVisitWithDisturbed_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

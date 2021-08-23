@@ -17,7 +17,8 @@ const associationArgsDef = {
     'addCalendar': 'calendar',
     'addUser_visit': 'user',
     'addCumulus_visit': 'cumulus',
-    'addUnique_node': 'node',
+    'addUnique_node_pristine': 'node',
+    'addUnique_node_disturbed': 'node',
     'addDeployments': 'deployment'
 }
 
@@ -138,20 +139,20 @@ visit.prototype.cumulus_visit = async function({
     }
 }
 /**
- * visit.prototype.unique_node - Return associated record
+ * visit.prototype.unique_node_pristine - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-visit.prototype.unique_node = async function({
+visit.prototype.unique_node_pristine = async function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.node_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.pristine_id)) {
         if (search === undefined || search === null) {
             return resolvers.readOneNode({
-                [models.node.idAttribute()]: this.node_id
+                [models.node.idAttribute()]: this.pristine_id
             }, context)
         } else {
 
@@ -159,7 +160,45 @@ visit.prototype.unique_node = async function({
             let nsearch = helper.addSearchField({
                 "search": search,
                 "field": models.node.idAttribute(),
-                "value": this.node_id,
+                "value": this.pristine_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.nodesConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+/**
+ * visit.prototype.unique_node_disturbed - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+visit.prototype.unique_node_disturbed = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.disturbed_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneNode({
+                [models.node.idAttribute()]: this.disturbed_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.node.idAttribute(),
+                "value": this.disturbed_id,
                 "operator": "eq"
             });
             let found = (await resolvers.nodesConnection({
@@ -288,8 +327,11 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_visit)) {
         promises_add.push(this.add_cumulus_visit(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_node)) {
-        promises_add.push(this.add_unique_node(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_node_pristine)) {
+        promises_add.push(this.add_unique_node_pristine(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_node_disturbed)) {
+        promises_add.push(this.add_unique_node_disturbed(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
@@ -306,8 +348,11 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_visit)) {
         promises_remove.push(this.remove_cumulus_visit(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_node)) {
-        promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_node_pristine)) {
+        promises_remove.push(this.remove_unique_node_pristine(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_node_disturbed)) {
+        promises_remove.push(this.remove_unique_node_disturbed(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -365,14 +410,25 @@ visit.prototype.add_cumulus_visit = async function(input, benignErrorReporter) {
 }
 
 /**
- * add_unique_node - field Mutation for to_one associations to add
+ * add_unique_node_pristine - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-visit.prototype.add_unique_node = async function(input, benignErrorReporter) {
-    await visit.add_node_id(this.getIdValue(), input.addUnique_node, benignErrorReporter);
-    this.node_id = input.addUnique_node;
+visit.prototype.add_unique_node_pristine = async function(input, benignErrorReporter) {
+    await visit.add_pristine_id(this.getIdValue(), input.addUnique_node_pristine, benignErrorReporter);
+    this.pristine_id = input.addUnique_node_pristine;
+}
+
+/**
+ * add_unique_node_disturbed - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.add_unique_node_disturbed = async function(input, benignErrorReporter) {
+    await visit.add_disturbed_id(this.getIdValue(), input.addUnique_node_disturbed, benignErrorReporter);
+    this.disturbed_id = input.addUnique_node_disturbed;
 }
 
 /**
@@ -433,15 +489,28 @@ visit.prototype.remove_cumulus_visit = async function(input, benignErrorReporter
 }
 
 /**
- * remove_unique_node - field Mutation for to_one associations to remove
+ * remove_unique_node_pristine - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-visit.prototype.remove_unique_node = async function(input, benignErrorReporter) {
-    if (input.removeUnique_node == this.node_id) {
-        await visit.remove_node_id(this.getIdValue(), input.removeUnique_node, benignErrorReporter);
-        this.node_id = null;
+visit.prototype.remove_unique_node_pristine = async function(input, benignErrorReporter) {
+    if (input.removeUnique_node_pristine == this.pristine_id) {
+        await visit.remove_pristine_id(this.getIdValue(), input.removeUnique_node_pristine, benignErrorReporter);
+        this.pristine_id = null;
+    }
+}
+
+/**
+ * remove_unique_node_disturbed - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+visit.prototype.remove_unique_node_disturbed = async function(input, benignErrorReporter) {
+    if (input.removeUnique_node_disturbed == this.disturbed_id) {
+        await visit.remove_disturbed_id(this.getIdValue(), input.removeUnique_node_disturbed, benignErrorReporter);
+        this.disturbed_id = null;
     }
 }
 
@@ -468,7 +537,8 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_one.push(visit.calendar({}, context));
     promises_to_one.push(visit.user_visit({}, context));
     promises_to_one.push(visit.cumulus_visit({}, context));
-    promises_to_one.push(visit.unique_node({}, context));
+    promises_to_one.push(visit.unique_node_pristine({}, context));
+    promises_to_one.push(visit.unique_node_disturbed({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -746,24 +816,44 @@ module.exports = {
         return await visit.bulkAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkAssociateVisitWithNode_id - bulkAssociaton resolver of given ids
+     * bulkAssociateVisitWithPristine_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateVisitWithNode_id: async function(bulkAssociationInput, context) {
+    bulkAssociateVisitWithPristine_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
+                pristine_id
+            }) => pristine_id)), models.node);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
             }) => id)), visit);
         }
-        return await visit.bulkAssociateVisitWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkAssociateVisitWithDisturbed_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateVisitWithDisturbed_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                disturbed_id
+            }) => disturbed_id)), models.node);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), visit);
+        }
+        return await visit.bulkAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
      * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton resolver of given ids
@@ -826,24 +916,44 @@ module.exports = {
         return await visit.bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateVisitWithNode_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateVisitWithPristine_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateVisitWithNode_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateVisitWithPristine_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                node_id
-            }) => node_id)), models.node);
+                pristine_id
+            }) => pristine_id)), models.node);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
             }) => id)), visit);
         }
-        return await visit.bulkDisAssociateVisitWithNode_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkDisAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateVisitWithDisturbed_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateVisitWithDisturbed_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                disturbed_id
+            }) => disturbed_id)), models.node);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), visit);
+        }
+        return await visit.bulkDisAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

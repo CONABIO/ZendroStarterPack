@@ -14,7 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_node': 'node'
+    'addUnique_node': 'node',
+    'addCumulus_ecosystem': 'cumulus'
 }
 
 
@@ -107,6 +108,93 @@ ecosystem.prototype.unique_nodeConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * ecosystem.prototype.cumulus_ecosystemFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+ecosystem.prototype.cumulus_ecosystemFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "ecosystem_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.cumulus({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * ecosystem.prototype.countFilteredCumulus_ecosystem - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+ecosystem.prototype.countFilteredCumulus_ecosystem = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "ecosystem_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countCumulus({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * ecosystem.prototype.cumulus_ecosystemConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+ecosystem.prototype.cumulus_ecosystemConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "ecosystem_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.cumulusConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -123,11 +211,17 @@ ecosystem.prototype.handleAssociations = async function(input, benignErrorReport
     if (helper.isNonEmptyArray(input.addUnique_node)) {
         promises_add.push(this.add_unique_node(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addCumulus_ecosystem)) {
+        promises_add.push(this.add_cumulus_ecosystem(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeUnique_node)) {
         promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeCumulus_ecosystem)) {
+        promises_remove.push(this.remove_cumulus_ecosystem(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -152,6 +246,24 @@ ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter)
 }
 
 /**
+ * add_cumulus_ecosystem - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addCumulus_ecosystem.map(associatedRecordId => {
+        return {
+            ecosystem_id: this.getIdValue(),
+            [models.cumulus.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cumulus.bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_unique_node - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -167,6 +279,24 @@ ecosystem.prototype.remove_unique_node = async function(input, benignErrorReport
         }
     });
     await models.node.bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_cumulus_ecosystem - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+ecosystem.prototype.remove_cumulus_ecosystem = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeCumulus_ecosystem.map(associatedRecordId => {
+        return {
+            ecosystem_id: this.getIdValue(),
+            [models.cumulus.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cumulus.bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -189,6 +319,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(ecosystem.countFilteredUnique_node({}, context));
+    promises_to_many.push(ecosystem.countFilteredCumulus_ecosystem({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

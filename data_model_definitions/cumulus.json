@@ -6,6 +6,7 @@
       "geometry": "Polygon",
       "criteria_id": "Int",
       "user_ids": "[Int]",
+      "ecosystem_id": "Int",
       "created_at": "DateTime"
     },
     "associations": {
@@ -63,6 +64,15 @@
         "targetKey": "cumulus_id",
         "keysIn": "node",
         "targetStorageType": "sql"
+      },
+      "unique_ecosystem": {
+          "type": "many_to_one",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "cumulus_ecosystem",
+          "target": "ecosystem",
+          "targetKey": "ecosystem_id",
+          "keysIn": "cumulus",
+          "targetStorageType": "sql"
       }
     }
 }

@@ -59,7 +59,8 @@ module.exports = `
     created_at: DateTime
 
     cumulus_node(search: searchCumulusInput): cumulus
-  unique_visit(search: searchVisitInput): visit
+  unique_visit_pristine(search: searchVisitInput): visit
+  unique_visit_disturbed(search: searchVisitInput): visit
   ecosystems(search: searchEcosystemInput): ecosystem
     
     }
@@ -128,8 +129,8 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, addUnique_visit:ID, addEcosystems:ID   , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit:ID, removeUnique_visit:ID , addEcosystems:ID, removeEcosystems:ID    , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID   , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, nomenclatura: String, has_partner: Boolean, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID    , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

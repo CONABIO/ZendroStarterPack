@@ -17,6 +17,7 @@ const hull = require("hull.js");
 
 const associationArgsDef = {
     'addCumulus_criteria': 'cumulus_criteria',
+    'addUnique_ecosystem': 'ecosystem',
     'addDevices': 'physical_device',
     'addAssociated_partners': 'user',
     'addVisits': 'visit',
@@ -52,6 +53,44 @@ cumulus.prototype.cumulus_criteria = async function({
                 "operator": "eq"
             });
             let found = (await resolvers.cumulus_criteriaConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+/**
+ * cumulus.prototype.unique_ecosystem - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+cumulus.prototype.unique_ecosystem = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.ecosystem_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneEcosystem({
+                [models.ecosystem.idAttribute()]: this.ecosystem_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.ecosystem.idAttribute(),
+                "value": this.ecosystem_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.ecosystemsConnection({
                 search: nsearch,
                 pagination: {
                     first: 1
@@ -555,6 +594,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_criteria)) {
         promises_add.push(this.add_cumulus_criteria(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_ecosystem)) {
+        promises_add.push(this.add_unique_ecosystem(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
@@ -575,6 +617,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_criteria)) {
         promises_remove.push(this.remove_cumulus_criteria(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_ecosystem)) {
+        promises_remove.push(this.remove_unique_ecosystem(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -685,6 +730,17 @@ cumulus.prototype.add_cumulus_criteria = async function(input, benignErrorReport
 }
 
 /**
+ * add_unique_ecosystem - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.add_unique_ecosystem = async function(input, benignErrorReporter) {
+    await cumulus.add_ecosystem_id(this.getIdValue(), input.addUnique_ecosystem, benignErrorReporter);
+    this.ecosystem_id = input.addUnique_ecosystem;
+}
+
+/**
  * remove_devices - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -783,6 +839,19 @@ cumulus.prototype.remove_cumulus_criteria = async function(input, benignErrorRep
     }
 }
 
+/**
+ * remove_unique_ecosystem - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.remove_unique_ecosystem = async function(input, benignErrorReporter) {
+    if (input.removeUnique_ecosystem == this.ecosystem_id) {
+        await cumulus.remove_ecosystem_id(this.getIdValue(), input.removeUnique_ecosystem, benignErrorReporter);
+        this.ecosystem_id = null;
+    }
+}
+
 
 
 /**
@@ -808,6 +877,7 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_many.push(cumulus.countFilteredMonitors({}, context));
     promises_to_many.push(cumulus.countFilteredNodes({}, context));
     promises_to_one.push(cumulus.cumulus_criteria({}, context));
+    promises_to_one.push(cumulus.unique_ecosystem({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -1109,6 +1179,26 @@ module.exports = {
         return await cumulus.bulkAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
+     * bulkAssociateCumulusWithEcosystem_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateCumulusWithEcosystem_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                ecosystem_id
+            }) => ecosystem_id)), models.ecosystem);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), cumulus);
+        }
+        return await cumulus.bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
      * bulkDisAssociateCumulusWithCriteria_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -1127,6 +1217,26 @@ module.exports = {
             }) => id)), cumulus);
         }
         return await cumulus.bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateCumulusWithEcosystem_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateCumulusWithEcosystem_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                ecosystem_id
+            }) => ecosystem_id)), models.ecosystem);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), cumulus);
+        }
+        return await cumulus.bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**
@@ -1166,6 +1276,5 @@ module.exports = {
 
         return true;
     }
-
 
 }

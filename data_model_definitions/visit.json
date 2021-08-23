@@ -6,7 +6,8 @@
         "calendar_id": "Int",
         "created_at": "DateTime",
         "cumulus_id": "Int",
-        "node_id": "Int"
+        "pristine_id": "Int",
+        "disturbed_id": "Int"
     },
     "associations": {
         "calendar": {
@@ -45,12 +46,21 @@
             "keysIn": "visit",
             "targetStorageType": "sql"
         },
-        "unique_node": {
+        "unique_node_pristine": {
           "type": "one_to_one",
           "implementation": "foreignkeys",
-          "reverseAssociation": "unique_visit",
+          "reverseAssociation": "unique_visit_pristine",
           "target": "node",
-          "targetKey": "node_id",
+          "targetKey": "pristine_id",
+          "keysIn": "visit",
+          "targetStorageType": "sql"
+        },
+        "unique_node_disturbed": {
+          "type": "one_to_one",
+          "implementation": "foreignkeys",
+          "reverseAssociation": "unique_visit_disturbed",
+          "target": "node",
+          "targetKey": "disturbed_id",
           "keysIn": "visit",
           "targetStorageType": "sql"
         }

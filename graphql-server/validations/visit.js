@@ -34,7 +34,10 @@ module.exports.validator_patch = function(visit) {
             "cumulus_id": {
                 "type": ["integer", "null"]
             },
-            "node_id": {
+            "pristine_id": {
+                "type": ["integer", "null"]
+            },
+            "disturbed_id": {
                 "type": ["integer", "null"]
             }
         }

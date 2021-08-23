@@ -16,7 +16,8 @@ const { updateOrCreateConvexHull } = require('./cumulus');
 
 const associationArgsDef = {
     'addCumulus_node': 'cumulus',
-    'addUnique_visit': 'visit',
+    'addUnique_visit_pristine': 'visit',
+    'addUnique_visit_disturbed': 'visit',
     'addEcosystems': 'ecosystem'
 }
 
@@ -61,19 +62,53 @@ node.prototype.cumulus_node = async function({
     }
 }
 /**
- * node.prototype.unique_visit - Return associated record
+ * node.prototype.unique_visit_pristine - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-node.prototype.unique_visit = async function({
+node.prototype.unique_visit_pristine = async function({
     search
 }, context) {
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "node_id",
+        "field": "pristine_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    let found = (await resolvers.visitsConnection({
+        search: nsearch,
+        pagination: {
+            first: 2
+        }
+    }, context)).edges;
+    if (found.length > 0) {
+        if (found.length > 1) {
+            context.benignErrors.push(new Error(
+                `Not unique "to_one" association Error: Found > 1 visits matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first visit.`
+            ));
+        }
+        return found[0].node;
+    }
+    return null;
+}
+/**
+ * node.prototype.unique_visit_disturbed - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+node.prototype.unique_visit_disturbed = async function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "disturbed_id",
         "value": this.getIdValue(),
         "operator": "eq"
     });
@@ -150,8 +185,11 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_node)) {
         promises_add.push(this.add_cumulus_node(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_visit)) {
-        promises_add.push(this.add_unique_visit(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_visit_pristine)) {
+        promises_add.push(this.add_unique_visit_pristine(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_visit_disturbed)) {
+        promises_add.push(this.add_unique_visit_disturbed(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addEcosystems)) {
         promises_add.push(this.add_ecosystems(input, benignErrorReporter));
@@ -163,8 +201,11 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_node)) {
         promises_remove.push(this.remove_cumulus_node(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_visit)) {
-        promises_remove.push(this.remove_unique_visit(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_visit_pristine)) {
+        promises_remove.push(this.remove_unique_visit_pristine(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_visit_disturbed)) {
+        promises_remove.push(this.remove_unique_visit_disturbed(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeEcosystems)) {
         promises_remove.push(this.remove_ecosystems(input, benignErrorReporter));
@@ -186,13 +227,23 @@ node.prototype.add_cumulus_node = async function(input, benignErrorReporter) {
 }
 
 /**
- * add_unique_visit - field Mutation for to_one associations to add
+ * add_unique_visit_pristine - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.add_unique_visit = async function(input, benignErrorReporter) {
-    await models.visit.add_node_id(input.addUnique_visit, this.getIdValue(), benignErrorReporter);
+node.prototype.add_unique_visit_pristine = async function(input, benignErrorReporter) {
+    await models.visit.add_pristine_id(input.addUnique_visit_pristine, this.getIdValue(), benignErrorReporter);
+}
+
+/**
+ * add_unique_visit_disturbed - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.add_unique_visit_disturbed = async function(input, benignErrorReporter) {
+    await models.visit.add_disturbed_id(input.addUnique_visit_disturbed, this.getIdValue(), benignErrorReporter);
 }
 
 /**
@@ -221,13 +272,23 @@ node.prototype.remove_cumulus_node = async function(input, benignErrorReporter) 
 }
 
 /**
- * remove_unique_visit - field Mutation for to_one associations to remove
+ * remove_unique_visit_pristine - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-node.prototype.remove_unique_visit = async function(input, benignErrorReporter) {
-    await models.visit.remove_node_id(input.removeUnique_visit, this.getIdValue(), benignErrorReporter);
+node.prototype.remove_unique_visit_pristine = async function(input, benignErrorReporter) {
+    await models.visit.remove_pristine_id(input.removeUnique_visit_pristine, this.getIdValue(), benignErrorReporter);
+}
+
+/**
+ * remove_unique_visit_disturbed - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.remove_unique_visit_disturbed = async function(input, benignErrorReporter) {
+    await models.visit.remove_disturbed_id(input.removeUnique_visit_disturbed, this.getIdValue(), benignErrorReporter);
 }
 
 /**
@@ -263,7 +324,8 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_one.push(node.cumulus_node({}, context));
-    promises_to_one.push(node.unique_visit({}, context));
+    promises_to_one.push(node.unique_visit_pristine({}, context));
+    promises_to_one.push(node.unique_visit_disturbed({}, context));
     promises_to_one.push(node.ecosystems({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
