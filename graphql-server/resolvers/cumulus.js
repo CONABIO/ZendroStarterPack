@@ -950,17 +950,25 @@ async function validForDeletion(id, context) {
         ])
     }
 
-    // Create convex hull with hull function from hull.js
-    let convexHull = hull(pointsNodes,80);
-    // Update cumulus with the new geometry created from hull.js function 
-    let updatedCumulus = cumulus.update(
-        { "geometry": {
-                "type": "Polygon",
-                "coordinates": [convexHull]
-            } 
-        },
-        { returning: true, where: {id: cumulusId} }
-    );
+    let updatedCumulus; // var to store the response of the update
+
+    // Checks if there is at least three nodes associated with this cumulus.
+    // That's the least quantity to create a polygon
+    if(pointsNodes.length >= 3) { 
+        // Create convex hull with hull function from hull.js
+        let convexHull = hull(pointsNodes,80);
+        // Update cumulus with the new geometry created from hull.js function 
+        updatedCumulus = await cumulus.update(
+            { "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [convexHull]
+                } 
+            },
+            { returning: true, where: {id: cumulusId} }
+        );
+    } else {
+        return true; // nothing to do, just return true
+    }
 
     // return true if update was succesful
     return updatedCumulus;
@@ -1268,7 +1276,8 @@ module.exports = {
         //
         // third value in createAndSaveConvexHull set to false, to indicate that
         // is has to remove the point for the node from the convex hull geom
-        await createAndSaveConvexHull(currentAssociation,nodeCumulus.id,false); 
+        if(currentAssociation)
+            await createAndSaveConvexHull(currentAssociation,nodeCumulus.id,false); 
 
         // Add node to convex hull geom for new cumulus association
         if(add)
