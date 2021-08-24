@@ -967,7 +967,17 @@ async function validForDeletion(id, context) {
             { returning: true, where: {id: cumulusId} }
         );
     } else {
-        return true; // nothing to do, just return true
+        // If there are less than 3 nodes associated and
+        // the cumulus has already a geom created, then it 
+        // deletes it
+        if(cumulusToChange.geometry) {
+            updatedCumulus = await cumulus.update(
+                { "geometry": null },
+                { returning: true, where: {id: cumulusId} }
+            );
+        } else {
+            return true; // nothing to do, just return true
+        }
     }
 
     // return true if update was succesful
