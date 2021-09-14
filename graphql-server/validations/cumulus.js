@@ -33,6 +33,9 @@ module.exports.validator_patch = function(cumulus) {
             "ecosystem_id": {
                 "type": ["integer", "null"]
             },
+            "con_socio": {
+                "type": ["integer", "null"]
+            },
             "created_at": {
                 "anyOf": [{
                     "isoDateTime": true

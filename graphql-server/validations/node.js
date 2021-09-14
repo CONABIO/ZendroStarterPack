@@ -21,8 +21,8 @@ module.exports.validator_patch = function(node) {
             "nomenclatura": {
                 "type": ["string", "null"]
             },
-            "has_partner": {
-                "type": ["boolean", "null"]
+            "con_socio": {
+                "type": ["integer", "null"]
             },
             "fid": {
                 "type": ["integer", "null"]

@@ -23,7 +23,7 @@ const definition = {
     storageType: 'sql',
     attributes: {
         nomenclatura: 'String',
-        has_partner: 'Boolean',
+        con_socio: 'Int',
         fid: 'Int',
         location: 'Point',
         cat_integr: 'String',
@@ -93,8 +93,8 @@ module.exports = class node extends Sequelize.Model {
             nomenclatura: {
                 type: Sequelize[dict['String']]
             },
-            has_partner: {
-                type: Sequelize[dict['Boolean']]
+            con_socio: {
+                type: Sequelize[dict['Int']]
             },
             fid: {
                 type: Sequelize[dict['Int']]

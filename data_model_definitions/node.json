@@ -3,7 +3,7 @@
     "storageType" : "sql",
     "attributes" : {
       "nomenclatura": "String",  
-      "has_partner" : "Boolean",
+      "con_socio": "Int",
       "fid": "Int",
       "location": "Point",
       "cat_integr": "String",
