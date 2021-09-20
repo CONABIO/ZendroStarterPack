@@ -7,7 +7,6 @@
       "fid": "Int",
       "location": "Point",
       "cat_integr": "String",
-      "integrity": "Boolean",
       "cumulus_id": "Int",
       "ecosystem_id": "Int",
       "created_at": "DateTime"

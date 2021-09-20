@@ -25,7 +25,9 @@ const definition = {
         date_started: 'Date',
         date_finished: 'Date',
         created_at: 'DateTime',
-        updated_at: 'DateTime'
+        updated_at: 'DateTime',
+        sipecam_year: 'String',
+        order: 'Int'
     },
     associations: {
         visits: {
@@ -69,6 +71,12 @@ module.exports = class calendar extends Sequelize.Model {
             },
             updated_at: {
                 type: Sequelize[dict['DateTime']]
+            },
+            sipecam_year: {
+                type: Sequelize[dict['String']]
+            },
+            order: {
+                type: Sequelize[dict['Int']]
             }
 
 

@@ -38,12 +38,6 @@ module.exports = `
     @original-field
     
     """
-    integrity: Boolean
-
-    """
-    @original-field
-    
-    """
     cumulus_id: Int
 
     """
@@ -93,7 +87,6 @@ type NodeEdge{
     fid
     location
     cat_integr
-    integrity
     cumulus_id
     ecosystem_id
     created_at
@@ -129,8 +122,8 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID   , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String, integrity: Boolean, created_at: DateTime , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID    , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String, created_at: DateTime , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID   , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String, created_at: DateTime , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID    , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

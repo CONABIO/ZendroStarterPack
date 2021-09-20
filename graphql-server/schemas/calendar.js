@@ -28,6 +28,18 @@ module.exports = `
     """
     updated_at: DateTime
 
+    """
+    @original-field
+    
+    """
+    sipecam_year: String
+
+    """
+    @original-field
+    
+    """
+    order: Int
+
       
     """
     @search-request
@@ -74,6 +86,8 @@ type CalendarEdge{
     date_finished
     created_at
     updated_at
+    sipecam_year
+    order
   }
   input searchCalendarInput {
     field: calendarField
@@ -100,8 +114,8 @@ type CalendarEdge{
   }
 
   type Mutation {
-    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
-    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
     deleteCalendar(id: ID!): String!
     bulkAddCalendarCsv: String!
       }

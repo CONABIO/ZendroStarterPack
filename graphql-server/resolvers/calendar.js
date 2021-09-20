@@ -310,7 +310,7 @@ module.exports = {
      */
     vueTableCalendar: async function(_, context) {
         if (await checkAuthorization(context, 'calendar', 'read') === true) {
-            return helper.vueTable(context.request, calendar, ["id"]);
+            return helper.vueTable(context.request, calendar, ["id", "sipecam_year"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

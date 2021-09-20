@@ -33,9 +33,6 @@ module.exports.validator_patch = function(node) {
             "cat_integr": {
                 "type": ["string", "null"]
             },
-            "integrity": {
-                "type": ["boolean", "null"]
-            },
             "cumulus_id": {
                 "type": ["integer", "null"]
             },

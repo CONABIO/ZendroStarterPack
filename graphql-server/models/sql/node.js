@@ -27,7 +27,6 @@ const definition = {
         fid: 'Int',
         location: 'Point',
         cat_integr: 'String',
-        integrity: 'Boolean',
         cumulus_id: 'Int',
         ecosystem_id: 'Int',
         created_at: 'DateTime'
@@ -104,9 +103,6 @@ module.exports = class node extends Sequelize.Model {
             },
             cat_integr: {
                 type: Sequelize[dict['String']]
-            },
-            integrity: {
-                type: Sequelize[dict['Boolean']]
             },
             cumulus_id: {
                 type: Sequelize[dict['Int']]

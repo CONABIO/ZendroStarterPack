@@ -45,6 +45,12 @@ module.exports.validator_patch = function(calendar) {
                 }, {
                     "type": "null"
                 }]
+            },
+            "sipecam_year": {
+                "type": ["string", "null"]
+            },
+            "order": {
+                "type": ["integer", "null"]
             }
         }
     }
