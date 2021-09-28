@@ -33,11 +33,14 @@ module.exports = {
     const name_roles = roles.map( x =>{ return x.name })
     console.log("ROLES: ", name_roles);
     // cumulus
-    const cumulusIds = user_data.cumulus_ids.replace(/\[|\]/g, '').split(',').map(value => parseInt(value.replace(/"/g, '')));
+    const cumulusIds = user_data.cumulus_ids.replace(/\[|\]/g, '').split(',');
+    const cumulusIdsArray = cumulusIds.map(value => parseInt(value.replace(/"/g, '')));
+    console.log(cumulusIds)
+    console.log(cumulusIdsArray)
     let retrievedArray = [];
     if(cumulusIds) {
         retrievedArray = await Promise.all(
-          cumulusIds.map(async (c) => {
+          cumulusIdsArray.map(async (c) => {
             const retrievedCumulus = await cumulus.findOne({ where: { id: c }});
             return { id: retrievedCumulus.id, name: retrievedCumulus.name};
           })
