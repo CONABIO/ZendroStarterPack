@@ -21,13 +21,15 @@ const MAIL_ACCOUNT = process.env.MAIL_ACCOUNT;
 const MAIL_HOST = process.env.MAIL_HOST;
 const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
 const MAIL_SERVICE = process.env.MAIL_SERVICE;
+const MAIL_PORT = process.env.MAIL_PORT;
 
-if (!MAIL_ACCOUNT || !MAIL_HOST || !MAIL_PASSWORD || !MAIL_SERVICE) {
+if (!MAIL_ACCOUNT || !MAIL_HOST || !MAIL_PASSWORD) {
   console.warn('WARNING: BulkAdd email service has not been properly configured', {
     MAIL_ACCOUNT,
     MAIL_HOST,
     MAIL_PASSWORD,
     MAIL_SERVICE,
+    MAIL_PORT
   })
 }
 
@@ -67,6 +69,7 @@ const config = {
   MAIL_HOST,
   MAIL_ACCOUNT,
   MAIL_PASSWORD,
+  MAIL_PORT,
   EXPORT_TIME_OUT,
 }
 
