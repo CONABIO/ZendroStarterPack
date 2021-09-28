@@ -8,18 +8,19 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Container, ContainerProps, Tooltip } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { Container, ContainerProps, Tooltip } from '@mui/material';
+import { Theme } from '@mui/material/styles';
+import { createStyles, makeStyles } from '@mui/styles';
 import {
   Cached as Reload,
-  Clear as CancelIcon,
   Create as EditIcon,
   Delete as DeleteIcon,
   Lock as LockIcon,
   Visibility as ReadIcon,
   VpnKey as KeyIcon,
   Save as SaveIcon,
-} from '@material-ui/icons';
+  ViewList as TableIcon,
+} from '@mui/icons-material';
 
 import ActionButton from '@/components/float-button';
 
@@ -192,14 +193,14 @@ export default function AttributesForm({
       <div className={classes.actionsContainer}>
         {actions?.cancel && (
           <ActionButton
-            className="secondary"
+            className="support"
             form={formId}
             onClick={handleOnAction({
               action: 'cancel',
               handler: actions.cancel,
             })}
-            icon={CancelIcon}
-            tooltip={t('record-form.action-exit')}
+            icon={TableIcon}
+            tooltip={t('record-form.action-exit', { modelName: modelName })}
             data-cy="record-form-exit"
           />
         )}
@@ -330,7 +331,9 @@ export default function AttributesForm({
                 label={name}
                 actionLeft={
                   primaryKey && (
-                    <Tooltip title={t('record-fields.primary-key', { name })}>
+                    <Tooltip
+                      title={t('record-fields.primary-key', { name }) ?? ''}
+                    >
                       <KeyIcon fontSize="small" color="action" />
                     </Tooltip>
                   )
@@ -338,7 +341,7 @@ export default function AttributesForm({
                 readOnly={readOnly}
                 actionRight={
                   readOnly ? (
-                    <Tooltip title={t('record-fields.read-only')}>
+                    <Tooltip title={t('record-fields.read-only') ?? ''}>
                       <LockIcon fontSize="small" color="secondary" />
                     </Tooltip>
                   ) : null
@@ -356,7 +359,7 @@ export default function AttributesForm({
   );
 }
 
-const useStyles = makeStyles((theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     form: {
       display: 'flex',

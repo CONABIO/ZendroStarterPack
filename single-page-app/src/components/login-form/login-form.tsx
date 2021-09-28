@@ -1,25 +1,26 @@
 import React, { ReactElement, useState } from 'react';
 
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import { Button } from '@material-ui/core';
+import { Theme } from '@mui/material/styles';
+import { createStyles, makeStyles } from '@mui/styles';
+import { Button } from '@mui/material';
 
-import UsernameField from './login-field';
+import EmailField from './login-field';
 import PasswordField from './password-field';
 
 import {
   AccountCircleOutlined as AccountCircleIcon,
   LockOutlined as LockIcon,
-} from '@material-ui/icons';
+} from '@mui/icons-material';
 
 import { useTranslation } from 'react-i18next';
 
 interface LoginFormProps {
-  onSubmit: (username: string, password: string) => void;
+  onSubmit: (email: string, password: string) => void;
   onCancel?: () => void;
 }
 
 interface LoginFormState {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -28,7 +29,7 @@ export default function LoginForm(props: LoginFormProps): ReactElement {
   const { t } = useTranslation();
 
   const [state, setState] = useState<LoginFormState>({
-    username: '',
+    email: '',
     password: '',
   });
 
@@ -40,7 +41,7 @@ export default function LoginForm(props: LoginFormProps): ReactElement {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    props.onSubmit(state.username, state.password);
+    props.onSubmit(state.email, state.password);
   };
 
   const handleCancel = (event: React.FormEvent<HTMLButtonElement>): void => {
@@ -50,14 +51,14 @@ export default function LoginForm(props: LoginFormProps): ReactElement {
 
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off">
-      <UsernameField
-        autoComplete="username"
+      <EmailField
+        autoComplete="email"
         icon={AccountCircleIcon}
-        label="username"
-        onChange={onFieldChange('username')}
-        type="username"
-        value={state?.username}
-        data-cy="login-form-username"
+        label="Email"
+        onChange={onFieldChange('email')}
+        type="email"
+        value={state?.email}
+        data-cy="login-form-email"
       />
 
       <PasswordField

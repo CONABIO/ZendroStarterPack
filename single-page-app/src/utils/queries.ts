@@ -470,7 +470,10 @@ function parseQueryAttributes(
 
 function parseQueryAssociations(
   associations: ParsedAssociation[]
-): { assocArgs: string; assocVars: string } {
+): {
+  assocArgs: string;
+  assocVars: string;
+} {
   return {
     get assocArgs() {
       return associations

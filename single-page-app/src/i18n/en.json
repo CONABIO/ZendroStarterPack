@@ -40,7 +40,7 @@
   },
   "login-dialog": {
     "title": "Login Form",
-    "content": "To log into this website, please enter your username address and password below.",
+    "content": "To log into this website, please enter your username and password below.",
     "login-expired": "Login expired",
     "login-failed": "Login failed",
     "login-loading": "Sending credentials...",
@@ -95,7 +95,7 @@
   },
   "record-form": {
     "action-delete": "Delete record",
-    "action-exit": "Exit form",
+    "action-exit": "View {{ modelName }} table",
     "action-read": "View record details",
     "action-reload": "Reload data",
     "action-submit": "Submit changes",

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 
-import { TableCell as MuiTableCell, TableContainer } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { TableCell as MuiTableCell, TableContainer } from '@mui/material';
+import { Theme } from '@mui/material/styles';
+import { createStyles, makeStyles } from '@mui/styles';
 import {
   FilterAltOutlined as FilterIcon,
   Link as LinkIcon,
@@ -14,7 +15,8 @@ import {
   RepeatOne as ToOneIcon,
   Replay as ReloadIcon,
   Save as SaveIcon,
-} from '@material-ui/icons';
+  VisibilityTwoTone as DetailsIcon,
+} from '@mui/icons-material';
 
 import { getStaticAssociationPaths } from '@/build/routes';
 
@@ -295,10 +297,13 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
         [sourceModel.primaryKey]: urlQuery.id,
       };
 
-      return await zendro.request(countQuery.query, {
-        jq: countQuery.transform,
-        variables,
-      });
+      return await zendro.request<Record<'count', number> | undefined>(
+        countQuery.query,
+        {
+          jq: countQuery.transform,
+          variables,
+        }
+      );
     },
     {
       onSuccess: (data) => {
@@ -408,6 +413,12 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
 
   const handleOnAssociationFilterSelect = (filter: string): void => {
     setRecordsFilter(filter as AssociationFilter);
+  };
+
+  const handleOnRead = (primaryKey: string | number): void => {
+    router.push(
+      `/${props.group}/${targetModel.model}/details?id=${primaryKey}`
+    );
   };
 
   return (
@@ -535,7 +546,7 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
             isEmpty={assocTable.data.length === 0}
           >
             <TableHeader
-              actionsColSpan={props.request !== 'details' ? 1 : 0}
+              actionsColSpan={props.request !== 'details' ? 2 : 1}
               attributes={targetModel.attributes}
               onSortLabelClick={(field) =>
                 setOrder((state) => ({
@@ -566,9 +577,20 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
                     hover
                     attributes={targetModel.attributes}
                     record={record.data}
+                    onDoubleClick={() => handleOnRead(recordId)}
                   >
+                    <MuiTableCell padding="checkbox">
+                      <IconButton
+                        tooltip={t('model-table.view', { recordId })}
+                        onClick={() => handleOnRead(recordId)}
+                        className={classes.rowActionPrimary}
+                        data-cy={`model-table-view-${recordId}`}
+                      >
+                        <DetailsIcon fontSize="small" />
+                      </IconButton>
+                    </MuiTableCell>
                     {props.request !== 'details' && (
-                      <MuiTableCell align="center">
+                      <MuiTableCell align="center" padding="checkbox">
                         <IconButton
                           tooltip={
                             record.isAssociated
@@ -653,7 +675,7 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
 Association.layout = ModelLayout;
 export default Association;
 
-const useStyles = makeStyles((theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
@@ -692,6 +714,12 @@ const useStyles = makeStyles((theme) =>
     },
     iconLinkOffMarked: {
       color: 'red',
+    },
+    rowActionPrimary: {
+      '&:hover': {
+        backgroundColor: 'transparent',
+        color: theme.palette.primary.main,
+      },
     },
   })
 );
