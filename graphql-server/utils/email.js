@@ -24,15 +24,19 @@ module.exports = {
                 }
             }));
         } else {
-            transporter = NodeMailer.createTransport(SmtpTransport({
+            transporter = NodeMailer.createTransport({
                 host: Globals.MAIL_HOST,
                 port: Globals.MAIL_PORT,
                 secure: true, // use SSL or not
                 auth: {
                     user: Globals.MAIL_ACCOUNT,
                     pass: Globals.MAIL_PASSWORD
-                }
-            }));
+                },
+                tls: {
+                  // do not fail on invalid certs
+                  rejectUnauthorized: false,
+                },
+            });
         }
 
         let mailOptions = {
