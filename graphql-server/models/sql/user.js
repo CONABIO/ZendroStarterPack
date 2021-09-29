@@ -17,6 +17,7 @@ const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
 const moment = require('moment');
 const errorHelper = require('../../utils/errors');
+const bcrypt = require('bcrypt');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'user',
