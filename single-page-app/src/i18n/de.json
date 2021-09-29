@@ -40,7 +40,7 @@
   },
   "login-dialog": {
     "title": "Login Formular",
-    "content": "Um sich auf der Website anzumelden, geben Sie bitte ihre E-Mail-Adresse und Passwort ein.",
+    "content": "Um sich auf der Website anzumelden, geben Sie bitte ihren Benutzernamen und Passwort ein.",
     "login-expired": "Anmenldung abgelaufen",
     "login-failed": "Anmeldung fehlgeschlagen",
     "login-successful": "Anmeldung erfolgreich"
@@ -49,6 +49,7 @@
     "cancel": "Abbrechen",
     "hide-password": "Passwort verstecken",
     "login": "Einloggen",
+    "username": "Nutzername",
     "password": "Passwort",
     "show-password": "Passwort anzeigen"
   },

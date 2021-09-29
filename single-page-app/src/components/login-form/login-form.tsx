@@ -54,7 +54,7 @@ export default function LoginForm(props: LoginFormProps): ReactElement {
       <EmailField
         autoComplete="email"
         icon={AccountCircleIcon}
-        label="Email"
+        label={t('login-form.username')}
         onChange={onFieldChange('email')}
         type="email"
         value={state?.email}

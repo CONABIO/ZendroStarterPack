@@ -50,6 +50,7 @@ module.exports = {
     return jsonwebtoken.sign({
         id: user_data.id,
         username: user_data.username,
+        email: user_data.email,
         roles: name_roles,
         cumulus: retrievedArray
     }, globals.JWT_SECRET, { expiresIn: '1h' })
