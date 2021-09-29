@@ -70,11 +70,12 @@ type EcosystemEdge{
     id
     name
   }
+  
   input searchEcosystemInput {
     field: ecosystemField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchEcosystemInput]
   }
 

@@ -68,11 +68,12 @@ type RoleEdge{
     description
     created_at
   }
+  
   input searchRoleInput {
     field: roleField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchRoleInput]
   }
 

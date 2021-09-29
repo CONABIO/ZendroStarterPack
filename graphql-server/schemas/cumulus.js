@@ -162,11 +162,12 @@ type CumulusEdge{
     con_socio
     created_at
   }
+  
   input searchCumulusInput {
     field: cumulusField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchCumulusInput]
   }
 

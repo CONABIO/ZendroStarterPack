@@ -75,11 +75,12 @@ type InstitutionEdge{
     phone_number
     created_at
   }
+  
   input searchInstitutionInput {
     field: institutionField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchInstitutionInput]
   }
 

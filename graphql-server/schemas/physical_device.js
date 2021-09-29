@@ -84,11 +84,12 @@ type Physical_deviceEdge{
     cumulus_id
     created_at
   }
+  
   input searchPhysical_deviceInput {
     field: physical_deviceField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchPhysical_deviceInput]
   }
 

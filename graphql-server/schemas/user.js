@@ -150,11 +150,12 @@ type UserEdge{
     cumulus_ids
     created_at
   }
+  
   input searchUserInput {
     field: userField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchUserInput]
   }
 

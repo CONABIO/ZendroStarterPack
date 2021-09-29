@@ -44,7 +44,6 @@ const definition = {
         type: 'Int'
     }
 };
-const DataLoader = require("dataloader");
 
 /**
  * module - Creates a sequelize model
@@ -124,35 +123,15 @@ module.exports = class role extends Sequelize.Model {
         });
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: role.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await role.readAllCursor(queryArg);
-        cursorRes = cursorRes.roles.reduce(
-            (map, obj) => ((map[obj[role.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(role.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await role.readByIdLoader.load(id);
+        let item = await role.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = role.postReadCast(item)
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
+
     static async countRecords(search) {
         let options = {}
         options['where'] = helper.searchConditionsToSequelize(search, role.definition.attributes);
@@ -195,10 +174,11 @@ module.exports = class role extends Sequelize.Model {
         // build the graphql Connection Object
         let edges = helper.buildEdgeObject(records);
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        let nodes = edges.map(edge => edge.node);
         return {
             edges,
             pageInfo,
-            roles: edges.map((edge) => edge.node)
+            roles: nodes
         };
     }
 
@@ -379,12 +359,12 @@ module.exports = class role extends Sequelize.Model {
 
 
     /**
-     * add_user_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_userId - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_user_id(record, addUsers) {
+    static async add_userId(record, addUsers) {
         const updated = await this.sequelize.transaction(async (transaction) => {
             return await record.addUsers(addUsers, {
                 transaction: transaction
@@ -394,12 +374,12 @@ module.exports = class role extends Sequelize.Model {
     }
 
     /**
-     * remove_user_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_userId - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_user_id(record, removeUsers) {
+    static async remove_userId(record, removeUsers) {
         const updated = await this.sequelize.transaction(async (transaction) => {
             return await record.removeUsers(removeUsers, {
                 transaction: transaction

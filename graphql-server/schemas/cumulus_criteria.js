@@ -61,11 +61,12 @@ type Cumulus_criteriaEdge{
     name
     created_at
   }
+  
   input searchCumulus_criteriaInput {
     field: cumulus_criteriaField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchCumulus_criteriaInput]
   }
 

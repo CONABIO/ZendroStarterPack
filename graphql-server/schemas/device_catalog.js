@@ -61,11 +61,12 @@ type Device_catalogEdge{
     brand
     type
   }
+  
   input searchDevice_catalogInput {
     field: device_catalogField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchDevice_catalogInput]
   }
 

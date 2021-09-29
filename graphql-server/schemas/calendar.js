@@ -89,11 +89,12 @@ type CalendarEdge{
     sipecam_year
     order
   }
+  
   input searchCalendarInput {
     field: calendarField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchCalendarInput]
   }
 

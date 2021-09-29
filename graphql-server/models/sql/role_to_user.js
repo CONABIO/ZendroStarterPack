@@ -20,7 +20,7 @@ const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'role_to_user',
-    storageType: 'sql',
+    storageType: 'SQL',
     attributes: {
         user_id: 'Int',
         role_id: 'Int',
@@ -31,7 +31,6 @@ const definition = {
         type: 'Int'
     }
 };
-const DataLoader = require("dataloader");
 
 /**
  * module - Creates a sequelize model
@@ -104,35 +103,15 @@ module.exports = class role_to_user extends Sequelize.Model {
 
     static associate(models) {}
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: role_to_user.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await role_to_user.readAllCursor(queryArg);
-        cursorRes = cursorRes.role_to_users.reduce(
-            (map, obj) => ((map[obj[role_to_user.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(role_to_user.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await role_to_user.readByIdLoader.load(id);
+        let item = await role_to_user.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = role_to_user.postReadCast(item)
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
+
     static async countRecords(search) {
         let options = {}
         options['where'] = helper.searchConditionsToSequelize(search, role_to_user.definition.attributes);
@@ -175,10 +154,11 @@ module.exports = class role_to_user extends Sequelize.Model {
         // build the graphql Connection Object
         let edges = helper.buildEdgeObject(records);
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        let nodes = edges.map(edge => edge.node);
         return {
             edges,
             pageInfo,
-            role_to_users: edges.map((edge) => edge.node)
+            role_to_users: nodes
         };
     }
 

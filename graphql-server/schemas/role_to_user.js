@@ -52,11 +52,12 @@ type Role_to_userEdge{
     role_id
     created_at
   }
+  
   input searchRole_to_userInput {
     field: role_to_userField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchRole_to_userInput]
   }
 

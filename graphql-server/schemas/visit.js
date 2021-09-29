@@ -94,11 +94,12 @@ type VisitEdge{
     pristine_id
     disturbed_id
   }
+  
   input searchVisitInput {
     field: visitField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchVisitInput]
   }
 

@@ -91,11 +91,12 @@ type NodeEdge{
     ecosystem_id
     created_at
   }
+  
   input searchNodeInput {
     field: nodeField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchNodeInput]
   }
 

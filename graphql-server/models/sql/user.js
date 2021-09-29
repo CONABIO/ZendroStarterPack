@@ -79,7 +79,6 @@ const definition = {
         type: 'Int'
     }
 };
-const DataLoader = require("dataloader");
 
 /**
  * module - Creates a sequelize model
@@ -189,35 +188,15 @@ module.exports = class user extends Sequelize.Model {
         });
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: user.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await user.readAllCursor(queryArg);
-        cursorRes = cursorRes.users.reduce(
-            (map, obj) => ((map[obj[user.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(user.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await user.readByIdLoader.load(id);
+        let item = await user.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = user.postReadCast(item)
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
+
     static async countRecords(search) {
         let options = {}
         options['where'] = helper.searchConditionsToSequelize(search, user.definition.attributes);
@@ -260,10 +239,11 @@ module.exports = class user extends Sequelize.Model {
         // build the graphql Connection Object
         let edges = helper.buildEdgeObject(records);
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        let nodes = edges.map(edge => edge.node);
         return {
             edges,
             pageInfo,
-            users: edges.map((edge) => edge.node)
+            users: nodes
         };
     }
 
@@ -272,6 +252,8 @@ module.exports = class user extends Sequelize.Model {
         await validatorUtil.validateData('validateForCreate', this, input);
         input = user.preWriteCast(input)
         try {
+            let hash = await bcrypt.hash(input.password, globals.SALT_ROUNDS);
+            input.password = hash;
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
                     transaction: t
@@ -307,6 +289,11 @@ module.exports = class user extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         input = user.preWriteCast(input)
         try {
+            //check if password wants to be updated:
+            if(input.password !== undefined){
+                let hash = await bcrypt.hash(input.password, globals.SALT_ROUNDS);
+                input.password = hash;
+            }
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
                 if (to_update === null) {

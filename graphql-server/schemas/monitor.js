@@ -90,11 +90,12 @@ type MonitorEdge{
     cumulus_id
     deployment_ids
   }
+  
   input searchMonitorInput {
     field: monitorField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchMonitorInput]
   }
 

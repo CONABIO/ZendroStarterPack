@@ -119,11 +119,12 @@ type DeploymentEdge{
     created_at
     monitor_ids
   }
+  
   input searchDeploymentInput {
     field: deploymentField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchDeploymentInput]
   }
 

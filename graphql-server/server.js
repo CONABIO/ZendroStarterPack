@@ -58,9 +58,11 @@ if (process.argv.length > 2 && process.argv[2] == "acl") {
 
   /* set authorization rules from file acl_rules.js */
   acl.allow(aclRules);
-  console.log("Authoization rules set!");
+  console.log("Authorization rules set!");
 } else {
-  console.log("Open server, no authorization rules");
+  console.log(
+    "Server started without Authorization-Check. Start with command " + 
+    "line argument 'acl', if Rule Based Authorization is wanted.");
 }
 
 /* Schema */
