@@ -681,6 +681,7 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       flexDirection: 'column',
       flexGrow: 1,
+      overflow: 'auto',
       padding: theme.spacing(3),
       width: '100%',
     },
