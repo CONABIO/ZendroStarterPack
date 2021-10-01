@@ -128,6 +128,33 @@ castCsv = function (value, column, attributes_type, array_delimiter = ";") {
       case "Float":
         value = Number(value);
         break;
+      case "Point":
+        value = JSON.parse(value);
+        break;
+      case "MultiPoint":
+        value = JSON.parse(value);
+        break;
+      case "LineString":
+        value = JSON.parse(value);
+        break;
+      case "MultiLineString":
+        value = JSON.parse(value);
+        break;
+      case "Polygon":
+        value = JSON.parse(value);
+        break;
+      case "MultiPolygon":
+        value = JSON.parse(value);
+        break;
+      case "GeometryCollection":
+        value = JSON.parse(value);
+        break;
+      case "Feature":
+        value = JSON.parse(value);
+        break;
+      case "FeatureCollection":
+        value = JSON.parse(value);
+        break;
       case "[String]":
         value = value.split(array_delimiter);
         break;
