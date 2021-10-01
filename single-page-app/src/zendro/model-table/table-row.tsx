@@ -5,7 +5,6 @@ import {
   TableRowProps as MuiTableRowProps,
 } from '@mui/material';
 import { DataRecord, ParsedAttribute } from '@/types/models';
-import { Map, TileLayer, Marker, Popup } from 'react-leaflet-universal';
 
 export type TableRowActionHandler = (primaryKey: string | number) => void;
 
