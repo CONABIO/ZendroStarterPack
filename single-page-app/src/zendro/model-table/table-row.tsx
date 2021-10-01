@@ -5,6 +5,7 @@ import {
   TableRowProps as MuiTableRowProps,
 } from '@mui/material';
 import { DataRecord, ParsedAttribute } from '@/types/models';
+import { Map, TileLayer, Marker, Popup } from 'react-leaflet-universal';
 
 export type TableRowActionHandler = (primaryKey: string | number) => void;
 
@@ -18,6 +19,18 @@ interface TableRowProps extends MuiTableRowProps {
   attributes: ParsedAttribute[];
   record: DataRecord;
 }
+
+const gisTypes = [
+  "Point",
+  "MultiPoint",
+  "LineString",
+  "MultiLineString",
+  "Polygon",
+  "MultiPolygon",
+  "GeometryCollection",
+  "Feature",
+  "FeatureCollection"
+];
 
 export default function TableRow({
   attributes,
@@ -37,7 +50,7 @@ export default function TableRow({
           }
         >
           {String(
-            record[attribute.name] !== null ? record[attribute.name] : ''
+            record[attribute.name] !== null ? gisTypes.includes(attribute.type) ? JSON.stringify(record[attribute.name]) : record[attribute.name] : ''
           )}
         </MuiTableCell>
       ))}
