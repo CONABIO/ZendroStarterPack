@@ -14,8 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_node': 'node',
-    'addCumulus_ecosystem': 'cumulus'
+    'addUnique_nodes': 'node',
+    'addCumulus_ecosystems': 'cumulus'
 }
 
 
@@ -208,20 +208,20 @@ ecosystem.prototype.cumulus_ecosystemConnection = function({
 ecosystem.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addUnique_node)) {
-        promises_add.push(this.add_unique_node(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addUnique_nodes)) {
+        promises_add.push(this.add_unique_nodes(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addCumulus_ecosystem)) {
-        promises_add.push(this.add_cumulus_ecosystem(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addCumulus_ecosystems)) {
+        promises_add.push(this.add_cumulus_ecosystems(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeUnique_node)) {
-        promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeUnique_nodes)) {
+        promises_remove.push(this.remove_unique_nodes(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeCumulus_ecosystem)) {
-        promises_remove.push(this.remove_cumulus_ecosystem(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeCumulus_ecosystems)) {
+        promises_remove.push(this.remove_cumulus_ecosystems(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -234,9 +234,9 @@ ecosystem.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addUnique_node.map(associatedRecordId => {
+    let bulkAssociationInput = input.addUnique_nodes.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.node.idAttribute()]: associatedRecordId
@@ -252,9 +252,9 @@ ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter)
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addCumulus_ecosystem.map(associatedRecordId => {
+    let bulkAssociationInput = input.addCumulus_ecosystems.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.cumulus.idAttribute()]: associatedRecordId
@@ -270,9 +270,9 @@ ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorRep
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_unique_node = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeUnique_node.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeUnique_nodes.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.node.idAttribute()]: associatedRecordId
@@ -288,9 +288,9 @@ ecosystem.prototype.remove_unique_node = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_cumulus_ecosystem = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_cumulus_ecosystems = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeCumulus_ecosystem.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeCumulus_ecosystems.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.cumulus.idAttribute()]: associatedRecordId

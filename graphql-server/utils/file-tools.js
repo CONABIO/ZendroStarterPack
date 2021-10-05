@@ -6,6 +6,7 @@ const fs = require("fs");
 const awaitifyStream = require("awaitify-stream");
 const validatorUtil = require("./validatorUtil");
 const admZip = require("adm-zip");
+const convexhull = require('./create-convexhull');
 
 /**
  * replaceNullStringsWithLiteralNulls - Replace null entries of columns with literal null types
@@ -250,6 +251,7 @@ exports.parseCsvStream = async function (
 
     let record;
     let errors = [];
+    let cumulusIds = [];
 
     while (null !== (record = await csvStream.readAsync())) {
       record = exports.replacePojoNullValueWithLiteralNull(record);
@@ -275,6 +277,9 @@ exports.parseCsvStream = async function (
               error.record = record;
               errors.push(error);
             });
+          if(model.definition.model.includes('node') && record.cumulus_id){
+            cumulusIds.push(record.cumulus_id)
+          }
         } else if (storageType === "mongodb") {
           try {
             const response = await collection.insertOne(record);
@@ -321,6 +326,9 @@ exports.parseCsvStream = async function (
 
       throw new Error(message.slice(0, message.length - 1));
     }
+    cumulusIds.forEach(async cumulusId => {
+      await convexhull.createConvexHull(cumulusId);
+    })
 
     if (storageType === "sql") {
       await transaction.commit();

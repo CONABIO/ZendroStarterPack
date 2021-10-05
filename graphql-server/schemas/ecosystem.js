@@ -97,7 +97,7 @@ type EcosystemEdge{
 
   type Mutation {
     addEcosystem( name: String   , addUnique_node:[ID], addCumulus_ecosystem:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
-    updateEcosystem(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID] , addCumulus_ecosystem:[ID], removeCumulus_ecosystem:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    updateEcosystem(id: ID!, name: String   , addUnique_nodes:[ID], removeUnique_nodes:[ID] , addCumulus_ecosystems:[ID], removeCumulus_ecosystems:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     deleteEcosystem(id: ID!): String!
     bulkAddEcosystemCsv: String!
       }
