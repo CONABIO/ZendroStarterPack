@@ -25,6 +25,7 @@ const definition = {
         user_id: 'Int',
         calendar_id: 'Int',
         created_at: 'DateTime',
+        comments: 'String',
         date_started: 'Date',
         date_finished: 'Date',
         cumulus_id: 'Int',
@@ -115,6 +116,9 @@ module.exports = class visit extends Sequelize.Model {
             },
             created_at: {
                 type: Sequelize[dict['DateTime']]
+            },
+            comments: {
+                type: Sequelize[dict['String']]
             },
             date_started: {
                 type: Sequelize[dict['Date']]

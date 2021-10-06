@@ -26,6 +26,12 @@ module.exports = `
     @original-field
     
     """
+    comments: String
+
+    """
+    @original-field
+    
+    """
     date_started: Date
 
     """
@@ -102,6 +108,7 @@ type VisitEdge{
     user_id
     calendar_id
     created_at
+    comments
     date_started
     date_finished
     cumulus_id
@@ -149,8 +156,8 @@ type VisitEdge{
   }
 
   type Mutation {
-    addVisit( created_at: DateTime, date_started: Date, date_finished: Date , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, created_at: DateTime, date_started: Date, date_finished: Date , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( created_at: DateTime, comments: String, date_started: Date, date_finished: Date , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, created_at: DateTime, comments: String, date_started: Date, date_finished: Date , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
     bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

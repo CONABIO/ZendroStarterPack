@@ -5,6 +5,7 @@
         "user_id": "Int",
         "calendar_id": "Int",
         "created_at": "DateTime",
+        "comments": "String",
         "date_started": "Date",
         "date_finished": "Date",
         "cumulus_id": "Int",
