@@ -4,10 +4,11 @@
     "attributes": {
         "user_id": "Int",
         "calendar_id": "Int",
-        "created_at": "DateTime",
         "comments": "String",
-        "date_started": "Date",
-        "date_finished": "Date",
+        "date_started_pristine": "Date",
+        "date_finished_pristine": "Date",
+        "date_started_disturbed": "Date",
+        "date_finished_disturbed": "Date",
         "cumulus_id": "Int",
         "pristine_id": "Int",
         "disturbed_id": "Int"
