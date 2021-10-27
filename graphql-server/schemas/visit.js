@@ -20,12 +20,6 @@ module.exports = `
     @original-field
     
     """
-    created_at: DateTime
-
-    """
-    @original-field
-    
-    """
     comments: String
 
     """
@@ -92,7 +86,12 @@ module.exports = `
     """
     countFilteredDeployments(search: searchDeploymentInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type VisitConnection{
   edges: [VisitEdge]
   visits: [visit]
@@ -119,7 +118,6 @@ type VisitEdge{
     id
     user_id
     calendar_id
-    created_at
     comments
     date_started_pristine
     date_finished_pristine
@@ -167,11 +165,15 @@ type VisitEdge{
     vueTableVisit : VueTableVisit
     csvTableTemplateVisit: [String]
     visitsConnection(search:searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput! ): VisitConnection
+    validateVisitForCreation( comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateVisitForUpdating(id: ID!, comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateVisitForDeletion(id: ID!): Boolean!
+    validateVisitAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addVisit( created_at: DateTime, comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, created_at: DateTime, comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, comments: String, date_started_pristine: Date, date_finished_pristine: Date, date_started_disturbed: Date, date_finished_disturbed: Date , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
     bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

@@ -114,7 +114,12 @@ module.exports = `
     """
     countFilteredAssociated_cumulus(search: searchCumulusInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type UserConnection{
   edges: [UserEdge]
   users: [user]
@@ -176,6 +181,10 @@ type UserEdge{
     vueTableUser : VueTableUser
     csvTableTemplateUser: [String]
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput! ): UserConnection
+    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForDeletion(id: ID!): Boolean!
+    validateUserAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

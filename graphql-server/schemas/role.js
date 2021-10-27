@@ -39,7 +39,12 @@ module.exports = `
     """
     countFilteredUsers(search: searchUserInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type RoleConnection{
   edges: [RoleEdge]
   roles: [role]
@@ -91,6 +96,10 @@ type RoleEdge{
     vueTableRole : VueTableRole
     csvTableTemplateRole: [String]
     rolesConnection(search:searchRoleInput, order: [ orderRoleInput ], pagination: paginationCursorInput! ): RoleConnection
+    validateRoleForCreation( name: String, description: String, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRoleForUpdating(id: ID!, name: String, description: String, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRoleForDeletion(id: ID!): Boolean!
+    validateRoleAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

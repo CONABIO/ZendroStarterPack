@@ -57,7 +57,12 @@ module.exports = `
     """
     countFilteredVisits(search: searchVisitInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type CalendarConnection{
   edges: [CalendarEdge]
   calendars: [calendar]
@@ -112,6 +117,10 @@ type CalendarEdge{
     vueTableCalendar : VueTableCalendar
     csvTableTemplateCalendar: [String]
     calendarsConnection(search:searchCalendarInput, order: [ orderCalendarInput ], pagination: paginationCursorInput! ): CalendarConnection
+    validateCalendarForCreation( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCalendarForUpdating(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCalendarForDeletion(id: ID!): Boolean!
+    validateCalendarAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

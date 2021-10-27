@@ -8,6 +8,7 @@
         "longitude": "Float",
         "altitude": "Float",
         "comments": "String",
+        "metadata": "Json",
         "device_id": "Int",
         "visit_id": "Int",
         "created_at": "DateTime",
@@ -40,6 +41,15 @@
             "targetKey": "deployment_ids",
             "sourceKey": "monitor_ids",
             "keysIn": "deployment",
+            "targetStorageType": "sql"
+        },
+        "files": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "associated_deployment",
+            "target": "file",
+            "targetKey": "deployment_id",
+            "keysIn": "file",
             "targetStorageType": "sql"
         }
     }

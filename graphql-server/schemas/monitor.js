@@ -58,7 +58,12 @@ module.exports = `
     """
     countFilteredDeployments(search: searchDeploymentInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type MonitorConnection{
   edges: [MonitorEdge]
   monitors: [monitor]
@@ -116,6 +121,10 @@ type MonitorEdge{
     vueTableMonitor : VueTableMonitor
     csvTableTemplateMonitor: [String]
     monitorsConnection(search:searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationCursorInput! ): MonitorConnection
+    validateMonitorForCreation( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateMonitorForUpdating(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateMonitorForDeletion(id: ID!): Boolean!
+    validateMonitorAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

@@ -3,7 +3,7 @@ Data types dictionary from graphql-type to sequelize-type
 */
 
 module.exports = {
-
+  "uuid": 'UUID',
   "Int" : 'INTEGER',
   "String": 'TEXT',
   "Float": 'FLOAT',
@@ -20,6 +20,7 @@ module.exports = {
   "GeometryCollection": "GEOMETRY",
   "Feature": "GEOMETRY",
   "FeatureCollection": "GEOMETRY",
+  "Json": "JSON",
   "[String]": "TEXT",
   "[Int]": "TEXT",
   "[Float]": "TEXT",

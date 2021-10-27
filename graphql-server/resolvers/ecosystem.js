@@ -12,10 +12,10 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addUnique_nodes': 'node',
-    'addCumulus_ecosystems': 'cumulus'
+    'addUnique_node': 'node',
+    'addCumulus_ecosystem': 'cumulus'
 }
 
 
@@ -208,20 +208,20 @@ ecosystem.prototype.cumulus_ecosystemConnection = function({
 ecosystem.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addUnique_nodes)) {
-        promises_add.push(this.add_unique_nodes(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addUnique_node)) {
+        promises_add.push(this.add_unique_node(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addCumulus_ecosystems)) {
-        promises_add.push(this.add_cumulus_ecosystems(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addCumulus_ecosystem)) {
+        promises_add.push(this.add_cumulus_ecosystem(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeUnique_nodes)) {
-        promises_remove.push(this.remove_unique_nodes(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeUnique_node)) {
+        promises_remove.push(this.remove_unique_node(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeCumulus_ecosystems)) {
-        promises_remove.push(this.remove_cumulus_ecosystems(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeCumulus_ecosystem)) {
+        promises_remove.push(this.remove_cumulus_ecosystem(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -234,9 +234,9 @@ ecosystem.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addUnique_nodes.map(associatedRecordId => {
+    let bulkAssociationInput = input.addUnique_node.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.node.idAttribute()]: associatedRecordId
@@ -252,9 +252,9 @@ ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addCumulus_ecosystems.map(associatedRecordId => {
+    let bulkAssociationInput = input.addCumulus_ecosystem.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.cumulus.idAttribute()]: associatedRecordId
@@ -270,9 +270,9 @@ ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorRe
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_unique_node = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeUnique_nodes.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeUnique_node.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.node.idAttribute()]: associatedRecordId
@@ -288,9 +288,9 @@ ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorRepor
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_cumulus_ecosystems = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_cumulus_ecosystem = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeCumulus_ecosystems.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeCumulus_ecosystem.map(associatedRecordId => {
         return {
             ecosystem_id: this.getIdValue(),
             [models.cumulus.idAttribute()]: associatedRecordId
@@ -447,6 +447,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateEcosystemForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEcosystemForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'ecosystem', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    ecosystem,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEcosystemForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEcosystemForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'ecosystem', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    ecosystem,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEcosystemForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEcosystemForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'ecosystem', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    ecosystem,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEcosystemAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEcosystemAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'ecosystem', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    ecosystem,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addEcosystem - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

@@ -19,30 +19,28 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'calendar',
+    model: 'file',
     storageType: 'sql',
     attributes: {
-        date_started: 'Date',
-        date_finished: 'Date',
-        created_at: 'DateTime',
-        updated_at: 'DateTime',
-        sipecam_year: 'String',
-        order: 'Int'
+        bucket_url: 'String',
+        metadata: 'Json',
+        deployment_id: 'Int'
     },
     associations: {
-        visits: {
-            type: 'one_to_many',
+        associated_deployment: {
+            type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'calendar',
-            target: 'visit',
-            targetKey: 'calendar_id',
-            keysIn: 'visit',
+            reverseAssociation: 'files',
+            target: 'deployment',
+            targetKey: 'deployment_id',
+            keysIn: 'file',
             targetStorageType: 'sql'
         }
     },
     id: {
         name: 'id',
-        type: 'Int'
+        type: 'String',
+        defaultValue: Sequelize.UUIDV4
     }
 };
 const DataLoader = require("dataloader");
@@ -51,7 +49,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class calendar extends Sequelize.Model {
+module.exports = class file extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -61,29 +59,25 @@ module.exports = class calendar extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            date_started: {
-                type: Sequelize[dict['Date']]
+            id: {
+                primaryKey: true,
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4
             },
-            date_finished: {
-                type: Sequelize[dict['Date']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
-            },
-            updated_at: {
-                type: Sequelize[dict['DateTime']]
-            },
-            sipecam_year: {
+            bucket_url: {
                 type: Sequelize[dict['String']]
             },
-            order: {
+            metadata: {
+                type: Sequelize[dict['Json']]
+            },
+            deployment_id: {
                 type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "calendar",
-            tableName: "calendars",
+            modelName: "file",
+            tableName: "files",
             sequelize
         });
     }
@@ -131,9 +125,9 @@ module.exports = class calendar extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        calendar.hasMany(models.visit, {
-            as: 'visits',
-            foreignKey: 'calendar_id'
+        file.belongsTo(models.deployment, {
+            as: 'associated_deployment',
+            foreignKey: 'deployment_id'
         });
     }
 
@@ -145,13 +139,13 @@ module.exports = class calendar extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: calendar.idAttribute(),
+            field: file.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await calendar.readAllCursor(queryArg);
-        cursorRes = cursorRes.calendars.reduce(
-            (map, obj) => ((map[obj[calendar.idAttribute()]] = obj), map), {}
+        let cursorRes = await file.readAllCursor(queryArg);
+        cursorRes = cursorRes.files.reduce(
+            (map, obj) => ((map[obj[file.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -159,7 +153,7 @@ module.exports = class calendar extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(calendar.batchReadById, {
+    static readByIdLoader = new DataLoader(file.batchReadById, {
         cache: false,
     });
 
@@ -168,11 +162,11 @@ module.exports = class calendar extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type calendar, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type file, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await calendar.readByIdLoader.load(id);
+        return await file.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -184,7 +178,7 @@ module.exports = class calendar extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, calendar.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, file.definition.attributes);
         return super.count(options);
     }
 
@@ -201,9 +195,9 @@ module.exports = class calendar extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), calendar.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), file.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => calendar.postReadCast(x))
+        records = records.map(x => file.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -222,10 +216,10 @@ module.exports = class calendar extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), calendar.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), file.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => calendar.postReadCast(x))
+        records = records.map(x => file.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -236,7 +230,7 @@ module.exports = class calendar extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), calendar.definition.attributes);
+            }, this.idAttribute(), file.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -245,7 +239,7 @@ module.exports = class calendar extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            calendars: edges.map((edge) => edge.node)
+            files: edges.map((edge) => edge.node)
         };
     }
 
@@ -259,7 +253,7 @@ module.exports = class calendar extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = calendar.preWriteCast(input)
+        input = file.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -267,8 +261,8 @@ module.exports = class calendar extends Sequelize.Model {
                 });
                 return item;
             });
-            calendar.postReadCast(result.dataValues)
-            calendar.postReadCast(result._previousDataValues)
+            file.postReadCast(result.dataValues)
+            file.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -308,7 +302,7 @@ module.exports = class calendar extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = calendar.preWriteCast(input)
+        input = file.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -321,8 +315,8 @@ module.exports = class calendar extends Sequelize.Model {
                 });
                 return updated;
             });
-            calendar.postReadCast(result.dataValues)
-            calendar.postReadCast(result._previousDataValues)
+            file.postReadCast(result.dataValues)
+            file.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -385,7 +379,7 @@ module.exports = class calendar extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of calendar records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of file records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -403,12 +397,98 @@ module.exports = class calendar extends Sequelize.Model {
 
 
 
+    /**
+     * add_deployment_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   deployment_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_deployment_id(id, deployment_id) {
+        let updated = await file.update({
+            deployment_id: deployment_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * remove_deployment_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   deployment_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_deployment_id(id, deployment_id) {
+        let updated = await file.update({
+            deployment_id: null
+        }, {
+            where: {
+                id: id,
+                deployment_id: deployment_id
+            }
+        });
+        return updated;
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateFileWithDeployment_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateFileWithDeployment_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "deployment_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            deployment_id,
+            id
+        }) => {
+            promises.push(super.update({
+                deployment_id: deployment_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
+
+    /**
+     * bulkDisAssociateFileWithDeployment_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateFileWithDeployment_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "deployment_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            deployment_id,
+            id
+        }) => {
+            promises.push(super.update({
+                deployment_id: null
+            }, {
+                where: {
+                    id: id,
+                    deployment_id: deployment_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 
@@ -418,7 +498,7 @@ module.exports = class calendar extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return calendar.definition.id.name;
+        return file.definition.id.name;
     }
 
     /**
@@ -427,16 +507,16 @@ module.exports = class calendar extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return calendar.definition.id.type;
+        return file.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of calendar.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of file.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[calendar.idAttribute()];
+        return this[file.idAttribute()];
     }
 
     /**
@@ -457,9 +537,9 @@ module.exports = class calendar extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  calendar to a base 64 String
+     * base64Encode - Encode  file to a base 64 String
      *
-     * @return {string} The calendar object, encoded in a base 64 String
+     * @return {string} The file object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -470,28 +550,28 @@ module.exports = class calendar extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The calendar object, encoded in a base 64 String
+     * @return {string} The file object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of calendar.
+     * stripAssociations - Instance method for getting all attributes of file.
      *
-     * @return {object} The attributes of calendar in object form
+     * @return {object} The attributes of file in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(calendar.definition.attributes);
+        let attributes = Object.keys(file.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of calendar that are marked as external IDs.
+     * externalIdsArray - Get all attributes of file that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of calendar that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of file that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -503,7 +583,7 @@ module.exports = class calendar extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of calendar.
+     * externalIdsObject - Get all external IDs of file.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

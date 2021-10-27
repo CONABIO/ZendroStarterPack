@@ -44,6 +44,12 @@ module.exports = `
     @original-field
     
     """
+    metadata: Json
+
+    """
+    @original-field
+    
+    """
     device_id: Int
 
     """
@@ -83,7 +89,28 @@ module.exports = `
     """
     countFilteredMonitors(search: searchMonitorInput) : Int
   
-    }
+    """
+    @search-request
+    """
+    filesFilter(search: searchFileInput, order: [ orderFileInput ], pagination: paginationInput!): [file]
+
+
+    """
+    @search-request
+    """
+    filesConnection(search: searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput!): FileConnection
+
+    """
+    @count-request
+    """
+    countFilteredFiles(search: searchFileInput) : Int
+  
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type DeploymentConnection{
   edges: [DeploymentEdge]
   deployments: [deployment]
@@ -114,6 +141,7 @@ type DeploymentEdge{
     longitude
     altitude
     comments
+    metadata
     device_id
     visit_id
     created_at
@@ -148,11 +176,15 @@ type DeploymentEdge{
     vueTableDeployment : VueTableDeployment
     csvTableTemplateDeployment: [String]
     deploymentsConnection(search:searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput! ): DeploymentConnection
+    validateDeploymentForCreation( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, created_at: DateTime , addDevice:ID, addVisit_deployment:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForUpdating(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, created_at: DateTime , addDevice:ID, removeDevice:ID , addVisit_deployment:ID, removeVisit_deployment:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForDeletion(id: ID!): Boolean!
+    validateDeploymentAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, addVisit_deployment:ID  , addMonitors:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
-    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addVisit_deployment:ID, removeVisit_deployment:ID   , addMonitors:[ID], removeMonitors:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    addDeployment( date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, created_at: DateTime , addDevice:ID, addVisit_deployment:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    updateDeployment(id: ID!, date_started: Date, date_finished: Date, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, created_at: DateTime , addDevice:ID, removeDevice:ID , addVisit_deployment:ID, removeVisit_deployment:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
     bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

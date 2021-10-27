@@ -53,7 +53,12 @@ module.exports = `
     """
     countFilteredDevice_deployments(search: searchDeploymentInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type Physical_deviceConnection{
   edges: [Physical_deviceEdge]
   physical_devices: [physical_device]
@@ -113,6 +118,10 @@ type Physical_deviceEdge{
     vueTablePhysical_device : VueTablePhysical_device
     csvTableTemplatePhysical_device: [String]
     physical_devicesConnection(search:searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationCursorInput! ): Physical_deviceConnection
+    validatePhysical_deviceForCreation( serial_number: String, comments: String, created_at: DateTime , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePhysical_deviceForUpdating(id: ID!, serial_number: String, comments: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePhysical_deviceForDeletion(id: ID!): Boolean!
+    validatePhysical_deviceAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

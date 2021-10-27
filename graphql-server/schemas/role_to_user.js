@@ -23,7 +23,12 @@ module.exports = `
     created_at: DateTime
 
       
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type Role_to_userConnection{
   edges: [Role_to_userEdge]
   role_to_users: [role_to_user]
@@ -75,6 +80,10 @@ type Role_to_userEdge{
     vueTableRole_to_user : VueTableRole_to_user
     csvTableTemplateRole_to_user: [String]
     role_to_usersConnection(search:searchRole_to_userInput, order: [ orderRole_to_userInput ], pagination: paginationCursorInput! ): Role_to_userConnection
+    validateRole_to_userForCreation( user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRole_to_userForUpdating(id: ID!, user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRole_to_userForDeletion(id: ID!): Boolean!
+    validateRole_to_userAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

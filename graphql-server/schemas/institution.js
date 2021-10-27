@@ -45,7 +45,12 @@ module.exports = `
     """
     countFilteredUsers(search: searchUserInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type InstitutionConnection{
   edges: [InstitutionEdge]
   institutions: [institution]
@@ -98,6 +103,10 @@ type InstitutionEdge{
     vueTableInstitution : VueTableInstitution
     csvTableTemplateInstitution: [String]
     institutionsConnection(search:searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationCursorInput! ): InstitutionConnection
+    validateInstitutionForCreation( name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateInstitutionForUpdating(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateInstitutionForDeletion(id: ID!): Boolean!
+    validateInstitutionAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

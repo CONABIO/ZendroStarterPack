@@ -15,6 +15,8 @@ const {
   GraphQLDate,
   GraphQLTime,
 } = require("graphql-iso-date");
+const GraphQLJSON = require('graphql-type-json');
+const { GraphQLJSONObject } = require('graphql-type-json');
 const { 
   Point,
   MultiPoint,
@@ -1087,7 +1089,7 @@ module.exports.toGraphQLConnectionObject = function (
   let edges = nodes.map((temp_node) => {
     return {
       node: temp_node,
-      cursor: temp_node.base64Enconde(),
+      cursor: temp_node.base64Encode(),
     };
   });
 
@@ -1623,8 +1625,8 @@ module.exports.checkAuthorizationOnAssocArgs = async function (
         input[curr] !== "" &&
         module.exports.isNotUndefinedAndNotNull(input[curr]));
     if (hasInputForAssoc) {
-      let targetModelName = associationArgsDef[curr];
-      let targetModel = modelsIndex[`${targetModelName}`];
+      let targetModel = modelsIndex[`${associationArgsDef[curr]}`];
+      let targetModelName = targetModel.definition.model;
       let storageType = targetModel.definition.storageType;
 
       // Look into the definition of the associated data model and ask for its storage type.
@@ -2074,6 +2076,10 @@ module.exports.mergeSchemaSetScalarTypes = (path) => {
   Object.assign(Schema._typeMap.GeometryCollection, GeometryCollection);
   Object.assign(Schema._typeMap.Feature, Feature);
   Object.assign(Schema._typeMap.FeatureCollection, FeatureCollection);
+
+  /*set scalar for json */
+  Object.assign(Schema._typeMap.Json, GraphQLJSON);
+  Object.assign(Schema._typeMap.JsonObject, GraphQLJSONObject);
   return Schema;
 };
 
@@ -2568,7 +2574,7 @@ module.exports.buildEdgeObject = function (records) {
     edges = records.map((record) => {
       return {
         node: record,
-        cursor: record.base64Enconde(),
+        cursor: record.base64Encode(),
       };
     });
   }
@@ -2748,34 +2754,51 @@ module.exports.copyWithoutUnsetAttributes = function (obj) {
  * parseFieldResolverSearchArgForCassandra - recursive function to parse the search tree for eq/in searches on the given
  * "idAttribute" parameter. This function is a workaround for fieldResolvers to a cassandra model.
  * See https://github.com/Zendro-dev/graphql-server-model-codegen/issues/186 for a details on the issue.
- * 
+ *
  * WARNING: This workaround only partially solves the problem.
  *  - cassandra still does not allow SELECT queries on indexed columns with IN clause for the PRIMARY KEY.
  *  - If there are multiple nodes with searches on the idAttribute cassandra will still throw since multiple
  *    Equal restrictions on the id field are not allowed
  *  - This only works for associations where the foreignKey is stored on the side of the cassandra model, since
  *    IN clauses are only allowed on the primarykey column, not on any foreignkey column.
- * 
- * @param {object} search search argument as passed to the resolver 
+ *
+ * @param {object} search search argument as passed to the resolver
  * @param {array} ids foreignkey or keys to check
  * @param {string} idAttribute model id attribute name
  * @returns {boolean} hasIdSearch - True if at least one node in the search tree has a eq/in search on the idAttribute
  *                                  Be aware that this function manipulates the search object given directly.
  */
- module.exports.parseFieldResolverSearchArgForCassandra = function(search, ids, idAttribute, hasIdSearch=false) {
-  if (search && search.operator === 'and') {
-    search.search.forEach(searchVal => {
-      hasIdSearch = this.parseFieldResolverSearchArgForCassandra(searchVal, ids, idAttribute, hasIdSearch);
-    }) 
+module.exports.parseFieldResolverSearchArgForCassandra = function (
+  search,
+  ids,
+  idAttribute,
+  hasIdSearch = false
+) {
+  if (search && search.operator === "and") {
+    search.search.forEach((searchVal) => {
+      hasIdSearch = this.parseFieldResolverSearchArgForCassandra(
+        searchVal,
+        ids,
+        idAttribute,
+        hasIdSearch
+      );
+    });
   } else {
-    if(search && search.field === idAttribute && (search.operator === 'eq' || search.operator === 'in')) {
+    if (
+      search &&
+      search.field === idAttribute &&
+      (search.operator === "eq" || search.operator === "in")
+    ) {
       hasIdSearch = true;
-      const valueArr = search.operator === 'eq' ? [search.value] : search.value.split(',');
-      const intersection = Array.isArray(ids) ? _.intersection(valueArr, ids) : _.intersection(valueArr, [ids]);
-      search.operator = 'in';
-      search.value = intersection.length > 0 ? intersection.join(',') : [];
+      const valueArr =
+        search.operator === "eq" ? [search.value] : search.value.split(",");
+      const intersection = Array.isArray(ids)
+        ? _.intersection(valueArr, ids)
+        : _.intersection(valueArr, [ids]);
+      search.operator = "in";
+      search.value = intersection.length > 0 ? intersection.join(",") : [];
       search.valueType = intersection.length > 0 ? "Array" : undefined;
     }
   }
   return hasIdSearch;
-}
+};

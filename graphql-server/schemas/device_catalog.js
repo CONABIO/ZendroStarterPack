@@ -33,7 +33,12 @@ module.exports = `
     """
     countFilteredPhysical_devices(search: searchPhysical_deviceInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type Device_catalogConnection{
   edges: [Device_catalogEdge]
   device_catalogs: [device_catalog]
@@ -84,6 +89,10 @@ type Device_catalogEdge{
     vueTableDevice_catalog : VueTableDevice_catalog
     csvTableTemplateDevice_catalog: [String]
     device_catalogsConnection(search:searchDevice_catalogInput, order: [ orderDevice_catalogInput ], pagination: paginationCursorInput! ): Device_catalogConnection
+    validateDevice_catalogForCreation( brand: String, type: String   , addPhysical_devices:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDevice_catalogForUpdating(id: ID!, brand: String, type: String   , addPhysical_devices:[ID], removePhysical_devices:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDevice_catalogForDeletion(id: ID!): Boolean!
+    validateDevice_catalogAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

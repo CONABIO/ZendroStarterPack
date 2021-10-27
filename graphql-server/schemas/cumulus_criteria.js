@@ -33,7 +33,12 @@ module.exports = `
     """
     countFilteredCumulus(search: searchCumulusInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type Cumulus_criteriaConnection{
   edges: [Cumulus_criteriaEdge]
   cumulus_criteria: [cumulus_criteria]
@@ -84,6 +89,10 @@ type Cumulus_criteriaEdge{
     vueTableCumulus_criteria : VueTableCumulus_criteria
     csvTableTemplateCumulus_criteria: [String]
     cumulus_criteriaConnection(search:searchCumulus_criteriaInput, order: [ orderCumulus_criteriaInput ], pagination: paginationCursorInput! ): Cumulus_criteriaConnection
+    validateCumulus_criteriaForCreation( name: String, created_at: DateTime   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulus_criteriaForUpdating(id: ID!, name: String, created_at: DateTime   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulus_criteriaForDeletion(id: ID!): Boolean!
+    validateCumulus_criteriaAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

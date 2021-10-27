@@ -1,0 +1,20 @@
+{
+    "model": "file",
+    "storageType": "sql",
+    "attributes": {
+        "bucket_url": "String",
+        "metadata": "Json",
+        "deployment_id": "Int"
+    },
+    "associations": {
+        "associated_deployment": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "files",
+            "target": "deployment",
+            "targetKey": "deployment_id",
+            "keysIn": "file",
+            "targetStorageType": "sql"
+        }
+    }
+}

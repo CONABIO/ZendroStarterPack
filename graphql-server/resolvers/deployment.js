@@ -12,11 +12,12 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addDevice': 'physical_device',
     'addVisit_deployment': 'visit',
-    'addMonitors': 'monitor'
+    'addMonitors': 'monitor',
+    'addFiles': 'file'
 }
 
 
@@ -209,6 +210,93 @@ deployment.prototype.monitorsConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * deployment.prototype.filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+deployment.prototype.filesFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "deployment_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.files({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * deployment.prototype.countFilteredFiles - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+deployment.prototype.countFilteredFiles = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "deployment_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countFiles({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * deployment.prototype.filesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+deployment.prototype.filesConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "deployment_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.filesConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -225,6 +313,9 @@ deployment.prototype.handleAssociations = async function(input, benignErrorRepor
     if (helper.isNonEmptyArray(input.addMonitors)) {
         promises_add.push(this.add_monitors(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addFiles)) {
+        promises_add.push(this.add_files(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addDevice)) {
         promises_add.push(this.add_device(input, benignErrorReporter));
     }
@@ -236,6 +327,9 @@ deployment.prototype.handleAssociations = async function(input, benignErrorRepor
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeMonitors)) {
         promises_remove.push(this.remove_monitors(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeFiles)) {
+        promises_remove.push(this.remove_files(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeDevice)) {
         promises_remove.push(this.remove_device(input, benignErrorReporter));
@@ -258,6 +352,24 @@ deployment.prototype.add_monitors = async function(input, benignErrorReporter) {
 
     await deployment.add_monitor_ids(this.getIdValue(), input.addMonitors, benignErrorReporter);
     this.monitor_ids = helper.unionIds(this.monitor_ids, input.addMonitors);
+}
+
+/**
+ * add_files - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.add_files = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addFiles.map(associatedRecordId => {
+        return {
+            deployment_id: this.getIdValue(),
+            [models.file.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.file.bulkAssociateFileWithDeployment_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -293,6 +405,24 @@ deployment.prototype.remove_monitors = async function(input, benignErrorReporter
 
     await deployment.remove_monitor_ids(this.getIdValue(), input.removeMonitors, benignErrorReporter);
     this.monitor_ids = helper.differenceIds(this.monitor_ids, input.removeMonitors);
+}
+
+/**
+ * remove_files - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+deployment.prototype.remove_files = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeFiles.map(associatedRecordId => {
+        return {
+            deployment_id: this.getIdValue(),
+            [models.file.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.file.bulkDisAssociateFileWithDeployment_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -341,6 +471,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(deployment.countFilteredMonitors({}, context));
+    promises_to_many.push(deployment.countFilteredFiles({}, context));
     promises_to_one.push(deployment.device({}, context));
     promises_to_one.push(deployment.visit_deployment({}, context));
 
@@ -470,6 +601,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateDeploymentForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateDeploymentForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'deployment', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    deployment,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateDeploymentForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateDeploymentForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'deployment', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    deployment,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateDeploymentForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateDeploymentForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'deployment', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    deployment,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateDeploymentAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateDeploymentAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'deployment', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    deployment,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addDeployment - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

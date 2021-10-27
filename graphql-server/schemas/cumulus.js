@@ -129,7 +129,12 @@ module.exports = `
     """
     countFilteredNodes(search: searchNodeInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type CumulusConnection{
   edges: [CumulusEdge]
   cumulus: [cumulus]
@@ -191,6 +196,10 @@ type CumulusEdge{
     vueTableCumulus : VueTableCumulus
     csvTableTemplateCumulus: [String]
     cumulusConnection(search:searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput! ): CumulusConnection
+    validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int, created_at: DateTime , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int, created_at: DateTime , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForDeletion(id: ID!): Boolean!
+    validateCumulusAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {

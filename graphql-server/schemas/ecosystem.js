@@ -43,7 +43,12 @@ module.exports = `
     """
     countFilteredCumulus_ecosystem(search: searchCumulusInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type EcosystemConnection{
   edges: [EcosystemEdge]
   ecosystems: [ecosystem]
@@ -93,11 +98,15 @@ type EcosystemEdge{
     vueTableEcosystem : VueTableEcosystem
     csvTableTemplateEcosystem: [String]
     ecosystemsConnection(search:searchEcosystemInput, order: [ orderEcosystemInput ], pagination: paginationCursorInput! ): EcosystemConnection
+    validateEcosystemForCreation( name: String   , addUnique_node:[ID], addCumulus_ecosystem:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateEcosystemForUpdating(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID] , addCumulus_ecosystem:[ID], removeCumulus_ecosystem:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateEcosystemForDeletion(id: ID!): Boolean!
+    validateEcosystemAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
     addEcosystem( name: String   , addUnique_node:[ID], addCumulus_ecosystem:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
-    updateEcosystem(id: ID!, name: String   , addUnique_nodes:[ID], removeUnique_nodes:[ID] , addCumulus_ecosystems:[ID], removeCumulus_ecosystems:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
+    updateEcosystem(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID] , addCumulus_ecosystem:[ID], removeCumulus_ecosystem:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     deleteEcosystem(id: ID!): String!
     bulkAddEcosystemCsv: String!
       }

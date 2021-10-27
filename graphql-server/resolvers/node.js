@@ -13,7 +13,7 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const { updateOrCreateConvexHull } = require('./cumulus');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCumulus_node': 'cumulus',
     'addUnique_visit_pristine': 'visit',
@@ -221,7 +221,6 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 node.prototype.add_cumulus_node = async function(input, benignErrorReporter) {
-    await updateOrCreateConvexHull(input,this.cumulus_id,true);
     await node.add_cumulus_id(this.getIdValue(), input.addCumulus_node, benignErrorReporter);
     this.cumulus_id = input.addCumulus_node;
 }
@@ -265,7 +264,6 @@ node.prototype.add_ecosystems = async function(input, benignErrorReporter) {
  */
 node.prototype.remove_cumulus_node = async function(input, benignErrorReporter) {
     if (input.removeCumulus_node == this.cumulus_id) {
-        await updateOrCreateConvexHull(input,this.cumulus_id,false);
         await node.remove_cumulus_id(this.getIdValue(), input.removeCumulus_node, benignErrorReporter);
         this.cumulus_id = null;
     }
@@ -454,6 +452,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateNodeForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateNodeForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'node', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    node,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateNodeForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateNodeForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'node', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    node,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateNodeForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateNodeForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'node', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    node,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateNodeAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateNodeAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, 'node', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    node,
+                    id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addNode - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
