@@ -5,6 +5,7 @@ import { ParsedPermissions } from './acl';
 
 export type AttributeScalarType =
   | 'Boolean'
+  | 'uuid'
   | 'DateTime'
   | 'Date'
   | 'Float'

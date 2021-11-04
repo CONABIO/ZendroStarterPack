@@ -22,8 +22,10 @@ const definition = {
     model: 'file',
     storageType: 'sql',
     attributes: {
-        bucket_url: 'String',
+        url: 'String',
         metadata: 'Json',
+        date: 'DateTime',
+        storage: 'String',
         deployment_id: 'Int'
     },
     associations: {
@@ -58,17 +60,22 @@ module.exports = class file extends Sequelize.Model {
      */
     static init(sequelize, DataTypes) {
         return super.init({
-
             id: {
                 primaryKey: true,
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4
             },
-            bucket_url: {
+            url: {
                 type: Sequelize[dict['String']]
             },
             metadata: {
                 type: Sequelize[dict['Json']]
+            },
+            date: {
+                type: Sequelize[dict['DateTime']]
+            },
+            storage: {
+                type: Sequelize[dict['String']]
             },
             deployment_id: {
                 type: Sequelize[dict['Int']]

@@ -162,6 +162,9 @@ export default function AttributesForm({
                 : field.value}
       } else return field;
     })
+    
+    cleanAttributes = cleanAttributes.filter(field => !(field.name === 'id' && !field.value))
+
     // let callback: (() => void) | undefined;
     handler(cleanAttributes, formStats);
   };
@@ -310,6 +313,7 @@ export default function AttributesForm({
               primaryKey,
             } = attribute;
 
+            if(!primaryKey || (primaryKey && value))
             return (
               <FormField
                 key={name}
@@ -338,7 +342,7 @@ export default function AttributesForm({
                     </Tooltip>
                   )
                 }
-                readOnly={readOnly}
+                readOnly={readOnly || primaryKey}
                 actionRight={
                   readOnly ? (
                     <Tooltip title={t('record-fields.read-only') ?? ''}>

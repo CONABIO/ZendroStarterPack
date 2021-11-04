@@ -8,13 +8,25 @@ module.exports = `
     @original-field
     
     """
-    bucket_url: String
+    url: String
 
     """
     @original-field
     
     """
     metadata: Json
+
+    """
+    @original-field
+    
+    """
+    date: DateTime
+
+    """
+    @original-field
+    
+    """
+    storage: String
 
     """
     @original-field
@@ -54,8 +66,10 @@ type FileEdge{
   }
   enum fileField {
     id
-    bucket_url
+    url
     metadata
+    date
+    storage
     deployment_id
   }
   
@@ -84,15 +98,15 @@ type FileEdge{
     vueTableFile : VueTableFile
     csvTableTemplateFile: [String]
     filesConnection(search:searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput! ): FileConnection
-    validateFileForCreation( bucket_url: String, metadata: Json , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateFileForUpdating(id: ID!, bucket_url: String, metadata: Json , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForCreation( url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForUpdating(id: ID!, url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForDeletion(id: ID!): Boolean!
     validateFileAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addFile( bucket_url: String, metadata: Json , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
-    updateFile(id: ID!, bucket_url: String, metadata: Json , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
+    addFile( url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
+    updateFile(id: ID!, url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
     deleteFile(id: ID!): String!
     bulkAddFileCsv: String!
     bulkAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

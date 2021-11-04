@@ -1,6 +1,6 @@
 import { ParsedAttribute } from '@/types/models';
 import { QueryVariableSearch } from '@/types/queries';
-import { isIntValue, isNumber } from './validation';
+import { isIntValue, isNumber, isUUID } from './validation';
 
 export function createSearch(
   value: string,
@@ -41,6 +41,12 @@ export function createSearch(
           value: value,
           operator: 'in',
         });
+    } else if (type === 'uuid' && isUUID(value)) {
+      acc.push({
+        field: name,
+        value,
+        operator: 'eq',
+      });
     }
     return acc;
   }, [] as QueryVariableSearch[]);

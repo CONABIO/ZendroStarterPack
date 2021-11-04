@@ -74,3 +74,12 @@ export function isIntValue(value: string): boolean {
     ? false
     : !isNaN(parseInt(value));
 }
+
+/**
+ * Check wheter the given string value has a valid uuid structure
+ * @param value string to check
+ * @return boolean indicating if string has a valid uuid structure
+ */
+export function isUUID(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}

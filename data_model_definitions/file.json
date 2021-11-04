@@ -2,8 +2,11 @@
     "model": "file",
     "storageType": "sql",
     "attributes": {
-        "bucket_url": "String",
+        "id": "uuid",
+        "url": "String",
         "metadata": "Json",
+        "date": "DateTime",
+        "storage": "String",
         "deployment_id": "Int"
     },
     "associations": {
@@ -16,5 +19,6 @@
             "keysIn": "file",
             "targetStorageType": "sql"
         }
-    }
+    },
+    "internalId": "id"
 }

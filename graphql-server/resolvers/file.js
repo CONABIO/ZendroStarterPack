@@ -251,7 +251,7 @@ module.exports = {
      */
     vueTableFile: async function(_, context) {
         if (await checkAuthorization(context, 'file', 'read') === true) {
-            return helper.vueTable(context.request, file, ["id", "bucket_url"]);
+            return helper.vueTable(context.request, file, ["id", "url", "storage"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

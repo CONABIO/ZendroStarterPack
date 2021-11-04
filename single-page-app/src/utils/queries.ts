@@ -412,7 +412,7 @@ function parseQueryAttributes(
     get argsNoAutoId() {
       return attributes
         .map(({ name, type, primaryKey, automaticId }) =>
-          automaticId ? '' : primaryKey ? `$${name}: ID!` : `$${name}: ${type}`
+          automaticId ? '' : name === 'id' ? '' : primaryKey ? `$${name}: ID!` : `$${name}: ${type}`
         )
         .join(' ');
     },
@@ -461,7 +461,7 @@ function parseQueryAttributes(
     get varsNoAutoId() {
       return attributes
         .map(({ name, automaticId }) =>
-          automaticId ? '' : `${name}: $${name}`
+          automaticId ? '' : name === 'id' ? '' : `${name}: $${name}`
         )
         .join(' ');
     },
