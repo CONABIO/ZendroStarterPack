@@ -49,7 +49,7 @@ export default function TableRow({
           }
         >
           {String(
-            record[attribute.name] !== null ? gisTypes.includes(attribute.type) ? JSON.stringify(record[attribute.name]) : record[attribute.name] : ''
+            record[attribute.name] !== null ? (gisTypes.includes(attribute.type) || attribute.type == 'Json') ? JSON.stringify(record[attribute.name]) : record[attribute.name] : ''
           )}
         </MuiTableCell>
       ))}

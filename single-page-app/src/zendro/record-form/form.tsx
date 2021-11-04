@@ -155,7 +155,7 @@ export default function AttributesForm({
                 field.value?.getFullYear() + '-' +
                 ("0" + (field.value?.getMonth() + 1)).slice(-2) + '-' +
                 ("0" + field.value?.getDate()).slice(-2) : field.value}
-      } else if(geometries.includes(field.type)) {
+      } else if(geometries.includes(field.type) || field.type == 'Json') {
         return {...field, 
           value: field.value ? 
                 (typeof field.value != "object" ? JSON.parse(field.value) : field.value) 
