@@ -29,6 +29,7 @@ const definition = {
         altitude: 'Float',
         comments: 'String',
         metadata: 'Json',
+        kobo_url: 'String',
         device_id: 'Int',
         visit_id: 'Int',
         created_at: 'DateTime',
@@ -114,6 +115,9 @@ module.exports = class deployment extends Sequelize.Model {
             },
             metadata: {
                 type: Sequelize[dict['Json']]
+            },
+            kobo_url: {
+                type: Sequelize[dict['String']]
             },
             device_id: {
                 type: Sequelize[dict['Int']]

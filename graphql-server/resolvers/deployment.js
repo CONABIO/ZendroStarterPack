@@ -595,7 +595,7 @@ module.exports = {
      */
     vueTableDeployment: async function(_, context) {
         if (await checkAuthorization(context, 'deployment', 'read') === true) {
-            return helper.vueTable(context.request, deployment, ["id", "comments"]);
+            return helper.vueTable(context.request, deployment, ["id", "comments", "kobo_url"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

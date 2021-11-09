@@ -9,6 +9,7 @@
         "altitude": "Float",
         "comments": "String",
         "metadata": "Json",
+        "kobo_url": "String",
         "device_id": "Int",
         "visit_id": "Int",
         "created_at": "DateTime",
