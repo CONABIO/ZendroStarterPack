@@ -2,7 +2,7 @@
     "model": "deployment",
     "storageType": "sql",
     "attributes": {
-        "date_fdeployment": "DateTime",
+        "date_deployment": "DateTime",
         "latitude": "Float",
         "longitude": "Float",
         "altitude": "Float",

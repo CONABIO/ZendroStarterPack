@@ -8,7 +8,7 @@ module.exports = `
     @original-field
     
     """
-    date_fdeployment: DateTime
+    date_deployment: DateTime
 
     """
     @original-field
@@ -142,7 +142,7 @@ type DeploymentEdge{
   }
   enum deploymentField {
     id
-    date_fdeployment
+    date_deployment
     latitude
     longitude
     altitude
@@ -187,15 +187,15 @@ type DeploymentEdge{
     vueTableDeployment : VueTableDeployment
     csvTableTemplateDeployment: [String]
     deploymentsConnection(search:searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput! ): DeploymentConnection
-    validateDeploymentForCreation( date_fdeployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateDeploymentForUpdating(id: ID!, date_fdeployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForCreation( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForUpdating(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDeploymentForDeletion(id: ID!): Boolean!
     validateDeploymentAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addDeployment( date_fdeployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
-    updateDeployment(id: ID!, date_fdeployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    addDeployment( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    updateDeployment(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String, created_at: DateTime , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
     bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

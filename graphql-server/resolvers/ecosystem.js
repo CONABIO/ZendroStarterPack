@@ -234,7 +234,7 @@ ecosystem.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addUnique_node.map(associatedRecordId => {
         return {
@@ -252,7 +252,7 @@ ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter)
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addCumulus_ecosystem.map(associatedRecordId => {
         return {
@@ -270,7 +270,7 @@ ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorRep
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_unique_node = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeUnique_node.map(associatedRecordId => {
         return {
@@ -288,7 +288,7 @@ ecosystem.prototype.remove_unique_node = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_cumulus_ecosystem = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_cumulus_ecosystems = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeCumulus_ecosystem.map(associatedRecordId => {
         return {

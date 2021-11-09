@@ -22,7 +22,7 @@ const definition = {
     model: 'deployment',
     storageType: 'sql',
     attributes: {
-        date_fdeployment: 'DateTime',
+        date_deployment: 'DateTime',
         latitude: 'Float',
         longitude: 'Float',
         altitude: 'Float',
@@ -104,7 +104,7 @@ module.exports = class deployment extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            date_fdeployment: {
+            date_deployment: {
                 type: Sequelize[dict['DateTime']]
             },
             latitude: {

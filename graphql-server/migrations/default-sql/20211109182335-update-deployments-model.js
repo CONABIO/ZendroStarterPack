@@ -21,6 +21,13 @@ module.exports = {
             ),
             queryInterface.addColumn(
                 'deployments',
+                'date_deployment',
+                {
+                    type: Sequelize[dict['DateTime']]
+                }
+            ),
+            queryInterface.addColumn(
+                'deployments',
                 'node_id',
                 {
                     type: Sequelize[dict['Int']]
@@ -51,6 +58,10 @@ module.exports = {
                 {
                     type: Sequelize[dict['Int']]
                 }
+            ),
+            queryInterface.removeColumn(
+                'deployments',
+                'date_deployment'
             ),
             queryInterface.removeColumn(
                 'deployments',
