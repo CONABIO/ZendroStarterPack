@@ -23,15 +23,6 @@
             "keysIn": "visit",
             "targetStorageType": "sql"
         },
-        "deployments": {
-            "type": "one_to_many",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "visit_deployment",
-            "target": "deployment",
-            "targetKey": "visit_id",
-            "keysIn": "deployment",
-            "targetStorageType": "sql"
-        },
         "user_visit": {
             "type": "many_to_one",
             "implementation": "foreignkeys",

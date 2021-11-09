@@ -94,6 +94,15 @@ const definition = {
             targetKey: 'ecosystem_id',
             keysIn: 'cumulus',
             targetStorageType: 'sql'
+        },
+        deployments: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'cumulus',
+            target: 'deployment',
+            targetKey: 'cumulus_id',
+            keysIn: 'deployment',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -213,6 +222,10 @@ module.exports = class cumulus extends Sequelize.Model {
         });
         cumulus.hasMany(models.node, {
             as: 'nodes',
+            foreignKey: 'cumulus_id'
+        });
+        cumulus.hasMany(models.deployment, {
+            as: 'deployments',
             foreignKey: 'cumulus_id'
         });
     }

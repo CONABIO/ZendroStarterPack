@@ -43,15 +43,6 @@ const definition = {
             keysIn: 'visit',
             targetStorageType: 'sql'
         },
-        deployments: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'visit_deployment',
-            target: 'deployment',
-            targetKey: 'visit_id',
-            keysIn: 'deployment',
-            targetStorageType: 'sql'
-        },
         user_visit: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
@@ -211,10 +202,6 @@ module.exports = class visit extends Sequelize.Model {
         visit.belongsTo(models.node, {
             as: 'unique_node_disturbed',
             foreignKey: 'disturbed_id'
-        });
-        visit.hasMany(models.deployment, {
-            as: 'deployments',
-            foreignKey: 'visit_id'
         });
     }
 

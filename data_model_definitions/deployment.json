@@ -2,8 +2,7 @@
     "model": "deployment",
     "storageType": "sql",
     "attributes": {
-        "date_started": "Date",
-        "date_finished": "Date",
+        "date_fdeployment": "DateTime",
         "latitude": "Float",
         "longitude": "Float",
         "altitude": "Float",
@@ -11,9 +10,10 @@
         "metadata": "Json",
         "kobo_url": "String",
         "device_id": "Int",
-        "visit_id": "Int",
         "created_at": "DateTime",
-        "monitor_ids": "[Int]"
+        "monitor_ids": "[Int]",
+        "node_id": "Int",
+        "cumulus_id": "Int"
     },
     "associations": {
         "device": {
@@ -22,15 +22,6 @@
             "reverseAssociation": "device_deployments",
             "target": "physical_device",
             "targetKey": "device_id",
-            "keysIn": "deployment",
-            "targetStorageType": "sql"
-        },
-        "visit_deployment": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "deployments",
-            "target": "visit",
-            "targetKey": "visit_id",
             "keysIn": "deployment",
             "targetStorageType": "sql"
         },
@@ -51,6 +42,24 @@
             "target": "file",
             "targetKey": "deployment_id",
             "keysIn": "file",
+            "targetStorageType": "sql"
+        },
+        "node": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "deployments",
+            "target": "node",
+            "targetKey": "node_id",
+            "keysIn": "deployment",
+            "targetStorageType": "sql"
+        },
+        "cumulus": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "deployments",
+            "target": "cumulus",
+            "targetKey": "cumulus_id",
+            "keysIn": "deployment",
             "targetStorageType": "sql"
         }
     }

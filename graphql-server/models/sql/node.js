@@ -67,6 +67,15 @@ const definition = {
             targetKey: 'ecosystem_id',
             keysIn: 'node',
             targetStorageType: 'sql'
+        },
+        deployments: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'node',
+            target: 'deployment',
+            targetKey: 'node_id',
+            keysIn: 'deployment',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -181,6 +190,10 @@ module.exports = class node extends Sequelize.Model {
         node.belongsTo(models.ecosystem, {
             as: 'ecosystems',
             foreignKey: 'ecosystem_id'
+        });
+        node.hasMany(models.deployment, {
+            as: 'deployments',
+            foreignKey: 'node_id'
         });
     }
 

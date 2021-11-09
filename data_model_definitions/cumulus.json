@@ -74,6 +74,15 @@
           "targetKey": "ecosystem_id",
           "keysIn": "cumulus",
           "targetStorageType": "sql"
+      },
+      "deployments": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "cumulus",
+        "target": "deployment",
+        "targetKey": "cumulus_id",
+        "keysIn": "deployment",
+        "targetStorageType": "sql"
       }
     }
 }

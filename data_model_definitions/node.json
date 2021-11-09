@@ -47,6 +47,15 @@
           "targetKey": "ecosystem_id",
           "keysIn": "node",
           "targetStorageType": "sql"
+      },
+      "deployments": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "node",
+        "target": "deployment",
+        "targetKey": "node_id",
+        "keysIn": "deployment",
+        "targetStorageType": "sql"
       }
     }
 }

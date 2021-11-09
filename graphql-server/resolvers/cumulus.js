@@ -22,7 +22,8 @@ const associationArgsDef = {
     'addAssociated_partners': 'user',
     'addVisits': 'visit',
     'addMonitors': 'monitor',
-    'addNodes': 'node'
+    'addNodes': 'node',
+    'addDeployments': 'deployment'
 }
 
 
@@ -563,6 +564,93 @@ cumulus.prototype.nodesConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * cumulus.prototype.deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+cumulus.prototype.deploymentsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "cumulus_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.deployments({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * cumulus.prototype.countFilteredDeployments - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+cumulus.prototype.countFilteredDeployments = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "cumulus_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countDeployments({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * cumulus.prototype.deploymentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+cumulus.prototype.deploymentsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "cumulus_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.deploymentsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -591,6 +679,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     if (helper.isNonEmptyArray(input.addNodes)) {
         promises_add.push(this.add_nodes(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addDeployments)) {
+        promises_add.push(this.add_deployments(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_criteria)) {
         promises_add.push(this.add_cumulus_criteria(input, benignErrorReporter));
     }
@@ -614,6 +705,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     }
     if (helper.isNonEmptyArray(input.removeNodes)) {
         promises_remove.push(this.remove_nodes(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeDeployments)) {
+        promises_remove.push(this.remove_deployments(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_criteria)) {
         promises_remove.push(this.remove_cumulus_criteria(input, benignErrorReporter));
@@ -715,7 +809,24 @@ cumulus.prototype.add_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
-    await createAndSaveConvexHull(this.getIdValue(),null,true);
+}
+
+/**
+ * add_deployments - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.add_deployments = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addDeployments.map(associatedRecordId => {
+        return {
+            cumulus_id: this.getIdValue(),
+            [models.deployment.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.deployment.bulkAssociateDeploymentWithCumulus_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -823,7 +934,24 @@ cumulus.prototype.remove_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
-    await createAndSaveConvexHull(this.getIdValue(),null,true);
+}
+
+/**
+ * remove_deployments - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.remove_deployments = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeDeployments.map(associatedRecordId => {
+        return {
+            cumulus_id: this.getIdValue(),
+            [models.deployment.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.deployment.bulkDisAssociateDeploymentWithCumulus_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -876,6 +1004,7 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_many.push(cumulus.countFilteredVisits({}, context));
     promises_to_many.push(cumulus.countFilteredMonitors({}, context));
     promises_to_many.push(cumulus.countFilteredNodes({}, context));
+    promises_to_many.push(cumulus.countFilteredDeployments({}, context));
     promises_to_one.push(cumulus.cumulus_criteria({}, context));
     promises_to_one.push(cumulus.unique_ecosystem({}, context));
 
