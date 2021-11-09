@@ -531,7 +531,7 @@ module.exports = {
      */
     vueTableVisit: async function(_, context) {
         if (await checkAuthorization(context, 'visit', 'read') === true) {
-            return helper.vueTable(context.request, visit, ["id", "comments"]);
+            return helper.vueTable(context.request, visit, ["id", "comments", "report_first_season", "report_second_season"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

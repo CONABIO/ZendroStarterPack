@@ -25,10 +25,12 @@ const definition = {
         user_id: 'Int',
         calendar_id: 'Int',
         comments: 'String',
-        date_started_pristine: 'Date',
-        date_finished_pristine: 'Date',
-        date_started_disturbed: 'Date',
-        date_finished_disturbed: 'Date',
+        date_sipecam_first_season: 'Date',
+        date_sipecam_second_season: 'Date',
+        date_first_season: 'Date',
+        date_second_season: 'Date',
+        report_first_season: 'String',
+        report_second_season: 'String',
         cumulus_id: 'Int',
         pristine_id: 'Int',
         disturbed_id: 'Int'
@@ -110,17 +112,23 @@ module.exports = class visit extends Sequelize.Model {
             comments: {
                 type: Sequelize[dict['String']]
             },
-            date_started_pristine: {
+            date_sipecam_first_season: {
                 type: Sequelize[dict['Date']]
             },
-            date_finished_pristine: {
+            date_sipecam_second_season: {
                 type: Sequelize[dict['Date']]
             },
-            date_started_disturbed: {
+            date_first_season: {
                 type: Sequelize[dict['Date']]
             },
-            date_finished_disturbed: {
+            date_second_season: {
                 type: Sequelize[dict['Date']]
+            },
+            report_first_season: {
+                type: Sequelize[dict['String']]
+            },
+            report_second_season: {
+                type: Sequelize[dict['String']]
             },
             cumulus_id: {
                 type: Sequelize[dict['Int']]
