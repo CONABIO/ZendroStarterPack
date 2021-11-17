@@ -10,8 +10,7 @@
         "is_active": "Boolean",
         "last_login": "DateTime",
         "institution_id": "Int",
-        "cumulus_ids": "[Int]",
-        "created_at": "DateTime"
+        "cumulus_ids": "[Int]"
     },
     "associations": {
         "roles": {
@@ -32,15 +31,6 @@
             "target": "institution",
             "targetKey": "institution_id",
             "keysIn": "user",
-            "targetStorageType": "sql"
-        },
-        "visits": {
-            "type": "one_to_many",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "user_visit",
-            "target": "visit",
-            "targetKey": "user_id",
-            "keysIn": "visit",
             "targetStorageType": "sql"
         },
         "associated_cumulus": {

@@ -15,7 +15,6 @@ const CreateVisitToCumulus = require('../utils/create-visit-to-cumulus');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addUser_visit': 'user',
     'addCumulus_visit': 'cumulus',
     'addUnique_node_pristine': 'node',
     'addUnique_node_disturbed': 'node'
@@ -23,44 +22,6 @@ const associationArgsDef = {
 
 
 
-/**
- * visit.prototype.user_visit - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-visit.prototype.user_visit = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.user_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneUser({
-                [models.user.idAttribute()]: this.user_id
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.user.idAttribute(),
-                "value": this.user_id,
-                "operator": "eq"
-            });
-            let found = (await resolvers.usersConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
 /**
  * visit.prototype.cumulus_visit - Return associated record
  *
@@ -190,9 +151,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
 
     let promises_add = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.addUser_visit)) {
-        promises_add.push(this.add_user_visit(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_visit)) {
         promises_add.push(this.add_cumulus_visit(input, benignErrorReporter));
     }
@@ -206,9 +164,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     await Promise.all(promises_add);
     let promises_remove = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.removeUser_visit)) {
-        promises_remove.push(this.remove_user_visit(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_visit)) {
         promises_remove.push(this.remove_cumulus_visit(input, benignErrorReporter));
     }
@@ -222,17 +177,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     await Promise.all(promises_remove);
 
 }
-/**
- * add_user_visit - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-visit.prototype.add_user_visit = async function(input, benignErrorReporter) {
-    await visit.add_user_id(this.getIdValue(), input.addUser_visit, benignErrorReporter);
-    this.user_id = input.addUser_visit;
-}
-
 /**
  * add_cumulus_visit - field Mutation for to_one associations to add
  *
@@ -265,19 +209,6 @@ visit.prototype.add_unique_node_pristine = async function(input, benignErrorRepo
 visit.prototype.add_unique_node_disturbed = async function(input, benignErrorReporter) {
     await visit.add_disturbed_id(this.getIdValue(), input.addUnique_node_disturbed, benignErrorReporter);
     this.disturbed_id = input.addUnique_node_disturbed;
-}
-
-/**
- * remove_user_visit - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-visit.prototype.remove_user_visit = async function(input, benignErrorReporter) {
-    if (input.removeUser_visit == this.user_id) {
-        await visit.remove_user_id(this.getIdValue(), input.removeUser_visit, benignErrorReporter);
-        this.user_id = null;
-    }
 }
 
 /**
@@ -338,7 +269,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(visit.user_visit({}, context));
     promises_to_one.push(visit.cumulus_visit({}, context));
     promises_to_one.push(visit.unique_node_pristine({}, context));
     promises_to_one.push(visit.unique_node_disturbed({}, context));
@@ -691,26 +621,6 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateVisitWithUser_id - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateVisitWithUser_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                user_id
-            }) => user_id)), models.user);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), visit);
-        }
-        return await visit.bulkAssociateVisitWithUser_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
      * bulkAssociateVisitWithCumulus_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -769,26 +679,6 @@ module.exports = {
             }) => id)), visit);
         }
         return await visit.bulkAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
-     * bulkDisAssociateVisitWithUser_id - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateVisitWithUser_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                user_id
-            }) => user_id)), models.user);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), visit);
-        }
-        return await visit.bulkDisAssociateVisitWithUser_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
      * bulkDisAssociateVisitWithCumulus_id - bulkDisAssociaton resolver of given ids

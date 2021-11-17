@@ -2,7 +2,6 @@
     "model": "visit",
     "storageType": "sql",
     "attributes": {
-        "user_id": "Int",
         "comments": "String",
         "date_sipecam_first_season": "Date",
         "date_sipecam_second_season": "Date",
@@ -15,15 +14,6 @@
         "disturbed_id": "Int"
     },
     "associations": {
-        "user_visit": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "visits",
-            "target": "user",
-            "targetKey": "user_id",
-            "keysIn": "visit",
-            "targetStorageType": "sql"
-        },
         "cumulus_visit": {
             "type": "many_to_one",
             "implementation": "foreignkeys",
