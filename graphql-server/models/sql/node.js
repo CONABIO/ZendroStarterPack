@@ -28,8 +28,7 @@ const definition = {
         location: 'Point',
         cat_integr: 'String',
         cumulus_id: 'Int',
-        ecosystem_id: 'Int',
-        created_at: 'DateTime'
+        ecosystem_id: 'Int'
     },
     associations: {
         cumulus_node: {
@@ -119,9 +118,6 @@ module.exports = class node extends Sequelize.Model {
             },
             ecosystem_id: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

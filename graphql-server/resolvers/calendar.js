@@ -13,100 +13,11 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
-const associationArgsDef = {
-    'addVisits': 'visit'
-}
+const associationArgsDef = {}
 
 
 
 
-/**
- * calendar.prototype.visitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-calendar.prototype.visitsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "calendar_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.visits({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * calendar.prototype.countFilteredVisits - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-calendar.prototype.countFilteredVisits = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "calendar_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countVisits({
-        search: nsearch
-    }, context);
-}
-
-/**
- * calendar.prototype.visitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-calendar.prototype.visitsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "calendar_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.visitsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -120,55 +31,15 @@ calendar.prototype.visitsConnection = function({
 calendar.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addVisits)) {
-        promises_add.push(this.add_visits(input, benignErrorReporter));
-    }
+
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeVisits)) {
-        promises_remove.push(this.remove_visits(input, benignErrorReporter));
-    }
+
 
     await Promise.all(promises_remove);
 
 }
-/**
- * add_visits - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-calendar.prototype.add_visits = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addVisits.map(associatedRecordId => {
-        return {
-            calendar_id: this.getIdValue(),
-            [models.visit.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.visit.bulkAssociateVisitWithCalendar_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_visits - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-calendar.prototype.remove_visits = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removeVisits.map(associatedRecordId => {
-        return {
-            calendar_id: this.getIdValue(),
-            [models.visit.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.visit.bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput, benignErrorReporter);
-}
-
 
 
 /**
@@ -188,7 +59,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(calendar.countFilteredVisits({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

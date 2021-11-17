@@ -15,7 +15,6 @@ const CreateVisitToCumulus = require('../utils/create-visit-to-cumulus');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addCalendar': 'calendar',
     'addUser_visit': 'user',
     'addCumulus_visit': 'cumulus',
     'addUnique_node_pristine': 'node',
@@ -24,44 +23,6 @@ const associationArgsDef = {
 
 
 
-/**
- * visit.prototype.calendar - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-visit.prototype.calendar = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.calendar_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneCalendar({
-                [models.calendar.idAttribute()]: this.calendar_id
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.calendar.idAttribute(),
-                "value": this.calendar_id,
-                "operator": "eq"
-            });
-            let found = (await resolvers.calendarsConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
 /**
  * visit.prototype.user_visit - Return associated record
  *
@@ -229,9 +190,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
 
     let promises_add = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.addCalendar)) {
-        promises_add.push(this.add_calendar(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.addUser_visit)) {
         promises_add.push(this.add_user_visit(input, benignErrorReporter));
     }
@@ -248,9 +206,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     await Promise.all(promises_add);
     let promises_remove = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.removeCalendar)) {
-        promises_remove.push(this.remove_calendar(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.removeUser_visit)) {
         promises_remove.push(this.remove_user_visit(input, benignErrorReporter));
     }
@@ -267,17 +222,6 @@ visit.prototype.handleAssociations = async function(input, benignErrorReporter) 
     await Promise.all(promises_remove);
 
 }
-/**
- * add_calendar - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-visit.prototype.add_calendar = async function(input, benignErrorReporter) {
-    await visit.add_calendar_id(this.getIdValue(), input.addCalendar, benignErrorReporter);
-    this.calendar_id = input.addCalendar;
-}
-
 /**
  * add_user_visit - field Mutation for to_one associations to add
  *
@@ -321,19 +265,6 @@ visit.prototype.add_unique_node_pristine = async function(input, benignErrorRepo
 visit.prototype.add_unique_node_disturbed = async function(input, benignErrorReporter) {
     await visit.add_disturbed_id(this.getIdValue(), input.addUnique_node_disturbed, benignErrorReporter);
     this.disturbed_id = input.addUnique_node_disturbed;
-}
-
-/**
- * remove_calendar - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-visit.prototype.remove_calendar = async function(input, benignErrorReporter) {
-    if (input.removeCalendar == this.calendar_id) {
-        await visit.remove_calendar_id(this.getIdValue(), input.removeCalendar, benignErrorReporter);
-        this.calendar_id = null;
-    }
 }
 
 /**
@@ -407,7 +338,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(visit.calendar({}, context));
     promises_to_one.push(visit.user_visit({}, context));
     promises_to_one.push(visit.cumulus_visit({}, context));
     promises_to_one.push(visit.unique_node_pristine({}, context));
@@ -761,26 +691,6 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateVisitWithCalendar_id - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateVisitWithCalendar_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                calendar_id
-            }) => calendar_id)), models.calendar);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), visit);
-        }
-        return await visit.bulkAssociateVisitWithCalendar_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
      * bulkAssociateVisitWithUser_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -859,26 +769,6 @@ module.exports = {
             }) => id)), visit);
         }
         return await visit.bulkAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
-    },
-    /**
-     * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateVisitWithCalendar_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                calendar_id
-            }) => calendar_id)), models.calendar);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                id
-            }) => id)), visit);
-        }
-        return await visit.bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
      * bulkDisAssociateVisitWithUser_id - bulkDisAssociaton resolver of given ids

@@ -20,18 +20,6 @@ module.exports = `
     @original-field
     
     """
-    created_at: DateTime
-
-    """
-    @original-field
-    
-    """
-    updated_at: DateTime
-
-    """
-    @original-field
-    
-    """
     sipecam_year: String
 
     """
@@ -41,22 +29,6 @@ module.exports = `
     order: Int
 
       
-    """
-    @search-request
-    """
-    visitsFilter(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationInput!): [visit]
-
-
-    """
-    @search-request
-    """
-    visitsConnection(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput!): VisitConnection
-
-    """
-    @count-request
-    """
-    countFilteredVisits(search: searchVisitInput) : Int
-  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -89,8 +61,6 @@ type CalendarEdge{
     id
     date_started
     date_finished
-    created_at
-    updated_at
     sipecam_year
     order
   }
@@ -117,15 +87,15 @@ type CalendarEdge{
     vueTableCalendar : VueTableCalendar
     csvTableTemplateCalendar: [String]
     calendarsConnection(search:searchCalendarInput, order: [ orderCalendarInput ], pagination: paginationCursorInput! ): CalendarConnection
-    validateCalendarForCreation( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateCalendarForUpdating(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCalendarForCreation( date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCalendarForUpdating(id: ID!, date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCalendarForDeletion(id: ID!): Boolean!
     validateCalendarAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addCalendar( date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): calendar!
-    updateCalendar(id: ID!, date_started: Date, date_finished: Date, created_at: DateTime, updated_at: DateTime, sipecam_year: String, order: Int   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    addCalendar( date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): calendar!
+    updateCalendar(id: ID!, date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): calendar!
     deleteCalendar(id: ID!): String!
     bulkAddCalendarCsv: String!
       }

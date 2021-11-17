@@ -30,8 +30,7 @@ const definition = {
         is_active: 'Boolean',
         last_login: 'DateTime',
         institution_id: 'Int',
-        cumulus_ids: '[Int]',
-        created_at: 'DateTime'
+        cumulus_ids: '[Int]'
     },
     associations: {
         roles: {
@@ -122,9 +121,6 @@ module.exports = class user extends Sequelize.Model {
             cumulus_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

@@ -16,12 +16,6 @@ module.exports = `
     """
     description: String
 
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
-
       
     """
     @search-request
@@ -71,7 +65,6 @@ type RoleEdge{
     id
     name
     description
-    created_at
   }
   
   input searchRoleInput {
@@ -96,15 +89,15 @@ type RoleEdge{
     vueTableRole : VueTableRole
     csvTableTemplateRole: [String]
     rolesConnection(search:searchRoleInput, order: [ orderRoleInput ], pagination: paginationCursorInput! ): RoleConnection
-    validateRoleForCreation( name: String, description: String, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateRoleForUpdating(id: ID!, name: String, description: String, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRoleForCreation( name: String, description: String   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRoleForUpdating(id: ID!, name: String, description: String   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateRoleForDeletion(id: ID!): Boolean!
     validateRoleAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addRole( name: String, description: String, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
-    updateRole(id: ID!, name: String, description: String, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): role!
+    addRole( name: String, description: String   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
+    updateRole(id: ID!, name: String, description: String   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): role!
     deleteRole(id: ID!): String!
     bulkAddRoleCsv: String!
       }

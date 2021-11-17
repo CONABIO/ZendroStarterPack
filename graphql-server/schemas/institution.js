@@ -22,12 +22,6 @@ module.exports = `
     """
     phone_number: Int
 
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
-
       
     """
     @search-request
@@ -78,7 +72,6 @@ type InstitutionEdge{
     name
     address
     phone_number
-    created_at
   }
   
   input searchInstitutionInput {
@@ -103,15 +96,15 @@ type InstitutionEdge{
     vueTableInstitution : VueTableInstitution
     csvTableTemplateInstitution: [String]
     institutionsConnection(search:searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationCursorInput! ): InstitutionConnection
-    validateInstitutionForCreation( name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateInstitutionForUpdating(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateInstitutionForCreation( name: String, address: String, phone_number: Int   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateInstitutionForUpdating(id: ID!, name: String, address: String, phone_number: Int   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateInstitutionForDeletion(id: ID!): Boolean!
     validateInstitutionAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addInstitution( name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
-    updateInstitution(id: ID!, name: String, address: String, phone_number: Int, created_at: DateTime   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
+    addInstitution( name: String, address: String, phone_number: Int   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
+    updateInstitution(id: ID!, name: String, address: String, phone_number: Int   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
     deleteInstitution(id: ID!): String!
     bulkAddInstitutionCsv: String!
       }

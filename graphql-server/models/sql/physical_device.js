@@ -25,8 +25,7 @@ const definition = {
         serial_number: 'String',
         comments: 'String',
         device_id: 'Int',
-        cumulus_id: 'Int',
-        created_at: 'DateTime'
+        cumulus_id: 'Int'
     },
     associations: {
         device: {
@@ -89,9 +88,6 @@ module.exports = class physical_device extends Sequelize.Model {
             },
             cumulus_id: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

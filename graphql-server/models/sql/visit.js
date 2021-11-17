@@ -23,7 +23,6 @@ const definition = {
     storageType: 'sql',
     attributes: {
         user_id: 'Int',
-        calendar_id: 'Int',
         comments: 'String',
         date_sipecam_first_season: 'Date',
         date_sipecam_second_season: 'Date',
@@ -36,15 +35,6 @@ const definition = {
         disturbed_id: 'Int'
     },
     associations: {
-        calendar: {
-            type: 'many_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'visits',
-            target: 'calendar',
-            targetKey: 'calendar_id',
-            keysIn: 'visit',
-            targetStorageType: 'sql'
-        },
         user_visit: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
@@ -104,9 +94,6 @@ module.exports = class visit extends Sequelize.Model {
         return super.init({
 
             user_id: {
-                type: Sequelize[dict['Int']]
-            },
-            calendar_id: {
                 type: Sequelize[dict['Int']]
             },
             comments: {
@@ -191,10 +178,6 @@ module.exports = class visit extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        visit.belongsTo(models.calendar, {
-            as: 'calendar',
-            foreignKey: 'calendar_id'
-        });
         visit.belongsTo(models.user, {
             as: 'user_visit',
             foreignKey: 'user_id'
@@ -480,22 +463,6 @@ module.exports = class visit extends Sequelize.Model {
 
 
     /**
-     * add_calendar_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   calendar_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_calendar_id(id, calendar_id) {
-        let updated = await visit.update({
-            calendar_id: calendar_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-    /**
      * add_user_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -560,23 +527,6 @@ module.exports = class visit extends Sequelize.Model {
         return updated;
     }
 
-    /**
-     * remove_calendar_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   calendar_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_calendar_id(id, calendar_id) {
-        let updated = await visit.update({
-            calendar_id: null
-        }, {
-            where: {
-                id: id,
-                calendar_id: calendar_id
-            }
-        });
-        return updated;
-    }
     /**
      * remove_user_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
@@ -649,32 +599,6 @@ module.exports = class visit extends Sequelize.Model {
 
 
 
-
-    /**
-     * bulkAssociateVisitWithCalendar_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateVisitWithCalendar_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "calendar_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            calendar_id,
-            id
-        }) => {
-            promises.push(super.update({
-                calendar_id: calendar_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
     /**
      * bulkAssociateVisitWithUser_id - bulkAssociaton of given ids
@@ -780,33 +704,6 @@ module.exports = class visit extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
-
-    /**
-     * bulkDisAssociateVisitWithCalendar_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "calendar_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            calendar_id,
-            id
-        }) => {
-            promises.push(super.update({
-                calendar_id: null
-            }, {
-                where: {
-                    id: id,
-                    calendar_id: calendar_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
     /**
      * bulkDisAssociateVisitWithUser_id - bulkDisAssociaton of given ids

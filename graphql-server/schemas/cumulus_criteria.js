@@ -10,12 +10,6 @@ module.exports = `
     """
     name: String
 
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
-
       
     """
     @search-request
@@ -64,7 +58,6 @@ type Cumulus_criteriaEdge{
   enum cumulus_criteriaField {
     id
     name
-    created_at
   }
   
   input searchCumulus_criteriaInput {
@@ -89,15 +82,15 @@ type Cumulus_criteriaEdge{
     vueTableCumulus_criteria : VueTableCumulus_criteria
     csvTableTemplateCumulus_criteria: [String]
     cumulus_criteriaConnection(search:searchCumulus_criteriaInput, order: [ orderCumulus_criteriaInput ], pagination: paginationCursorInput! ): Cumulus_criteriaConnection
-    validateCumulus_criteriaForCreation( name: String, created_at: DateTime   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateCumulus_criteriaForUpdating(id: ID!, name: String, created_at: DateTime   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulus_criteriaForCreation( name: String   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulus_criteriaForUpdating(id: ID!, name: String   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCumulus_criteriaForDeletion(id: ID!): Boolean!
     validateCumulus_criteriaAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addCumulus_criteria( name: String, created_at: DateTime   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
-    updateCumulus_criteria(id: ID!, name: String, created_at: DateTime   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    addCumulus_criteria( name: String   , addCumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
+    updateCumulus_criteria(id: ID!, name: String   , addCumulus:[ID], removeCumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus_criteria!
     deleteCumulus_criteria(id: ID!): String!
     bulkAddCumulus_criteriaCsv: String!
       }

@@ -22,8 +22,7 @@ const definition = {
     model: 'cumulus_criteria',
     storageType: 'sql',
     attributes: {
-        name: 'String',
-        created_at: 'DateTime'
+        name: 'String'
     },
     associations: {
         cumulus: {
@@ -59,9 +58,6 @@ module.exports = class cumulus_criteria extends Sequelize.Model {
 
             name: {
                 type: Sequelize[dict['String']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

@@ -3,8 +3,7 @@
     "storageType": "sql",
     "attributes": {
         "name": "String",
-        "description": "String",
-        "created_at": "DateTime"
+        "description": "String"
     },
     "associations": {
         "users": {

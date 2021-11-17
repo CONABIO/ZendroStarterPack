@@ -30,7 +30,6 @@ const definition = {
         metadata: 'Json',
         kobo_url: 'String',
         device_id: 'Int',
-        created_at: 'DateTime',
         monitor_ids: '[Int]',
         node_id: 'Int',
         cumulus_id: 'Int'
@@ -127,9 +126,6 @@ module.exports = class deployment extends Sequelize.Model {
             },
             device_id: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             },
             monitor_ids: {
                 type: Sequelize[dict['[Int]']],

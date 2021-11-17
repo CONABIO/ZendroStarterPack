@@ -14,12 +14,6 @@ module.exports = `
     @original-field
     
     """
-    calendar_id: Int
-
-    """
-    @original-field
-    
-    """
     comments: String
 
     """
@@ -76,8 +70,7 @@ module.exports = `
     """
     disturbed_id: Int
 
-    calendar(search: searchCalendarInput): calendar
-  user_visit(search: searchUserInput): user
+    user_visit(search: searchUserInput): user
   cumulus_visit(search: searchCumulusInput): cumulus
   unique_node_pristine(search: searchNodeInput): node
   unique_node_disturbed(search: searchNodeInput): node
@@ -113,7 +106,6 @@ type VisitEdge{
   enum visitField {
     id
     user_id
-    calendar_id
     comments
     date_sipecam_first_season
     date_sipecam_second_season
@@ -139,10 +131,7 @@ type VisitEdge{
     order: Order
   }
 
-  input bulkAssociationVisitWithCalendar_idInput{
-    id: ID!
-    calendar_id: ID!
-  }  input bulkAssociationVisitWithUser_idInput{
+  input bulkAssociationVisitWithUser_idInput{
     id: ID!
     user_id: ID!
   }  input bulkAssociationVisitWithCumulus_idInput{
@@ -163,20 +152,18 @@ type VisitEdge{
     vueTableVisit : VueTableVisit
     csvTableTemplateVisit: [String]
     visitsConnection(search:searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput! ): VisitConnection
-    validateVisitForCreation( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateVisitForUpdating(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateVisitForCreation( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateVisitForUpdating(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateVisitForDeletion(id: ID!): Boolean!
     validateVisitAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addVisit( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCalendar:ID, addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID   , skipAssociationsExistenceChecks:Boolean = false): visit!
-    updateVisit(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCalendar:ID, removeCalendar:ID , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID    , skipAssociationsExistenceChecks:Boolean = false): visit!
+    addVisit( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addUser_visit:ID, addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID   , skipAssociationsExistenceChecks:Boolean = false): visit!
+    updateVisit(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addUser_visit:ID, removeUser_visit:ID , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID    , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
     bulkAddVisitCsv: String!
-    bulkAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-    bulkDisAssociateVisitWithCalendar_id(bulkAssociationInput: [bulkAssociationVisitWithCalendar_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
-bulkAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateVisitWithUser_id(bulkAssociationInput: [bulkAssociationVisitWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

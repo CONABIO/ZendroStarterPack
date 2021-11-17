@@ -4,8 +4,7 @@
     "attributes": {
         "name": "String",
         "address": "String",
-        "phone_number": "Int",
-        "created_at": "DateTime"
+        "phone_number": "Int"
     },
     "associations": {
         "users": {

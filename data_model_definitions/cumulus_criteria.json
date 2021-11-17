@@ -2,8 +2,7 @@
     "model": "cumulus_criteria",
     "storageType": "sql",
     "attributes": {
-        "name": "String",
-        "created_at": "DateTime"
+        "name": "String"
     },
     "associations": {
         "cumulus": {

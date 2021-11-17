@@ -4,20 +4,7 @@
     "attributes": {
         "date_started": "Date",
         "date_finished": "Date",
-        "created_at": "DateTime",
-        "updated_at": "DateTime",
         "sipecam_year": "String",
         "order": "Int"
-    },
-    "associations": {
-        "visits": {
-            "type": "one_to_many",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "calendar",
-            "target": "visit",
-            "targetKey": "calendar_id",
-            "keysIn": "visit",
-            "targetStorageType": "sql"
-        }
     }
 }

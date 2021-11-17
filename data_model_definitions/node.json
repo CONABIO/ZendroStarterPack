@@ -8,8 +8,7 @@
       "location": "Point",
       "cat_integr": "String",
       "cumulus_id": "Int",
-      "ecosystem_id": "Int",
-      "created_at": "DateTime"
+      "ecosystem_id": "Int"
     },
     "associations": {
       "cumulus_node": {

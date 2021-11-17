@@ -27,8 +27,7 @@ const definition = {
         criteria_id: 'Int',
         user_ids: '[Int]',
         ecosystem_id: 'Int',
-        con_socio: 'Int',
-        created_at: 'DateTime'
+        con_socio: 'Int'
     },
     associations: {
         cumulus_criteria: {
@@ -144,9 +143,6 @@ module.exports = class cumulus extends Sequelize.Model {
             },
             con_socio: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

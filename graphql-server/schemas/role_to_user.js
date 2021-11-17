@@ -16,12 +16,6 @@ module.exports = `
     """
     role_id: Int
 
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
-
       
     
     """
@@ -55,7 +49,6 @@ type Role_to_userEdge{
     id
     user_id
     role_id
-    created_at
   }
   
   input searchRole_to_userInput {
@@ -80,15 +73,15 @@ type Role_to_userEdge{
     vueTableRole_to_user : VueTableRole_to_user
     csvTableTemplateRole_to_user: [String]
     role_to_usersConnection(search:searchRole_to_userInput, order: [ orderRole_to_userInput ], pagination: paginationCursorInput! ): Role_to_userConnection
-    validateRole_to_userForCreation( user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateRole_to_userForUpdating(id: ID!, user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRole_to_userForCreation( user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRole_to_userForUpdating(id: ID!, user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateRole_to_userForDeletion(id: ID!): Boolean!
     validateRole_to_userAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addRole_to_user( user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
-    updateRole_to_user(id: ID!, user_id: Int, role_id: Int, created_at: DateTime    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
+    addRole_to_user( user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
+    updateRole_to_user(id: ID!, user_id: Int, role_id: Int    , skipAssociationsExistenceChecks:Boolean = false): role_to_user!
     deleteRole_to_user(id: ID!): String!
     bulkAddRole_to_userCsv: String!
       }

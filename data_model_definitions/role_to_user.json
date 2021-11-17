@@ -3,7 +3,6 @@
     "storageType": "sql",
     "attributes": {
         "user_id": "Int",
-        "role_id": "Int",
-        "created_at": "DateTime"
+        "role_id": "Int"
     }
 }

@@ -34,7 +34,7 @@ module.exports = async (cumulusId) => {
         that doesn't have a sipecam date.
      */
     const deleteVisits = async (visits) => {
-        for(let visit of model.visits) {
+        for(let visit of visits) {
             if(!visit.date_sipecam_first_season)
                 await visit.destroy({ where: { id: visit.id } });
         }

@@ -10,8 +10,7 @@
         "is_active": "Boolean",
         "last_login": "DateTime",
         "institution_id": "Int",
-        "cumulus_ids": "[Int]",
-        "created_at": "DateTime"
+        "cumulus_ids": "[Int]"
     },
     "associations": {
         "roles": {

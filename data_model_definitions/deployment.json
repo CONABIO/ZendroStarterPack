@@ -10,7 +10,6 @@
         "metadata": "Json",
         "kobo_url": "String",
         "device_id": "Int",
-        "created_at": "DateTime",
         "monitor_ids": "[Int]",
         "node_id": "Int",
         "cumulus_id": "Int"

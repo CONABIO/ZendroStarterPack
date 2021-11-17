@@ -23,8 +23,7 @@ const definition = {
     storageType: 'sql',
     attributes: {
         user_id: 'Int',
-        role_id: 'Int',
-        created_at: 'DateTime'
+        role_id: 'Int'
     },
     id: {
         name: 'id',
@@ -52,9 +51,6 @@ module.exports = class role_to_user extends Sequelize.Model {
             },
             role_id: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

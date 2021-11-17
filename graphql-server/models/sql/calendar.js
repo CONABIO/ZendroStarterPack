@@ -24,21 +24,8 @@ const definition = {
     attributes: {
         date_started: 'Date',
         date_finished: 'Date',
-        created_at: 'DateTime',
-        updated_at: 'DateTime',
         sipecam_year: 'String',
         order: 'Int'
-    },
-    associations: {
-        visits: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'calendar',
-            target: 'visit',
-            targetKey: 'calendar_id',
-            keysIn: 'visit',
-            targetStorageType: 'sql'
-        }
     },
     id: {
         name: 'id',
@@ -66,12 +53,6 @@ module.exports = class calendar extends Sequelize.Model {
             },
             date_finished: {
                 type: Sequelize[dict['Date']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
-            },
-            updated_at: {
-                type: Sequelize[dict['DateTime']]
             },
             sipecam_year: {
                 type: Sequelize[dict['String']]
@@ -130,12 +111,7 @@ module.exports = class calendar extends Sequelize.Model {
      * Associate models.
      * @param  {object} models  Indexed models.
      */
-    static associate(models) {
-        calendar.hasMany(models.visit, {
-            as: 'visits',
-            foreignKey: 'calendar_id'
-        });
-    }
+    static associate(models) {}
 
     /**
      * Batch function for readById method.

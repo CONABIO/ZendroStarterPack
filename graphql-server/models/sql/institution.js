@@ -24,8 +24,7 @@ const definition = {
     attributes: {
         name: 'String',
         address: 'String',
-        phone_number: 'Int',
-        created_at: 'DateTime'
+        phone_number: 'Int'
     },
     associations: {
         users: {
@@ -67,9 +66,6 @@ module.exports = class institution extends Sequelize.Model {
             },
             phone_number: {
                 type: Sequelize[dict['Int']]
-            },
-            created_at: {
-                type: Sequelize[dict['DateTime']]
             }
 
 

@@ -58,12 +58,6 @@ module.exports = `
     """
     cumulus_ids: [Int]
 
-    """
-    @original-field
-    
-    """
-    created_at: DateTime
-
     institutions(search: searchInstitutionInput): institution
     
     """
@@ -153,7 +147,6 @@ type UserEdge{
     last_login
     institution_id
     cumulus_ids
-    created_at
   }
   
   input searchUserInput {
@@ -181,15 +174,15 @@ type UserEdge{
     vueTableUser : VueTableUser
     csvTableTemplateUser: [String]
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput! ): UserConnection
-    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateUserForDeletion(id: ID!): Boolean!
     validateUserAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime, created_at: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addVisits:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addVisits:[ID], removeVisits:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAddUserCsv: String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
