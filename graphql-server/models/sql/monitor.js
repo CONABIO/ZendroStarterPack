@@ -27,7 +27,7 @@ const definition = {
         second_last_name: 'String',
         contact: 'String',
         cumulus_id: 'Int',
-        deployment_ids: '[Int]'
+        visit_ids: '[Int]'
     },
     associations: {
         cumulus_monitor: {
@@ -39,13 +39,13 @@ const definition = {
             keysIn: 'monitor',
             targetStorageType: 'sql'
         },
-        deployments: {
+        visits: {
             type: 'many_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'monitors',
-            target: 'deployment',
+            target: 'visit',
             targetKey: 'monitor_ids',
-            sourceKey: 'deployment_ids',
+            sourceKey: 'visit_ids',
             keysIn: 'monitor',
             targetStorageType: 'sql'
         }
@@ -86,7 +86,7 @@ module.exports = class monitor extends Sequelize.Model {
             cumulus_id: {
                 type: Sequelize[dict['Int']]
             },
-            deployment_ids: {
+            visit_ids: {
                 type: Sequelize[dict['[Int]']],
                 defaultValue: '[]'
             }
@@ -431,27 +431,27 @@ module.exports = class monitor extends Sequelize.Model {
         return updated;
     }
     /**
-     * add_deployment_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_visit_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   deployment_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   visit_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_deployment_ids(id, deployment_ids, benignErrorReporter, handle_inverse = true) {
+    static async add_visit_ids(id, visit_ids, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            deployment_ids.forEach(idx => {
-                promises.push(models.deployment.add_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
+            visit_ids.forEach(idx => {
+                promises.push(models.visit.add_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.deployment_ids), deployment_ids);
+            let updated_ids = helper.unionIds(JSON.parse(record.visit_ids), visit_ids);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                deployment_ids: updated_ids
+                visit_ids: updated_ids
             });
         }
     }
@@ -474,27 +474,27 @@ module.exports = class monitor extends Sequelize.Model {
         return updated;
     }
     /**
-     * remove_deployment_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * remove_visit_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   deployment_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   visit_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_deployment_ids(id, deployment_ids, benignErrorReporter, handle_inverse = true) {
+    static async remove_visit_ids(id, visit_ids, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            deployment_ids.forEach(idx => {
-                promises.push(models.deployment.remove_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
+            visit_ids.forEach(idx => {
+                promises.push(models.visit.remove_monitor_ids(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.deployment_ids), deployment_ids);
+            let updated_ids = helper.differenceIds(JSON.parse(record.visit_ids), visit_ids);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                deployment_ids: updated_ids
+                visit_ids: updated_ids
             });
         }
     }

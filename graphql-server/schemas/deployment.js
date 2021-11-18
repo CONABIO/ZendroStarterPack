@@ -56,12 +56,6 @@ module.exports = `
     @original-field
     
     """
-    monitor_ids: [Int]
-
-    """
-    @original-field
-    
-    """
     node_id: Int
 
     """
@@ -74,22 +68,6 @@ module.exports = `
   node(search: searchNodeInput): node
   cumulus(search: searchCumulusInput): cumulus
     
-    """
-    @search-request
-    """
-    monitorsFilter(search: searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationInput!): [monitor]
-
-
-    """
-    @search-request
-    """
-    monitorsConnection(search: searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationCursorInput!): MonitorConnection
-
-    """
-    @count-request
-    """
-    countFilteredMonitors(search: searchMonitorInput) : Int
-  
     """
     @search-request
     """
@@ -144,7 +122,6 @@ type DeploymentEdge{
     metadata
     kobo_url
     device_id
-    monitor_ids
     node_id
     cumulus_id
   }
@@ -180,15 +157,15 @@ type DeploymentEdge{
     vueTableDeployment : VueTableDeployment
     csvTableTemplateDeployment: [String]
     deploymentsConnection(search:searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput! ): DeploymentConnection
-    validateDeploymentForCreation( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateDeploymentForUpdating(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForCreation( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDeploymentForUpdating(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDeploymentForDeletion(id: ID!): Boolean!
     validateDeploymentAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addDeployment( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addMonitors:[ID], addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
-    updateDeployment(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addMonitors:[ID], removeMonitors:[ID] , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    addDeployment( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
+    updateDeployment(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: Json, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
     bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

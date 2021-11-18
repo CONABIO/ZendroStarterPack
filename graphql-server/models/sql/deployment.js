@@ -30,7 +30,6 @@ const definition = {
         metadata: 'Json',
         kobo_url: 'String',
         device_id: 'Int',
-        monitor_ids: '[Int]',
         node_id: 'Int',
         cumulus_id: 'Int'
     },
@@ -41,16 +40,6 @@ const definition = {
             reverseAssociation: 'device_deployments',
             target: 'physical_device',
             targetKey: 'device_id',
-            keysIn: 'deployment',
-            targetStorageType: 'sql'
-        },
-        monitors: {
-            type: 'many_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'deployments',
-            target: 'monitor',
-            targetKey: 'deployment_ids',
-            sourceKey: 'monitor_ids',
             keysIn: 'deployment',
             targetStorageType: 'sql'
         },
@@ -126,10 +115,6 @@ module.exports = class deployment extends Sequelize.Model {
             },
             device_id: {
                 type: Sequelize[dict['Int']]
-            },
-            monitor_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
             },
             node_id: {
                 type: Sequelize[dict['Int']]
@@ -521,31 +506,6 @@ module.exports = class deployment extends Sequelize.Model {
         });
         return updated;
     }
-    /**
-     * add_monitor_ids - field Mutation (model-layer) for to_many associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   monitor_ids Array foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_monitor_ids(id, monitor_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            monitor_ids.forEach(idx => {
-                promises.push(models.monitor.add_deployment_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.monitor_ids), monitor_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                monitor_ids: updated_ids
-            });
-        }
-    }
 
     /**
      * remove_device_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -597,31 +557,6 @@ module.exports = class deployment extends Sequelize.Model {
             }
         });
         return updated;
-    }
-    /**
-     * remove_monitor_ids - field Mutation (model-layer) for to_many associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   monitor_ids Array foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_monitor_ids(id, monitor_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            monitor_ids.forEach(idx => {
-                promises.push(models.monitor.remove_deployment_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.monitor_ids), monitor_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                monitor_ids: updated_ids
-            });
-        }
     }
 
 

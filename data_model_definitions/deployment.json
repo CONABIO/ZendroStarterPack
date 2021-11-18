@@ -10,7 +10,6 @@
         "metadata": "Json",
         "kobo_url": "String",
         "device_id": "Int",
-        "monitor_ids": "[Int]",
         "node_id": "Int",
         "cumulus_id": "Int"
     },
@@ -21,16 +20,6 @@
             "reverseAssociation": "device_deployments",
             "target": "physical_device",
             "targetKey": "device_id",
-            "keysIn": "deployment",
-            "targetStorageType": "sql"
-        },
-        "monitors": {
-            "type": "many_to_many",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "deployments",
-            "target": "monitor",
-            "targetKey": "deployment_ids",
-            "sourceKey": "monitor_ids",
             "keysIn": "deployment",
             "targetStorageType": "sql"
         },

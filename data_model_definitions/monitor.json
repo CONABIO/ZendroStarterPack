@@ -7,7 +7,7 @@
         "second_last_name": "String",
         "contact": "String",
         "cumulus_id": "Int",
-        "deployment_ids": "[Int]"
+        "visit_ids": "[Int]"
     },
     "associations": {
         "cumulus_monitor": {
@@ -19,13 +19,13 @@
             "keysIn": "monitor",
             "targetStorageType": "sql"
         },
-        "deployments": {
+        "visits": {
             "type": "many_to_many",
             "implementation": "foreignkeys",
             "reverseAssociation": "monitors",
-            "target": "deployment",
+            "target": "visit",
             "targetKey": "monitor_ids",
-            "sourceKey": "deployment_ids",
+            "sourceKey": "visit_ids",
             "keysIn": "monitor",
             "targetStorageType": "sql"
         }

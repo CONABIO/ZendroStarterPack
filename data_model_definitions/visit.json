@@ -11,7 +11,8 @@
         "report_second_season": "String",
         "cumulus_id": "Int",
         "pristine_id": "Int",
-        "disturbed_id": "Int"
+        "disturbed_id": "Int",
+        "monitor_ids": "[Int]"
     },
     "associations": {
         "cumulus_visit": {
@@ -40,6 +41,16 @@
           "targetKey": "disturbed_id",
           "keysIn": "visit",
           "targetStorageType": "sql"
+        },
+        "monitors": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "visits",
+            "target": "monitor",
+            "targetKey": "visit_ids",
+            "sourceKey": "monitor_ids",
+            "keysIn": "visit",
+            "targetStorageType": "sql"
         }
     }
 }

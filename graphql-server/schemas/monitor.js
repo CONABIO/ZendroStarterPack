@@ -38,25 +38,25 @@ module.exports = `
     @original-field
     
     """
-    deployment_ids: [Int]
+    visit_ids: [Int]
 
     cumulus_monitor(search: searchCumulusInput): cumulus
     
     """
     @search-request
     """
-    deploymentsFilter(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationInput!): [deployment]
+    visitsFilter(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationInput!): [visit]
 
 
     """
     @search-request
     """
-    deploymentsConnection(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput!): DeploymentConnection
+    visitsConnection(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput!): VisitConnection
 
     """
     @count-request
     """
-    countFilteredDeployments(search: searchDeploymentInput) : Int
+    countFilteredVisits(search: searchVisitInput) : Int
   
     
     """
@@ -93,7 +93,7 @@ type MonitorEdge{
     second_last_name
     contact
     cumulus_id
-    deployment_ids
+    visit_ids
   }
   
   input searchMonitorInput {
@@ -121,15 +121,15 @@ type MonitorEdge{
     vueTableMonitor : VueTableMonitor
     csvTableTemplateMonitor: [String]
     monitorsConnection(search:searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationCursorInput! ): MonitorConnection
-    validateMonitorForCreation( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateMonitorForUpdating(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateMonitorForCreation( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateMonitorForUpdating(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateMonitorForDeletion(id: ID!): Boolean!
     validateMonitorAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addMonitor( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): monitor!
-    updateMonitor(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): monitor!
+    addMonitor( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): monitor!
+    updateMonitor(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): monitor!
     deleteMonitor(id: ID!): String!
     bulkAddMonitorCsv: String!
     bulkAssociateMonitorWithCumulus_id(bulkAssociationInput: [bulkAssociationMonitorWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

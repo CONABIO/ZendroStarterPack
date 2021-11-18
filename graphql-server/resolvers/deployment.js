@@ -17,7 +17,6 @@ const associationArgsDef = {
     'addDevice': 'physical_device',
     'addNode': 'node',
     'addCumulus': 'cumulus',
-    'addMonitors': 'monitor',
     'addFiles': 'file'
 }
 
@@ -139,117 +138,6 @@ deployment.prototype.cumulus = async function({
 }
 
 /**
- * deployment.prototype.monitorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-deployment.prototype.monitorsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.monitor.idAttribute(),
-        "value": this.monitor_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.monitors({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * deployment.prototype.countFilteredMonitors - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-deployment.prototype.countFilteredMonitors = function({
-    search
-}, context) {
-
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
-        return 0;
-    }
-
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.monitor.idAttribute(),
-        "value": this.monitor_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-
-    return resolvers.countMonitors({
-        search: nsearch
-    }, context);
-}
-
-/**
- * deployment.prototype.monitorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-deployment.prototype.monitorsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.monitor_ids) || this.monitor_ids.length === 0) {
-        return {
-            edges: [],
-            monitors: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.monitor.idAttribute(),
-        "value": this.monitor_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.monitorsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
  * deployment.prototype.filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
@@ -349,9 +237,6 @@ deployment.prototype.filesConnection = function({
 deployment.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addMonitors)) {
-        promises_add.push(this.add_monitors(input, benignErrorReporter));
-    }
     if (helper.isNonEmptyArray(input.addFiles)) {
         promises_add.push(this.add_files(input, benignErrorReporter));
     }
@@ -367,9 +252,6 @@ deployment.prototype.handleAssociations = async function(input, benignErrorRepor
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeMonitors)) {
-        promises_remove.push(this.remove_monitors(input, benignErrorReporter));
-    }
     if (helper.isNonEmptyArray(input.removeFiles)) {
         promises_remove.push(this.remove_files(input, benignErrorReporter));
     }
@@ -386,19 +268,6 @@ deployment.prototype.handleAssociations = async function(input, benignErrorRepor
     await Promise.all(promises_remove);
 
 }
-/**
- * add_monitors - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-deployment.prototype.add_monitors = async function(input, benignErrorReporter) {
-
-    await deployment.add_monitor_ids(this.getIdValue(), input.addMonitors, benignErrorReporter);
-    this.monitor_ids = helper.unionIds(this.monitor_ids, input.addMonitors);
-}
-
 /**
  * add_files - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
@@ -448,19 +317,6 @@ deployment.prototype.add_node = async function(input, benignErrorReporter) {
 deployment.prototype.add_cumulus = async function(input, benignErrorReporter) {
     await deployment.add_cumulus_id(this.getIdValue(), input.addCumulus, benignErrorReporter);
     this.cumulus_id = input.addCumulus;
-}
-
-/**
- * remove_monitors - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-deployment.prototype.remove_monitors = async function(input, benignErrorReporter) {
-
-    await deployment.remove_monitor_ids(this.getIdValue(), input.removeMonitors, benignErrorReporter);
-    this.monitor_ids = helper.differenceIds(this.monitor_ids, input.removeMonitors);
 }
 
 /**
@@ -539,7 +395,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(deployment.countFilteredMonitors({}, context));
     promises_to_many.push(deployment.countFilteredFiles({}, context));
     promises_to_one.push(deployment.device({}, context));
     promises_to_one.push(deployment.node({}, context));
