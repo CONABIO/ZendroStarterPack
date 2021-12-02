@@ -4,7 +4,7 @@ import { Assign } from 'utility-types';
 import { ParsedPermissions } from './acl';
 
 export type AttributeScalarType =
-  | 'Json'
+  | 'JSON'
   | 'Boolean'
   | 'uuid'
   | 'DateTime'

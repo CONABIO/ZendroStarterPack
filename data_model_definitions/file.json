@@ -4,7 +4,7 @@
     "attributes": {
         "id": "uuid",
         "url": "String",
-        "metadata": "Json",
+        "metadata": "JSON",
         "date": "DateTime",
         "storage": "String",
         "deployment_id": "Int"

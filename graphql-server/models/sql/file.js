@@ -23,7 +23,7 @@ const definition = {
     storageType: 'sql',
     attributes: {
         url: 'String',
-        metadata: 'Json',
+        metadata: 'JSON',
         date: 'DateTime',
         storage: 'String',
         deployment_id: 'Int'
@@ -69,7 +69,7 @@ module.exports = class file extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             metadata: {
-                type: Sequelize[dict['Json']]
+                type: Sequelize[dict['JSON']]
             },
             date: {
                 type: Sequelize[dict['DateTime']]

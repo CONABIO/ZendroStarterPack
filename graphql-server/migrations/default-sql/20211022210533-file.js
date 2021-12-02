@@ -34,7 +34,7 @@ module.exports = {
                 type: Sequelize[dict['String']]
             },
             metadata: {
-                type: Sequelize[dict['Json']]
+                type: Sequelize[dict['JSON']]
             },
             deployment_id: {
                 type: Sequelize[dict['Int']]

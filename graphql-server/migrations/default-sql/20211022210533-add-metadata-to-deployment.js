@@ -15,7 +15,7 @@ module.exports = {
      */
     up: function(queryInterface, Sequelize) {
         return queryInterface.addColumn('deployments', 'metadata', {
-            type: Sequelize[dict['Json']]
+            type: Sequelize[dict['JSON']]
         })
     },
 

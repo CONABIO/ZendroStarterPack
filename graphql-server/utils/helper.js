@@ -15,8 +15,8 @@ const {
   GraphQLDate,
   GraphQLTime,
 } = require("graphql-iso-date");
-const GraphQLJSON = require('graphql-type-json');
-const { GraphQLJSONObject } = require('graphql-type-json');
+//const GraphQLJSON = require('graphql-type-json');
+const { GraphQLJSON, GraphQLJSONObject } = require('graphql-type-json');
 const { 
   Point,
   MultiPoint,
@@ -2078,8 +2078,8 @@ module.exports.mergeSchemaSetScalarTypes = (path) => {
   Object.assign(Schema._typeMap.FeatureCollection, FeatureCollection);
 
   /*set scalar for json */
-  Object.assign(Schema._typeMap.Json, GraphQLJSON);
-  Object.assign(Schema._typeMap.JsonObject, GraphQLJSONObject);
+  Object.assign(Schema._typeMap.JSON, GraphQLJSON);
+  Object.assign(Schema._typeMap.JSONObject, GraphQLJSONObject);
   return Schema;
 };
 

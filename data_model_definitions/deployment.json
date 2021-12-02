@@ -7,7 +7,7 @@
         "longitude": "Float",
         "altitude": "Float",
         "comments": "String",
-        "metadata": "Json",
+        "metadata": "JSON",
         "kobo_url": "String",
         "device_id": "Int",
         "node_id": "Int",

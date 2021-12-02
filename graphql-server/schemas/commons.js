@@ -65,8 +65,8 @@ module.exports = `
 
   scalar Date
   scalar Time
-  scalar Json
-  scalar JsonObject
+  scalar JSON
+  scalar JSONObject
   scalar DateTime
   scalar Point
   scalar MultiPoint

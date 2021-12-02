@@ -14,7 +14,7 @@ module.exports = `
     @original-field
     
     """
-    metadata: Json
+    metadata: JSON
 
     """
     @original-field
@@ -98,15 +98,15 @@ type FileEdge{
     vueTableFile : VueTableFile
     csvTableTemplateFile: [String]
     filesConnection(search:searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput! ): FileConnection
-    validateFileForCreation( url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateFileForUpdating(id: ID!, url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForCreation( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForUpdating(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForDeletion(id: ID!): Boolean!
     validateFileAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addFile( url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
-    updateFile(id: ID!, url: String, metadata: Json, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
+    addFile( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
+    updateFile(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
     deleteFile(id: ID!): String!
     bulkAddFileCsv: String!
     bulkAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

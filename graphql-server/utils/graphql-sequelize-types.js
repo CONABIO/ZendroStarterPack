@@ -20,7 +20,7 @@ module.exports = {
   "GeometryCollection": "GEOMETRY",
   "Feature": "GEOMETRY",
   "FeatureCollection": "GEOMETRY",
-  "Json": "JSON",
+  "JSON": "JSON",
   "[String]": "TEXT",
   "[Int]": "TEXT",
   "[Float]": "TEXT",
