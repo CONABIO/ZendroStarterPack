@@ -809,6 +809,7 @@ cumulus.prototype.add_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
+    await createAndSaveConvexHull(this.getIdValue(),null,true);
 }
 
 /**
@@ -934,6 +935,7 @@ cumulus.prototype.remove_nodes = async function(input, benignErrorReporter) {
         }
     });
     await models.node.bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput, benignErrorReporter);
+    await createAndSaveConvexHull(this.getIdValue(),null,true);
 }
 
 /**
