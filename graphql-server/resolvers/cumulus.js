@@ -18,6 +18,7 @@ const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCumulus_criteria': 'cumulus_criteria',
     'addUnique_ecosystem': 'ecosystem',
+    'addIndividuals': 'individual',
     'addDevices': 'physical_device',
     'addAssociated_partners': 'user',
     'addVisits': 'visit',
@@ -103,6 +104,40 @@ cumulus.prototype.unique_ecosystem = async function({
             return found;
         }
     }
+}
+/**
+ * cumulus.prototype.individuals - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+cumulus.prototype.individuals = async function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "cumulus_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    let found = (await resolvers.individualsConnection({
+        search: nsearch,
+        pagination: {
+            first: 2
+        }
+    }, context)).edges;
+    if (found.length > 0) {
+        if (found.length > 1) {
+            context.benignErrors.push(new Error(
+                `Not unique "to_one" association Error: Found > 1 individuals matching cumulus with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the cumulus model. Returning first individual.`
+            ));
+        }
+        return found[0].node;
+    }
+    return null;
 }
 
 /**
@@ -688,6 +723,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     if (helper.isNotUndefinedAndNotNull(input.addUnique_ecosystem)) {
         promises_add.push(this.add_unique_ecosystem(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addIndividuals)) {
+        promises_add.push(this.add_individuals(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
@@ -714,6 +752,9 @@ cumulus.prototype.handleAssociations = async function(input, benignErrorReporter
     }
     if (helper.isNotUndefinedAndNotNull(input.removeUnique_ecosystem)) {
         promises_remove.push(this.remove_unique_ecosystem(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeIndividuals)) {
+        promises_remove.push(this.remove_individuals(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -853,6 +894,16 @@ cumulus.prototype.add_unique_ecosystem = async function(input, benignErrorReport
 }
 
 /**
+ * add_individuals - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.add_individuals = async function(input, benignErrorReporter) {
+    await models.individual.add_cumulus_id(input.addIndividuals, this.getIdValue(), benignErrorReporter);
+}
+
+/**
  * remove_devices - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -982,6 +1033,16 @@ cumulus.prototype.remove_unique_ecosystem = async function(input, benignErrorRep
     }
 }
 
+/**
+ * remove_individuals - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+cumulus.prototype.remove_individuals = async function(input, benignErrorReporter) {
+    await models.individual.remove_cumulus_id(input.removeIndividuals, this.getIdValue(), benignErrorReporter);
+}
+
 
 
 /**
@@ -1009,6 +1070,7 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_many.push(cumulus.countFilteredDeployments({}, context));
     promises_to_one.push(cumulus.cumulus_criteria({}, context));
     promises_to_one.push(cumulus.unique_ecosystem({}, context));
+    promises_to_one.push(cumulus.individuals({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

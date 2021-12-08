@@ -1,0 +1,37 @@
+{
+    "model": "individual",
+    "storageType": "sql",
+    "attributes": {
+        "date_trap": "DateTime",
+        "latitude": "Float",
+        "longitude": "Float",
+        "altitude": "Float",
+        "comments": "String",
+        "metadata": "JSON",
+        "kobo_url": "String",
+        "clave_posicion_malla": "String",
+        "arete": "Int",
+        "node_id": "Int",
+        "cumulus_id": "Int"
+    },
+    "associations": {
+        "associated_node": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "individuals",
+            "target": "node",
+            "targetKey": "node_id",
+            "keysIn": "individual",
+            "targetStorageType": "sql"
+        },
+        "associated_cumulus": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "individuals",
+            "target": "cumulus",
+            "targetKey": "cumulus_id",
+            "keysIn": "individual",
+            "targetStorageType": "sql"
+        }
+    }
+}

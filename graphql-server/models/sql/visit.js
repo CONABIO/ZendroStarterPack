@@ -65,7 +65,7 @@ const definition = {
         monitors: {
             type: 'many_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'deployments',
+            reverseAssociation: 'visits',
             target: 'monitor',
             targetKey: 'visit_ids',
             sourceKey: 'monitor_ids',

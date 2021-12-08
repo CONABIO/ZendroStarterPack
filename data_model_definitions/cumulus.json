@@ -82,6 +82,15 @@
         "targetKey": "cumulus_id",
         "keysIn": "deployment",
         "targetStorageType": "sql"
+      },
+      "individuals": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "associated_cumulus",
+        "target": "individual",
+        "targetKey": "cumulus_id",
+        "keysIn": "individual",
+        "targetStorageType": "sql"
       }
     }
 }

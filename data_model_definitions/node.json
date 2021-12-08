@@ -55,6 +55,15 @@
         "targetKey": "node_id",
         "keysIn": "deployment",
         "targetStorageType": "sql"
+      },
+      "individuals": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "associated_node",
+        "target": "individual",
+        "targetKey": "node_id",
+        "keysIn": "individual",
+        "targetStorageType": "sql"
       }
     }
 }

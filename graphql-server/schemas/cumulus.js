@@ -42,6 +42,7 @@ module.exports = `
 
     cumulus_criteria(search: searchCumulus_criteriaInput): cumulus_criteria
   unique_ecosystem(search: searchEcosystemInput): ecosystem
+  individuals(search: searchIndividualInput): individual
     
     """
     @search-request
@@ -205,15 +206,15 @@ type CumulusEdge{
     vueTableCumulus : VueTableCumulus
     csvTableTemplateCumulus: [String]
     cumulusConnection(search:searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput! ): CumulusConnection
-    validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID, addIndividuals:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addIndividuals:ID, removeIndividuals:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCumulusForDeletion(id: ID!): Boolean!
     validateCumulusAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addCumulus( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
-    updateCumulus(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    addCumulus( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID, addIndividuals:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    updateCumulus(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID , addIndividuals:ID, removeIndividuals:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
     bulkAddCumulusCsv: String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
