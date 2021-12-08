@@ -64,6 +64,15 @@
         "targetKey": "node_id",
         "keysIn": "individual",
         "targetStorageType": "sql"
+      },
+      "transects": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "associated_node",
+        "target": "transect",
+        "targetKey": "node_id",
+        "keysIn": "transect",
+        "targetStorageType": "sql"
       }
     }
 }

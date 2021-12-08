@@ -20,6 +20,7 @@ const associationArgsDef = {
     'addUnique_visit_disturbed': 'visit',
     'addEcosystems': 'ecosystem',
     'addIndividuals': 'individual',
+    'addTransects': 'transect',
     'addDeployments': 'deployment'
 }
 
@@ -203,6 +204,40 @@ node.prototype.individuals = async function({
     }
     return null;
 }
+/**
+ * node.prototype.transects - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+node.prototype.transects = async function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    let found = (await resolvers.transectsConnection({
+        search: nsearch,
+        pagination: {
+            first: 2
+        }
+    }, context)).edges;
+    if (found.length > 0) {
+        if (found.length > 1) {
+            context.benignErrors.push(new Error(
+                `Not unique "to_one" association Error: Found > 1 transects matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first transect.`
+            ));
+        }
+        return found[0].node;
+    }
+    return null;
+}
 
 /**
  * node.prototype.deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -322,6 +357,9 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNotUndefinedAndNotNull(input.addIndividuals)) {
         promises_add.push(this.add_individuals(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addTransects)) {
+        promises_add.push(this.add_transects(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
@@ -342,6 +380,9 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     }
     if (helper.isNotUndefinedAndNotNull(input.removeIndividuals)) {
         promises_remove.push(this.remove_individuals(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeTransects)) {
+        promises_remove.push(this.remove_transects(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -419,6 +460,16 @@ node.prototype.add_individuals = async function(input, benignErrorReporter) {
 }
 
 /**
+ * add_transects - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.add_transects = async function(input, benignErrorReporter) {
+    await models.transect.add_node_id(input.addTransects, this.getIdValue(), benignErrorReporter);
+}
+
+/**
  * remove_deployments - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -493,6 +544,16 @@ node.prototype.remove_individuals = async function(input, benignErrorReporter) {
     await models.individual.remove_node_id(input.removeIndividuals, this.getIdValue(), benignErrorReporter);
 }
 
+/**
+ * remove_transects - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.remove_transects = async function(input, benignErrorReporter) {
+    await models.transect.remove_node_id(input.removeTransects, this.getIdValue(), benignErrorReporter);
+}
+
 
 
 /**
@@ -518,6 +579,7 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_one.push(node.unique_visit_disturbed({}, context));
     promises_to_one.push(node.ecosystems({}, context));
     promises_to_one.push(node.individuals({}, context));
+    promises_to_one.push(node.transects({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

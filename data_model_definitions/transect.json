@@ -1,0 +1,26 @@
+{
+    "model": "transect",
+    "storageType": "sql",
+    "attributes": {
+        "number": "Int",
+        "sum_vegetation_structure": "Float",
+        "sum_indicator_species": "Float",
+        "sum_impact": "Float",
+        "date_transecto": "DateTime",
+        "latitude": "Float",
+        "longitude": "Float",
+        "percentage": "Float",
+        "node_id": "Int"
+    },
+    "associations": {
+        "associated_node": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "transects",
+            "target": "node",
+            "targetKey": "node_id",
+            "keysIn": "transect",
+            "targetStorageType": "sql"
+        }
+    }
+}
