@@ -77,7 +77,7 @@ const definition = {
             targetStorageType: 'sql'
         },
         individuals: {
-            type: 'many_to_one',
+            type: 'one_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'associated_node',
             target: 'individual',
@@ -86,7 +86,7 @@ const definition = {
             targetStorageType: 'sql'
         },
         transects: {
-            type: 'many_to_one',
+            type: 'one_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'associated_node',
             target: 'transect',
@@ -205,16 +205,16 @@ module.exports = class node extends Sequelize.Model {
             as: 'ecosystems',
             foreignKey: 'ecosystem_id'
         });
-        node.hasOne(models.individual, {
+        node.hasMany(models.deployment, {
+            as: 'deployments',
+            foreignKey: 'node_id'
+        });
+        node.hasMany(models.individual, {
             as: 'individuals',
             foreignKey: 'node_id'
         });
-        node.hasOne(models.transect, {
+        node.hasMany(models.transect, {
             as: 'transects',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.deployment, {
-            as: 'deployments',
             foreignKey: 'node_id'
         });
     }

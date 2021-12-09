@@ -104,7 +104,7 @@ const definition = {
             targetStorageType: 'sql'
         },
         individuals: {
-            type: 'many_to_one',
+            type: 'one_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'associated_cumulus',
             target: 'individual',
@@ -213,10 +213,6 @@ module.exports = class cumulus extends Sequelize.Model {
             as: 'unique_ecosystem',
             foreignKey: 'ecosystem_id'
         });
-        cumulus.hasOne(models.individual, {
-            as: 'individuals',
-            foreignKey: 'cumulus_id'
-        });
         cumulus.hasMany(models.physical_device, {
             as: 'devices',
             foreignKey: 'cumulus_id'
@@ -235,6 +231,10 @@ module.exports = class cumulus extends Sequelize.Model {
         });
         cumulus.hasMany(models.deployment, {
             as: 'deployments',
+            foreignKey: 'cumulus_id'
+        });
+        cumulus.hasMany(models.individual, {
+            as: 'individuals',
             foreignKey: 'cumulus_id'
         });
     }

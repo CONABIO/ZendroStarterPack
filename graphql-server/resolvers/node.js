@@ -19,9 +19,9 @@ const associationArgsDef = {
     'addUnique_visit_pristine': 'visit',
     'addUnique_visit_disturbed': 'visit',
     'addEcosystems': 'ecosystem',
+    'addDeployments': 'deployment',
     'addIndividuals': 'individual',
-    'addTransects': 'transect',
-    'addDeployments': 'deployment'
+    'addTransects': 'transect'
 }
 
 
@@ -170,74 +170,6 @@ node.prototype.ecosystems = async function({
         }
     }
 }
-/**
- * node.prototype.individuals - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-node.prototype.individuals = async function({
-    search
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    let found = (await resolvers.individualsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 individuals matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first individual.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
-}
-/**
- * node.prototype.transects - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-node.prototype.transects = async function({
-    search
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "node_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    let found = (await resolvers.transectsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 transects matching node with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the node model. Returning first transect.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
-}
 
 /**
  * node.prototype.deploymentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -326,6 +258,180 @@ node.prototype.deploymentsConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * node.prototype.individualsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+node.prototype.individualsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.individuals({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * node.prototype.countFilteredIndividuals - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+node.prototype.countFilteredIndividuals = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countIndividuals({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * node.prototype.individualsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+node.prototype.individualsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.individualsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * node.prototype.transectsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+node.prototype.transectsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.transects({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * node.prototype.countFilteredTransects - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+node.prototype.countFilteredTransects = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countTransects({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * node.prototype.transectsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+node.prototype.transectsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.transectsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -342,6 +448,12 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.addDeployments)) {
         promises_add.push(this.add_deployments(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addIndividuals)) {
+        promises_add.push(this.add_individuals(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.addTransects)) {
+        promises_add.push(this.add_transects(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_node)) {
         promises_add.push(this.add_cumulus_node(input, benignErrorReporter));
     }
@@ -354,17 +466,17 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNotUndefinedAndNotNull(input.addEcosystems)) {
         promises_add.push(this.add_ecosystems(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addIndividuals)) {
-        promises_add.push(this.add_individuals(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addTransects)) {
-        promises_add.push(this.add_transects(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeDeployments)) {
         promises_remove.push(this.remove_deployments(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeIndividuals)) {
+        promises_remove.push(this.remove_individuals(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeTransects)) {
+        promises_remove.push(this.remove_transects(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_node)) {
         promises_remove.push(this.remove_cumulus_node(input, benignErrorReporter));
@@ -377,12 +489,6 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     }
     if (helper.isNotUndefinedAndNotNull(input.removeEcosystems)) {
         promises_remove.push(this.remove_ecosystems(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeIndividuals)) {
-        promises_remove.push(this.remove_individuals(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeTransects)) {
-        promises_remove.push(this.remove_transects(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -404,6 +510,42 @@ node.prototype.add_deployments = async function(input, benignErrorReporter) {
         }
     });
     await models.deployment.bulkAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_individuals - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.add_individuals = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addIndividuals.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.individual.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.individual.bulkAssociateIndividualWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_transects - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.add_transects = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addTransects.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.transect.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.transect.bulkAssociateTransectWithNode_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -450,26 +592,6 @@ node.prototype.add_ecosystems = async function(input, benignErrorReporter) {
 }
 
 /**
- * add_individuals - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.add_individuals = async function(input, benignErrorReporter) {
-    await models.individual.add_node_id(input.addIndividuals, this.getIdValue(), benignErrorReporter);
-}
-
-/**
- * add_transects - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.add_transects = async function(input, benignErrorReporter) {
-    await models.transect.add_node_id(input.addTransects, this.getIdValue(), benignErrorReporter);
-}
-
-/**
  * remove_deployments - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -485,6 +607,42 @@ node.prototype.remove_deployments = async function(input, benignErrorReporter) {
         }
     });
     await models.deployment.bulkDisAssociateDeploymentWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_individuals - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.remove_individuals = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeIndividuals.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.individual.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.individual.bulkDisAssociateIndividualWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_transects - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.remove_transects = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeTransects.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.transect.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.transect.bulkDisAssociateTransectWithNode_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -534,26 +692,6 @@ node.prototype.remove_ecosystems = async function(input, benignErrorReporter) {
     }
 }
 
-/**
- * remove_individuals - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.remove_individuals = async function(input, benignErrorReporter) {
-    await models.individual.remove_node_id(input.removeIndividuals, this.getIdValue(), benignErrorReporter);
-}
-
-/**
- * remove_transects - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-node.prototype.remove_transects = async function(input, benignErrorReporter) {
-    await models.transect.remove_node_id(input.removeTransects, this.getIdValue(), benignErrorReporter);
-}
-
 
 
 /**
@@ -574,12 +712,12 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(node.countFilteredDeployments({}, context));
+    promises_to_many.push(node.countFilteredIndividuals({}, context));
+    promises_to_many.push(node.countFilteredTransects({}, context));
     promises_to_one.push(node.cumulus_node({}, context));
     promises_to_one.push(node.unique_visit_pristine({}, context));
     promises_to_one.push(node.unique_visit_disturbed({}, context));
     promises_to_one.push(node.ecosystems({}, context));
-    promises_to_one.push(node.individuals({}, context));
-    promises_to_one.push(node.transects({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

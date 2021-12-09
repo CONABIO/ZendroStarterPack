@@ -84,7 +84,7 @@
         "targetStorageType": "sql"
       },
       "individuals": {
-        "type": "many_to_one",
+        "type": "one_to_many",
         "implementation": "foreignkeys",
         "reverseAssociation": "associated_cumulus",
         "target": "individual",
