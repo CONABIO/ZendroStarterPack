@@ -1,0 +1,23 @@
+{
+    "model": "delivered_files",
+    "storageType": "sql",
+    "attributes": {
+        "who_delivers": "String",
+        "reception_date": "Date",
+        "total_files": "Int",
+        "audio_files": "Int",
+        "image_files": "Int",
+        "node_id": "Int"
+    },
+    "associations": {
+        "node_delivered_files": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "delivered_files",
+            "target": "node",
+            "targetKey": "node_id",
+            "keysIn": "delivered_files",
+            "targetStorageType": "sql"
+        }
+    }
+}

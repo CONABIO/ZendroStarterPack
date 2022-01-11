@@ -19,86 +19,22 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'node',
+    model: 'delivered_files',
     storageType: 'sql',
     attributes: {
-        nomenclatura: 'String',
-        con_socio: 'Int',
-        fid: 'Int',
-        location: 'Point',
-        cat_integr: 'String',
-        cumulus_id: 'Int',
-        ecosystem_id: 'Int'
+        who_delivers: 'String',
+        reception_date: 'Date',
+        total_files: 'Int',
+        audio_files: 'Int',
+        image_files: 'Int',
+        node_id: 'Int'
     },
     associations: {
-        cumulus_node: {
+        node_delivered_files: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'nodes',
-            target: 'cumulus',
-            targetKey: 'cumulus_id',
-            keysIn: 'node',
-            targetStorageType: 'sql'
-        },
-        unique_visit_pristine: {
-            type: 'one_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'unique_node_pristine',
-            target: 'visit',
-            targetKey: 'pristine_id',
-            keysIn: 'visit',
-            targetStorageType: 'sql'
-        },
-        unique_visit_disturbed: {
-            type: 'one_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'unique_node_disturbed',
-            target: 'visit',
-            targetKey: 'disturbed_id',
-            keysIn: 'visit',
-            targetStorageType: 'sql'
-        },
-        ecosystems: {
-            type: 'many_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'unique_node',
-            target: 'ecosystem',
-            targetKey: 'ecosystem_id',
-            keysIn: 'node',
-            targetStorageType: 'sql'
-        },
-        deployments: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'node',
-            target: 'deployment',
-            targetKey: 'node_id',
-            keysIn: 'deployment',
-            targetStorageType: 'sql'
-        },
-        individuals: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'associated_node',
-            target: 'individual',
-            targetKey: 'node_id',
-            keysIn: 'individual',
-            targetStorageType: 'sql'
-        },
-        transects: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'associated_node',
-            target: 'transect',
-            targetKey: 'node_id',
-            keysIn: 'transect',
-            targetStorageType: 'sql'
-        },
-        delivered_files: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'node_delivered_files',
-            target: 'delivered_files',
+            reverseAssociation: 'delivered_files',
+            target: 'node',
             targetKey: 'node_id',
             keysIn: 'delivered_files',
             targetStorageType: 'sql'
@@ -115,7 +51,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class node extends Sequelize.Model {
+module.exports = class delivered_files extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -125,32 +61,29 @@ module.exports = class node extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            nomenclatura: {
+            who_delivers: {
                 type: Sequelize[dict['String']]
             },
-            con_socio: {
+            reception_date: {
+                type: Sequelize[dict['Date']]
+            },
+            total_files: {
                 type: Sequelize[dict['Int']]
             },
-            fid: {
+            audio_files: {
                 type: Sequelize[dict['Int']]
             },
-            location: {
-                type: Sequelize[dict['Point']]
-            },
-            cat_integr: {
-                type: Sequelize[dict['String']]
-            },
-            cumulus_id: {
+            image_files: {
                 type: Sequelize[dict['Int']]
             },
-            ecosystem_id: {
+            node_id: {
                 type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "node",
-            tableName: "nodes",
+            modelName: "delivered_files",
+            tableName: "delivered_files",
             sequelize
         });
     }
@@ -198,36 +131,8 @@ module.exports = class node extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        node.belongsTo(models.cumulus, {
-            as: 'cumulus_node',
-            foreignKey: 'cumulus_id'
-        });
-        node.hasOne(models.visit, {
-            as: 'unique_visit_pristine',
-            foreignKey: 'pristine_id'
-        });
-        node.hasOne(models.visit, {
-            as: 'unique_visit_disturbed',
-            foreignKey: 'disturbed_id'
-        });
-        node.belongsTo(models.ecosystem, {
-            as: 'ecosystems',
-            foreignKey: 'ecosystem_id'
-        });
-        node.hasMany(models.deployment, {
-            as: 'deployments',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.individual, {
-            as: 'individuals',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.transect, {
-            as: 'transects',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.delivered_files, {
-            as: 'delivered_files',
+        delivered_files.belongsTo(models.node, {
+            as: 'node_delivered_files',
             foreignKey: 'node_id'
         });
     }
@@ -240,13 +145,13 @@ module.exports = class node extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: node.idAttribute(),
+            field: delivered_files.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await node.readAllCursor(queryArg);
-        cursorRes = cursorRes.nodes.reduce(
-            (map, obj) => ((map[obj[node.idAttribute()]] = obj), map), {}
+        let cursorRes = await delivered_files.readAllCursor(queryArg);
+        cursorRes = cursorRes.delivered_files.reduce(
+            (map, obj) => ((map[obj[delivered_files.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -254,7 +159,7 @@ module.exports = class node extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(node.batchReadById, {
+    static readByIdLoader = new DataLoader(delivered_files.batchReadById, {
         cache: false,
     });
 
@@ -263,11 +168,11 @@ module.exports = class node extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type node, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type delivered_files, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await node.readByIdLoader.load(id);
+        return await delivered_files.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -279,7 +184,7 @@ module.exports = class node extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, node.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, delivered_files.definition.attributes);
         return super.count(options);
     }
 
@@ -296,9 +201,9 @@ module.exports = class node extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), node.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), delivered_files.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => node.postReadCast(x))
+        records = records.map(x => delivered_files.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -317,10 +222,10 @@ module.exports = class node extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), node.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), delivered_files.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => node.postReadCast(x))
+        records = records.map(x => delivered_files.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -331,7 +236,7 @@ module.exports = class node extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), node.definition.attributes);
+            }, this.idAttribute(), delivered_files.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -340,7 +245,7 @@ module.exports = class node extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            nodes: edges.map((edge) => edge.node)
+            delivered_files: edges.map((edge) => edge.node)
         };
     }
 
@@ -354,7 +259,7 @@ module.exports = class node extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = node.preWriteCast(input)
+        input = delivered_files.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -362,8 +267,8 @@ module.exports = class node extends Sequelize.Model {
                 });
                 return item;
             });
-            node.postReadCast(result.dataValues)
-            node.postReadCast(result._previousDataValues)
+            delivered_files.postReadCast(result.dataValues)
+            delivered_files.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -403,7 +308,7 @@ module.exports = class node extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = node.preWriteCast(input)
+        input = delivered_files.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -416,8 +321,8 @@ module.exports = class node extends Sequelize.Model {
                 });
                 return updated;
             });
-            node.postReadCast(result.dataValues)
-            node.postReadCast(result._previousDataValues)
+            delivered_files.postReadCast(result.dataValues)
+            delivered_files.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -480,7 +385,7 @@ module.exports = class node extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of node records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of delivered_files records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -499,30 +404,14 @@ module.exports = class node extends Sequelize.Model {
 
 
     /**
-     * add_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_node_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_cumulus_id(id, cumulus_id) {
-        let updated = await node.update({
-            cumulus_id: cumulus_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-    /**
-     * add_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_ecosystem_id(id, ecosystem_id) {
-        let updated = await node.update({
-            ecosystem_id: ecosystem_id
+    static async add_node_id(id, node_id) {
+        let updated = await delivered_files.update({
+            node_id: node_id
         }, {
             where: {
                 id: id
@@ -532,35 +421,18 @@ module.exports = class node extends Sequelize.Model {
     }
 
     /**
-     * remove_cumulus_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_node_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   cumulus_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   node_id Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_cumulus_id(id, cumulus_id) {
-        let updated = await node.update({
-            cumulus_id: null
+    static async remove_node_id(id, node_id) {
+        let updated = await delivered_files.update({
+            node_id: null
         }, {
             where: {
                 id: id,
-                cumulus_id: cumulus_id
-            }
-        });
-        return updated;
-    }
-    /**
-     * remove_ecosystem_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   ecosystem_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_ecosystem_id(id, ecosystem_id) {
-        let updated = await node.update({
-            ecosystem_id: null
-        }, {
-            where: {
-                id: id,
-                ecosystem_id: ecosystem_id
+                node_id: node_id
             }
         });
         return updated;
@@ -571,47 +443,21 @@ module.exports = class node extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateNodeWithCumulus_id - bulkAssociaton of given ids
+     * bulkAssociateDelivered_filesWithNode_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateNodeWithCumulus_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+    static async bulkAssociateDelivered_filesWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            cumulus_id,
+            node_id,
             id
         }) => {
             promises.push(super.update({
-                cumulus_id: cumulus_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkAssociateNodeWithEcosystem_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateNodeWithEcosystem_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            ecosystem_id,
-            id
-        }) => {
-            promises.push(super.update({
-                ecosystem_id: ecosystem_id
+                node_id: node_id
             }, {
                 where: {
                     id: id
@@ -624,52 +470,25 @@ module.exports = class node extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateNodeWithCumulus_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateDelivered_filesWithNode_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "cumulus_id");
+    static async bulkDisAssociateDelivered_filesWithNode_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "node_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            cumulus_id,
+            node_id,
             id
         }) => {
             promises.push(super.update({
-                cumulus_id: null
+                node_id: null
             }, {
                 where: {
                     id: id,
-                    cumulus_id: cumulus_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateNodeWithEcosystem_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateNodeWithEcosystem_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "ecosystem_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            ecosystem_id,
-            id
-        }) => {
-            promises.push(super.update({
-                ecosystem_id: null
-            }, {
-                where: {
-                    id: id,
-                    ecosystem_id: ecosystem_id
+                    node_id: node_id
                 }
             }));
         })
@@ -685,7 +504,7 @@ module.exports = class node extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return node.definition.id.name;
+        return delivered_files.definition.id.name;
     }
 
     /**
@@ -694,16 +513,16 @@ module.exports = class node extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return node.definition.id.type;
+        return delivered_files.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of node.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of delivered_files.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[node.idAttribute()];
+        return this[delivered_files.idAttribute()];
     }
 
     /**
@@ -724,9 +543,9 @@ module.exports = class node extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  node to a base 64 String
+     * base64Encode - Encode  delivered_files to a base 64 String
      *
-     * @return {string} The node object, encoded in a base 64 String
+     * @return {string} The delivered_files object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -737,28 +556,28 @@ module.exports = class node extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The node object, encoded in a base 64 String
+     * @return {string} The delivered_files object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of node.
+     * stripAssociations - Instance method for getting all attributes of delivered_files.
      *
-     * @return {object} The attributes of node in object form
+     * @return {object} The attributes of delivered_files in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(node.definition.attributes);
+        let attributes = Object.keys(delivered_files.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of node that are marked as external IDs.
+     * externalIdsArray - Get all attributes of delivered_files that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of node that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of delivered_files that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -770,7 +589,7 @@ module.exports = class node extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of node.
+     * externalIdsObject - Get all external IDs of delivered_files.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

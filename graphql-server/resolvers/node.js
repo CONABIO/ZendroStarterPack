@@ -21,7 +21,8 @@ const associationArgsDef = {
     'addEcosystems': 'ecosystem',
     'addDeployments': 'deployment',
     'addIndividuals': 'individual',
-    'addTransects': 'transect'
+    'addTransects': 'transect',
+    'addDelivered_files': 'delivered_files'
 }
 
 
@@ -432,6 +433,93 @@ node.prototype.transectsConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * node.prototype.delivered_filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+node.prototype.delivered_filesFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.delivered_files({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * node.prototype.countFilteredDelivered_files - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+node.prototype.countFilteredDelivered_files = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countDelivered_files({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * node.prototype.delivered_filesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+node.prototype.delivered_filesConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "node_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.delivered_filesConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -453,6 +541,9 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     }
     if (helper.isNonEmptyArray(input.addTransects)) {
         promises_add.push(this.add_transects(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.addDelivered_files)) {
+        promises_add.push(this.add_delivered_files(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addCumulus_node)) {
         promises_add.push(this.add_cumulus_node(input, benignErrorReporter));
@@ -477,6 +568,9 @@ node.prototype.handleAssociations = async function(input, benignErrorReporter) {
     }
     if (helper.isNonEmptyArray(input.removeTransects)) {
         promises_remove.push(this.remove_transects(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeDelivered_files)) {
+        promises_remove.push(this.remove_delivered_files(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeCumulus_node)) {
         promises_remove.push(this.remove_cumulus_node(input, benignErrorReporter));
@@ -546,6 +640,24 @@ node.prototype.add_transects = async function(input, benignErrorReporter) {
         }
     });
     await models.transect.bulkAssociateTransectWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_delivered_files - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.add_delivered_files = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addDelivered_files.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.delivered_files.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.delivered_files.bulkAssociateDelivered_filesWithNode_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -646,6 +758,24 @@ node.prototype.remove_transects = async function(input, benignErrorReporter) {
 }
 
 /**
+ * remove_delivered_files - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+node.prototype.remove_delivered_files = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeDelivered_files.map(associatedRecordId => {
+        return {
+            node_id: this.getIdValue(),
+            [models.delivered_files.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.delivered_files.bulkDisAssociateDelivered_filesWithNode_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_cumulus_node - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -714,6 +844,7 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_many.push(node.countFilteredDeployments({}, context));
     promises_to_many.push(node.countFilteredIndividuals({}, context));
     promises_to_many.push(node.countFilteredTransects({}, context));
+    promises_to_many.push(node.countFilteredDelivered_files({}, context));
     promises_to_one.push(node.cumulus_node({}, context));
     promises_to_one.push(node.unique_visit_pristine({}, context));
     promises_to_one.push(node.unique_visit_disturbed({}, context));
