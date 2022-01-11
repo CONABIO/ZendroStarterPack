@@ -27,6 +27,7 @@ const definition = {
         total_files: 'Int',
         audio_files: 'Int',
         image_files: 'Int',
+        video_files: 'Int',
         node_id: 'Int'
     },
     associations: {
@@ -74,6 +75,9 @@ module.exports = class delivered_files extends Sequelize.Model {
                 type: Sequelize[dict['Int']]
             },
             image_files: {
+                type: Sequelize[dict['Int']]
+            },
+            video_files: {
                 type: Sequelize[dict['Int']]
             },
             node_id: {

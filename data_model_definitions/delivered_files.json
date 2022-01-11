@@ -7,6 +7,7 @@
         "total_files": "Int",
         "audio_files": "Int",
         "image_files": "Int",
+        "video_files": "Int",
         "node_id": "Int"
     },
     "associations": {

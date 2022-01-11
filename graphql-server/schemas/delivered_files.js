@@ -38,6 +38,12 @@ module.exports = `
     @original-field
     
     """
+    video_files: Int
+
+    """
+    @original-field
+    
+    """
     node_id: Int
 
     node_delivered_files(search: searchNodeInput): node
@@ -77,6 +83,7 @@ type Delivered_filesEdge{
     total_files
     audio_files
     image_files
+    video_files
     node_id
   }
   
@@ -105,15 +112,15 @@ type Delivered_filesEdge{
     vueTableDelivered_files : VueTableDelivered_files
     csvTableTemplateDelivered_files: [String]
     delivered_filesConnection(search:searchDelivered_filesInput, order: [ orderDelivered_filesInput ], pagination: paginationCursorInput! ): Delivered_filesConnection
-    validateDelivered_filesForCreation( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateDelivered_filesForUpdating(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDelivered_filesForCreation( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateDelivered_filesForUpdating(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDelivered_filesForDeletion(id: ID!): Boolean!
     validateDelivered_filesAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addDelivered_files( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
-    updateDelivered_files(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
+    addDelivered_files( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
+    updateDelivered_files(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
     deleteDelivered_files(id: ID!): String!
     bulkAddDelivered_filesCsv: String!
     bulkAssociateDelivered_filesWithNode_id(bulkAssociationInput: [bulkAssociationDelivered_filesWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
