@@ -23,7 +23,5 @@ export default function StringField({
     }
   };
 
-  console.log(props)
-
   return <TextInput {...props} onChange={handleOnChange} value={value ?? ''} />;
 }

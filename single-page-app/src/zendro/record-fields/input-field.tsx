@@ -17,6 +17,7 @@ import IntField from './int-field';
 import StringField from './string-field';
 import ObjectField from './object-field';
 import ArrayField from './array-field';
+import SelectField from './select-field';
 
 export type InputFieldProps = Overwrite<
   TextInputProps,
@@ -56,7 +57,10 @@ export default function InputField({
         <IntField {...props} onError={onError} value={value as number | null} />
       );
     case 'String':
-      return <StringField {...props} value={value as string | null} />;
+      if(props.label !== 'status')
+        return <StringField {...props} value={value as string | null} />;
+      else
+        return <SelectField {...props} selected={value as string | null} />;
     case 'Point':
     case 'Multipoint':
     case 'Polygon':
