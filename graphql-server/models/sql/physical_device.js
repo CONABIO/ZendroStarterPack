@@ -24,6 +24,7 @@ const definition = {
     attributes: {
         serial_number: 'String',
         comments: 'String',
+        status: 'String',
         device_id: 'Int',
         cumulus_id: 'Int'
     },
@@ -81,6 +82,9 @@ module.exports = class physical_device extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             comments: {
+                type: Sequelize[dict['String']]
+            },
+            status: {
                 type: Sequelize[dict['String']]
             },
             device_id: {

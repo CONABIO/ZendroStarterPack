@@ -1,4 +1,5 @@
 const { initializeZendro } = require("./zendro.js");
+const { getFiles } = require("./get-files.js")
 
 const { readdir, writeFile, access } = require("fs/promises");
 
@@ -28,20 +29,21 @@ module.exports = {
       const codeGeneratedTimestamp = state["last-executed-migration"]
         ? new Date(state["last-executed-migration"].file.split(">")[0].slice(1))
         : null;
-      const allMigrations = await readdir(__dirname + "/../migrations/");
+      const allMigrations = await getFiles(__dirname + "/../migrations/");
       const migrationsToRun = codeGeneratedTimestamp
         ? allMigrations.filter(
             (migration) =>
-              new Date(migration.split(">")[0].slice(1)) >=
+              new Date(migration.replace("default-sql/",'').split(">")[0].slice(1)) >=
                 codeGeneratedTimestamp &&
-              migration !== state["last-executed-migration"].file
+              migration.replace("default-sql/",'') !== state["last-executed-migration"].file
           )
         : allMigrations;
+        console.log(migrationsToRun)
       for (let migration of migrationsToRun) {
         console.log("perform migration: ", migration);
         migration_file = migration;
         model_name = migration.split(">")[1].slice(1);
-        model_name = model_name.slice(0, model_name.length - 3);
+        model_name = model_name.replace("default-sql/",'').slice(0, model_name.length - 3);
         const file = require(__dirname + "/../migrations/" + migration);
         await file.up(zendro);
         const timestamp = new Date().toISOString();
@@ -66,6 +68,7 @@ module.exports = {
       );
       process.exit(0);
     } catch (err) {
+      console.log(err)
       log["migration_log"][new Date().toISOString() + "&" + model_name] = {
         file: migration_file,
         direction: "up",

@@ -20,6 +20,12 @@ module.exports = `
     @original-field
     
     """
+    status: String
+
+    """
+    @original-field
+    
+    """
     device_id: Int
 
     """
@@ -79,6 +85,7 @@ type Physical_deviceEdge{
     id
     serial_number
     comments
+    status
     device_id
     cumulus_id
   }
@@ -111,15 +118,15 @@ type Physical_deviceEdge{
     vueTablePhysical_device : VueTablePhysical_device
     csvTableTemplatePhysical_device: [String]
     physical_devicesConnection(search:searchPhysical_deviceInput, order: [ orderPhysical_deviceInput ], pagination: paginationCursorInput! ): Physical_deviceConnection
-    validatePhysical_deviceForCreation( serial_number: String, comments: String , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validatePhysical_deviceForUpdating(id: ID!, serial_number: String, comments: String , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePhysical_deviceForCreation( serial_number: String, comments: String, status: String , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePhysical_deviceForUpdating(id: ID!, serial_number: String, comments: String, status: String , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validatePhysical_deviceForDeletion(id: ID!): Boolean!
     validatePhysical_deviceAfterReading(id: ID!): Boolean!
   }
 
   type Mutation {
-    addPhysical_device( serial_number: String, comments: String , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
-    updatePhysical_device(id: ID!, serial_number: String, comments: String , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    addPhysical_device( serial_number: String, comments: String, status: String , addDevice:ID, addCumulus_device:ID  , addDevice_deployments:[ID] , skipAssociationsExistenceChecks:Boolean = false): physical_device!
+    updatePhysical_device(id: ID!, serial_number: String, comments: String, status: String , addDevice:ID, removeDevice:ID , addCumulus_device:ID, removeCumulus_device:ID   , addDevice_deployments:[ID], removeDevice_deployments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): physical_device!
     deletePhysical_device(id: ID!): String!
     bulkAddPhysical_deviceCsv: String!
     bulkAssociatePhysical_deviceWithDevice_id(bulkAssociationInput: [bulkAssociationPhysical_deviceWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
