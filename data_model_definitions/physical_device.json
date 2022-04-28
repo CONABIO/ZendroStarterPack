@@ -5,6 +5,7 @@
         "serial_number": "String",
         "comments": "String",
         "status": "String",
+        "previous_cumulus_ids": "[Int]",
         "device_id": "Int",
         "cumulus_id": "Int"
     },

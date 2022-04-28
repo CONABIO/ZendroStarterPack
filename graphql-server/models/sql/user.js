@@ -6,7 +6,6 @@ const dict = require('../../utils/graphql-sequelize-types');
 const searchArg = require('../../utils/search-argument');
 const globals = require('../../config/globals');
 const validatorUtil = require('../../utils/validatorUtil');
-const fileTools = require('../../utils/file-tools');
 const helpersAcl = require('../../utils/helpers-acl');
 const email = require('../../utils/email');
 const fs = require('fs');
@@ -239,8 +238,6 @@ module.exports = class user extends Sequelize.Model {
      * @return {array}  Array of records holding conditions specified by search, order and pagination argument
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
-        //use default BenignErrorReporter if no BenignErrorReporter defined
-        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
         let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), user.definition.attributes);
         let records = await super.findAll(options);
@@ -259,9 +256,6 @@ module.exports = class user extends Sequelize.Model {
      * @return {object} The set of records, possibly constrained by pagination, with full cursor information for all records
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        //use default BenignErrorReporter if no BenignErrorReporter defined
-        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
         // build the sequelize options object for cursor-based pagination
         let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), user.definition.attributes);
         let records = await super.findAll(options);
@@ -378,65 +372,6 @@ module.exports = class user extends Sequelize.Model {
     }
 
     /**
-     * bulkAddCsv - Add records from csv file
-     *
-     * @param  {object} context - contextual information, e.g. csv file, record delimiter and column names.
-     */
-    static bulkAddCsv(context) {
-
-        let delim = context.request.body.delim;
-        let cols = context.request.body.cols;
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
-
-        context.request.files.csv_file.mv(tmpFile).then(() => {
-
-            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
-                try {
-                    console.log(`Sending ${addedZipFilePath} to the user.`);
-
-                    let attach = [];
-                    attach.push({
-                        filename: path.basename("added_data.zip"),
-                        path: addedZipFilePath
-                    });
-
-                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-                        'ScienceDB batch add',
-                        'Your data has been successfully added to the database.',
-                        attach).then(function(info) {
-                        fileTools.deleteIfExists(addedZipFilePath);
-                        console.log(info);
-                    }).catch(function(err) {
-                        fileTools.deleteIfExists(addedZipFilePath);
-                        console.error(err);
-                    });
-
-                } catch (error) {
-                    console.error(error.message);
-                }
-
-                fs.unlinkSync(tmpFile);
-            }).catch((error) => {
-                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-                    'ScienceDB batch add', `${error.message}`).then(function(info) {
-                    console.error(info);
-                }).catch(function(err) {
-                    console.error(err);
-                });
-
-                fs.unlinkSync(tmpFile);
-            });
-
-
-
-        }).catch((error) => {
-            throw new Error(error);
-        });
-
-        return `Bulk import of user records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
-    }
-
-    /**
      * csvTableTemplate - Allows the user to download a template in CSV format with the
      * properties and types of this model.
      *
@@ -526,16 +461,23 @@ module.exports = class user extends Sequelize.Model {
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async add_institution_id(id, institution_id) {
-        let updated = await user.update({
-            institution_id: institution_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
+    static async add_institution_id(id, institution_id, benignErrorReporter) {
+        try {
+            let updated = await user.update({
+                institution_id: institution_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
     }
     /**
      * add_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to add
@@ -582,17 +524,24 @@ module.exports = class user extends Sequelize.Model {
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_institution_id(id, institution_id) {
-        let updated = await user.update({
-            institution_id: null
-        }, {
-            where: {
-                id: id,
-                institution_id: institution_id
-            }
-        });
-        return updated;
+    static async remove_institution_id(id, institution_id, benignErrorReporter) {
+        try {
+            let updated = await user.update({
+                institution_id: null
+            }, {
+                where: {
+                    id: id,
+                    institution_id: institution_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
     }
     /**
      * remove_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to remove

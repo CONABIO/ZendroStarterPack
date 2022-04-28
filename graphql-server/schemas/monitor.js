@@ -75,17 +75,6 @@ type MonitorEdge{
   node: monitor!
 }
 
-  type VueTableMonitor{
-    data : [monitor]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum monitorField {
     id
     first_name
@@ -118,20 +107,22 @@ type MonitorEdge{
     monitors(search: searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationInput! ): [monitor]
     readOneMonitor(id: ID!): monitor
     countMonitors(search: searchMonitorInput ): Int
-    vueTableMonitor : VueTableMonitor
     csvTableTemplateMonitor: [String]
     monitorsConnection(search:searchMonitorInput, order: [ orderMonitorInput ], pagination: paginationCursorInput! ): MonitorConnection
     validateMonitorForCreation( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateMonitorForUpdating(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateMonitorForDeletion(id: ID!): Boolean!
     validateMonitorAfterReading(id: ID!): Boolean!
+    """
+    monitorsZendroDefinition would return the static Zendro data model definition
+    """
+    monitorsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addMonitor( first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID  , addVisits:[ID] , skipAssociationsExistenceChecks:Boolean = false): monitor!
     updateMonitor(id: ID!, first_name: String, last_name: String, second_last_name: String, contact: String , addCumulus_monitor:ID, removeCumulus_monitor:ID   , addVisits:[ID], removeVisits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): monitor!
     deleteMonitor(id: ID!): String!
-    bulkAddMonitorCsv: String!
     bulkAssociateMonitorWithCumulus_id(bulkAssociationInput: [bulkAssociationMonitorWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateMonitorWithCumulus_id(bulkAssociationInput: [bulkAssociationMonitorWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }

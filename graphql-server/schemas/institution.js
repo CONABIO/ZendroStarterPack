@@ -56,17 +56,6 @@ type InstitutionEdge{
   node: institution!
 }
 
-  type VueTableInstitution{
-    data : [institution]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum institutionField {
     id
     name
@@ -93,19 +82,21 @@ type InstitutionEdge{
     institutions(search: searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationInput! ): [institution]
     readOneInstitution(id: ID!): institution
     countInstitutions(search: searchInstitutionInput ): Int
-    vueTableInstitution : VueTableInstitution
     csvTableTemplateInstitution: [String]
     institutionsConnection(search:searchInstitutionInput, order: [ orderInstitutionInput ], pagination: paginationCursorInput! ): InstitutionConnection
     validateInstitutionForCreation( name: String, address: String, phone_number: Int   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateInstitutionForUpdating(id: ID!, name: String, address: String, phone_number: Int   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateInstitutionForDeletion(id: ID!): Boolean!
     validateInstitutionAfterReading(id: ID!): Boolean!
+    """
+    institutionsZendroDefinition would return the static Zendro data model definition
+    """
+    institutionsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addInstitution( name: String, address: String, phone_number: Int   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): institution!
     updateInstitution(id: ID!, name: String, address: String, phone_number: Int   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): institution!
     deleteInstitution(id: ID!): String!
-    bulkAddInstitutionCsv: String!
       }
 `;

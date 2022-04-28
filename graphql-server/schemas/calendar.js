@@ -46,17 +46,6 @@ type CalendarEdge{
   node: calendar!
 }
 
-  type VueTableCalendar{
-    data : [calendar]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum calendarField {
     id
     date_started
@@ -84,19 +73,21 @@ type CalendarEdge{
     calendars(search: searchCalendarInput, order: [ orderCalendarInput ], pagination: paginationInput! ): [calendar]
     readOneCalendar(id: ID!): calendar
     countCalendars(search: searchCalendarInput ): Int
-    vueTableCalendar : VueTableCalendar
     csvTableTemplateCalendar: [String]
     calendarsConnection(search:searchCalendarInput, order: [ orderCalendarInput ], pagination: paginationCursorInput! ): CalendarConnection
     validateCalendarForCreation( date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCalendarForUpdating(id: ID!, date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCalendarForDeletion(id: ID!): Boolean!
     validateCalendarAfterReading(id: ID!): Boolean!
+    """
+    calendarsZendroDefinition would return the static Zendro data model definition
+    """
+    calendarsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addCalendar( date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): calendar!
     updateCalendar(id: ID!, date_started: Date, date_finished: Date, sipecam_year: String, order: Int    , skipAssociationsExistenceChecks:Boolean = false): calendar!
     deleteCalendar(id: ID!): String!
-    bulkAddCalendarCsv: String!
       }
 `;

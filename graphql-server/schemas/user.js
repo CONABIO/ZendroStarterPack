@@ -109,17 +109,6 @@ type UserEdge{
   node: user!
 }
 
-  type VueTableUser{
-    data : [user]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum userField {
     id
     username
@@ -155,20 +144,22 @@ type UserEdge{
     users(search: searchUserInput, order: [ orderUserInput ], pagination: paginationInput! ): [user]
     readOneUser(id: ID!): user
     countUsers(search: searchUserInput ): Int
-    vueTableUser : VueTableUser
     csvTableTemplateUser: [String]
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput! ): UserConnection
     validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateUserForDeletion(id: ID!): Boolean!
     validateUserAfterReading(id: ID!): Boolean!
+    """
+    usersZendroDefinition would return the static Zendro data model definition
+    """
+    usersZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
     updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
-    bulkAddUserCsv: String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }

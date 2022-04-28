@@ -132,17 +132,6 @@ type NodeEdge{
   node: node!
 }
 
-  type VueTableNode{
-    data : [node]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum nodeField {
     id
     nomenclatura
@@ -179,20 +168,22 @@ type NodeEdge{
     nodes(search: searchNodeInput, order: [ orderNodeInput ], pagination: paginationInput! ): [node]
     readOneNode(id: ID!): node
     countNodes(search: searchNodeInput ): Int
-    vueTableNode : VueTableNode
     csvTableTemplateNode: [String]
     nodesConnection(search:searchNodeInput, order: [ orderNodeInput ], pagination: paginationCursorInput! ): NodeConnection
     validateNodeForCreation( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID], addDelivered_files:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateNodeForUpdating(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID] , addDelivered_files:[ID], removeDelivered_files:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateNodeForDeletion(id: ID!): Boolean!
     validateNodeAfterReading(id: ID!): Boolean!
+    """
+    nodesZendroDefinition would return the static Zendro data model definition
+    """
+    nodesZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addNode( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID], addDelivered_files:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
     updateNode(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID] , addDelivered_files:[ID], removeDelivered_files:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
-    bulkAddNodeCsv: String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateNodeWithEcosystem_id(bulkAssociationInput: [bulkAssociationNodeWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

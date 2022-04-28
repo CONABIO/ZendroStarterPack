@@ -60,17 +60,6 @@ type EcosystemEdge{
   node: ecosystem!
 }
 
-  type VueTableEcosystem{
-    data : [ecosystem]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum ecosystemField {
     id
     name
@@ -95,19 +84,21 @@ type EcosystemEdge{
     ecosystems(search: searchEcosystemInput, order: [ orderEcosystemInput ], pagination: paginationInput! ): [ecosystem]
     readOneEcosystem(id: ID!): ecosystem
     countEcosystems(search: searchEcosystemInput ): Int
-    vueTableEcosystem : VueTableEcosystem
     csvTableTemplateEcosystem: [String]
     ecosystemsConnection(search:searchEcosystemInput, order: [ orderEcosystemInput ], pagination: paginationCursorInput! ): EcosystemConnection
     validateEcosystemForCreation( name: String   , addUnique_node:[ID], addCumulus_ecosystem:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateEcosystemForUpdating(id: ID!, name: String   , addUnique_node:[ID], removeUnique_node:[ID] , addCumulus_ecosystem:[ID], removeCumulus_ecosystem:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateEcosystemForDeletion(id: ID!): Boolean!
     validateEcosystemAfterReading(id: ID!): Boolean!
+    """
+    ecosystemsZendroDefinition would return the static Zendro data model definition
+    """
+    ecosystemsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addEcosystem( name: String   , addUnique_node:[ID], addCumulus_ecosystems:[ID] , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     updateEcosystem(id: ID!, name: String   , addUnique_nodes:[ID], removeUnique_nodes:[ID] , addCumulus_ecosystems:[ID], removeCumulus_ecosystems:[ID]  , skipAssociationsExistenceChecks:Boolean = false): ecosystem!
     deleteEcosystem(id: ID!): String!
-    bulkAddEcosystemCsv: String!
       }
 `;

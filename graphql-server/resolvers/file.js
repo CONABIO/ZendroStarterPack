@@ -113,13 +113,13 @@ file.prototype.remove_associated_deployment = async function(input, benignErrorR
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let file = await resolvers.readOneFile({
         id: id
@@ -128,8 +128,9 @@ async function countAllAssociatedRecords(id, context) {
     if (file === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
-
+    let get_to_many_associated_fk = 0;
     promises_to_one.push(file.associated_deployment({}, context));
+
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -137,7 +138,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -148,12 +149,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`file with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`file with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const file_record = await resolvers.readOneFile({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * files - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -172,8 +190,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'file', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "files");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await file.readAll(search, order, pagination, benignErrorReporter);
+            return await file.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -198,8 +215,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "filesConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await file.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await file.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -217,8 +233,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'file', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneFile");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await file.readById(id, benignErrorReporter);
+            return await file.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -235,23 +250,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'file', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await file.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableFile - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableFile: async function(_, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            return helper.vueTable(context.request, file, ["id", "url", "storage"]);
+            return await file.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -270,8 +269,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -287,7 +284,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -308,8 +305,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -325,7 +320,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -344,8 +339,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'file', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -354,7 +347,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -373,8 +366,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'file', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -382,7 +373,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -407,25 +398,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdFile = await file.addOne(inputSanitized, benignErrorReporter);
-            await createdFile.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdFile = await file.addOne(inputSanitized, context.benignErrors);
+            await createdFile.handleAssociations(inputSanitized, context.benignErrors);
             return createdFile;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddFileCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddFileCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'file', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return file.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -443,8 +418,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'file', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return file.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return file.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -469,9 +444,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedFile = await file.updateOne(inputSanitized, benignErrorReporter);
-            await updatedFile.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedFile = await file.updateOne(inputSanitized, context.benignErrors);
+            await updatedFile.handleAssociations(inputSanitized, context.benignErrors);
             return updatedFile;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -486,7 +460,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -496,7 +469,7 @@ module.exports = {
                 id
             }) => id)), file);
         }
-        return await file.bulkAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await file.bulkAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateFileWithDeployment_id - bulkDisAssociaton resolver of given ids
@@ -506,7 +479,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -516,7 +488,7 @@ module.exports = {
                 id
             }) => id)), file);
         }
-        return await file.bulkDisAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await file.bulkDisAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
@@ -528,11 +500,25 @@ module.exports = {
      */
     csvTableTemplateFile: async function(_, context) {
         if (await checkAuthorization(context, 'file', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return file.csvTableTemplate(benignErrorReporter);
+            return file.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * filesZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    filesZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "file", "read")) === true) {
+            return file.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

@@ -43,13 +43,13 @@ calendar.prototype.handleAssociations = async function(input, benignErrorReporte
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let calendar = await resolvers.readOneCalendar({
         id: id
@@ -58,6 +58,7 @@ async function countAllAssociatedRecords(id, context) {
     if (calendar === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let get_to_many_associated_fk = 0;
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -66,7 +67,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -77,12 +78,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`calendar with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`calendar with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const calendar_record = await resolvers.readOneCalendar({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * calendars - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -101,8 +119,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'calendar', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "calendars");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await calendar.readAll(search, order, pagination, benignErrorReporter);
+            return await calendar.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -127,8 +144,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "calendarsConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await calendar.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await calendar.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -146,8 +162,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'calendar', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneCalendar");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await calendar.readById(id, benignErrorReporter);
+            return await calendar.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -164,23 +179,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'calendar', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await calendar.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableCalendar - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableCalendar: async function(_, context) {
-        if (await checkAuthorization(context, 'calendar', 'read') === true) {
-            return helper.vueTable(context.request, calendar, ["id", "sipecam_year"]);
+            return await calendar.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -199,8 +198,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -216,7 +213,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -237,8 +234,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -254,7 +249,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -273,8 +268,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'calendar', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -283,7 +276,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -302,8 +295,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'calendar', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -311,7 +302,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -336,25 +327,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdCalendar = await calendar.addOne(inputSanitized, benignErrorReporter);
-            await createdCalendar.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdCalendar = await calendar.addOne(inputSanitized, context.benignErrors);
+            await createdCalendar.handleAssociations(inputSanitized, context.benignErrors);
             return createdCalendar;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddCalendarCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddCalendarCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'calendar', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return calendar.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -372,8 +347,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'calendar', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return calendar.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return calendar.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -398,9 +373,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedCalendar = await calendar.updateOne(inputSanitized, benignErrorReporter);
-            await updatedCalendar.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedCalendar = await calendar.updateOne(inputSanitized, context.benignErrors);
+            await updatedCalendar.handleAssociations(inputSanitized, context.benignErrors);
             return updatedCalendar;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -417,11 +391,25 @@ module.exports = {
      */
     csvTableTemplateCalendar: async function(_, context) {
         if (await checkAuthorization(context, 'calendar', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return calendar.csvTableTemplate(benignErrorReporter);
+            return calendar.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * calendarsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    calendarsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "calendar", "read")) === true) {
+            return calendar.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

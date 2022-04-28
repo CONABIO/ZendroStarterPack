@@ -234,7 +234,7 @@ ecosystem.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_unique_node = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addUnique_node.map(associatedRecordId => {
         return {
@@ -252,7 +252,7 @@ ecosystem.prototype.add_unique_nodes = async function(input, benignErrorReporter
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorReporter) {
+ecosystem.prototype.add_cumulus_ecosystem = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addCumulus_ecosystem.map(associatedRecordId => {
         return {
@@ -270,7 +270,7 @@ ecosystem.prototype.add_cumulus_ecosystems = async function(input, benignErrorRe
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_unique_node = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeUnique_node.map(associatedRecordId => {
         return {
@@ -288,7 +288,7 @@ ecosystem.prototype.remove_unique_nodes = async function(input, benignErrorRepor
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ecosystem.prototype.remove_cumulus_ecosystems = async function(input, benignErrorReporter) {
+ecosystem.prototype.remove_cumulus_ecosystem = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeCumulus_ecosystem.map(associatedRecordId => {
         return {
@@ -302,13 +302,13 @@ ecosystem.prototype.remove_cumulus_ecosystems = async function(input, benignErro
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let ecosystem = await resolvers.readOneEcosystem({
         id: id
@@ -317,9 +317,10 @@ async function countAllAssociatedRecords(id, context) {
     if (ecosystem === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
-
+    let get_to_many_associated_fk = 0;
     promises_to_many.push(ecosystem.countFilteredUnique_node({}, context));
     promises_to_many.push(ecosystem.countFilteredCumulus_ecosystem({}, context));
+
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -327,7 +328,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -338,12 +339,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`ecosystem with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`ecosystem with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const ecosystem_record = await resolvers.readOneEcosystem({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * ecosystems - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -362,8 +380,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "ecosystems");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readAll(search, order, pagination, benignErrorReporter);
+            return await ecosystem.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -388,8 +405,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "ecosystemsConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await ecosystem.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -407,8 +423,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneEcosystem");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.readById(id, benignErrorReporter);
+            return await ecosystem.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -425,23 +440,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ecosystem.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableEcosystem - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableEcosystem: async function(_, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            return helper.vueTable(context.request, ecosystem, ["id", "name"]);
+            return await ecosystem.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -460,8 +459,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -477,7 +474,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -498,8 +495,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -515,7 +510,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -534,8 +529,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'ecosystem', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -544,7 +537,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -563,8 +556,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'ecosystem', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -572,7 +563,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -597,25 +588,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdEcosystem = await ecosystem.addOne(inputSanitized, benignErrorReporter);
-            await createdEcosystem.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdEcosystem = await ecosystem.addOne(inputSanitized, context.benignErrors);
+            await createdEcosystem.handleAssociations(inputSanitized, context.benignErrors);
             return createdEcosystem;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddEcosystemCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddEcosystemCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'ecosystem', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ecosystem.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -633,8 +608,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'ecosystem', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return ecosystem.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return ecosystem.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -659,9 +634,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedEcosystem = await ecosystem.updateOne(inputSanitized, benignErrorReporter);
-            await updatedEcosystem.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedEcosystem = await ecosystem.updateOne(inputSanitized, context.benignErrors);
+            await updatedEcosystem.handleAssociations(inputSanitized, context.benignErrors);
             return updatedEcosystem;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -678,11 +652,25 @@ module.exports = {
      */
     csvTableTemplateEcosystem: async function(_, context) {
         if (await checkAuthorization(context, 'ecosystem', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ecosystem.csvTableTemplate(benignErrorReporter);
+            return ecosystem.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * ecosystemsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    ecosystemsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "ecosystem", "read")) === true) {
+            return ecosystem.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

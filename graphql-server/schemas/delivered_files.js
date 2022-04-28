@@ -65,17 +65,6 @@ type Delivered_filesEdge{
   node: delivered_files!
 }
 
-  type VueTableDelivered_files{
-    data : [delivered_files]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum delivered_filesField {
     id
     who_delivers
@@ -109,20 +98,22 @@ type Delivered_filesEdge{
     delivered_files(search: searchDelivered_filesInput, order: [ orderDelivered_filesInput ], pagination: paginationInput! ): [delivered_files]
     readOneDelivered_files(id: ID!): delivered_files
     countDelivered_files(search: searchDelivered_filesInput ): Int
-    vueTableDelivered_files : VueTableDelivered_files
     csvTableTemplateDelivered_files: [String]
     delivered_filesConnection(search:searchDelivered_filesInput, order: [ orderDelivered_filesInput ], pagination: paginationCursorInput! ): Delivered_filesConnection
     validateDelivered_filesForCreation( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDelivered_filesForUpdating(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDelivered_filesForDeletion(id: ID!): Boolean!
     validateDelivered_filesAfterReading(id: ID!): Boolean!
+    """
+    delivered_filesZendroDefinition would return the static Zendro data model definition
+    """
+    delivered_filesZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addDelivered_files( who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID   , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
     updateDelivered_files(id: ID!, who_delivers: String, reception_date: Date, total_files: Int, audio_files: Int, image_files: Int, video_files: Int , addNode_delivered_files:ID, removeNode_delivered_files:ID    , skipAssociationsExistenceChecks:Boolean = false): delivered_files!
     deleteDelivered_files(id: ID!): String!
-    bulkAddDelivered_filesCsv: String!
     bulkAssociateDelivered_filesWithNode_id(bulkAssociationInput: [bulkAssociationDelivered_filesWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateDelivered_filesWithNode_id(bulkAssociationInput: [bulkAssociationDelivered_filesWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }

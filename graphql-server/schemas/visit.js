@@ -107,17 +107,6 @@ type VisitEdge{
   node: visit!
 }
 
-  type VueTableVisit{
-    data : [visit]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum visitField {
     id
     comments
@@ -161,20 +150,22 @@ type VisitEdge{
     visits(search: searchVisitInput, order: [ orderVisitInput ], pagination: paginationInput! ): [visit]
     readOneVisit(id: ID!): visit
     countVisits(search: searchVisitInput ): Int
-    vueTableVisit : VueTableVisit
     csvTableTemplateVisit: [String]
     visitsConnection(search:searchVisitInput, order: [ orderVisitInput ], pagination: paginationCursorInput! ): VisitConnection
     validateVisitForCreation( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addMonitors:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateVisitForUpdating(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addMonitors:[ID], removeMonitors:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateVisitForDeletion(id: ID!): Boolean!
     validateVisitAfterReading(id: ID!): Boolean!
+    """
+    visitsZendroDefinition would return the static Zendro data model definition
+    """
+    visitsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addVisit( comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCumulus_visit:ID, addUnique_node_pristine:ID, addUnique_node_disturbed:ID  , addMonitors:[ID] , skipAssociationsExistenceChecks:Boolean = false): visit!
     updateVisit(id: ID!, comments: String, date_sipecam_first_season: Date, date_sipecam_second_season: Date, date_first_season: Date, date_second_season: Date, report_first_season: String, report_second_season: String , addCumulus_visit:ID, removeCumulus_visit:ID , addUnique_node_pristine:ID, removeUnique_node_pristine:ID , addUnique_node_disturbed:ID, removeUnique_node_disturbed:ID   , addMonitors:[ID], removeMonitors:[ID]  , skipAssociationsExistenceChecks:Boolean = false): visit!
     deleteVisit(id: ID!): String!
-    bulkAddVisitCsv: String!
     bulkAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput: [bulkAssociationVisitWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateVisitWithPristine_id(bulkAssociationInput: [bulkAssociationVisitWithPristine_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

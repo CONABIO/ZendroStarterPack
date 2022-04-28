@@ -43,13 +43,13 @@ role_to_user.prototype.handleAssociations = async function(input, benignErrorRep
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let role_to_user = await resolvers.readOneRole_to_user({
         id: id
@@ -58,6 +58,7 @@ async function countAllAssociatedRecords(id, context) {
     if (role_to_user === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let get_to_many_associated_fk = 0;
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -66,7 +67,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -77,12 +78,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`role_to_user with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`role_to_user with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const role_to_user_record = await resolvers.readOneRole_to_user({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * role_to_users - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -101,8 +119,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'role_to_user', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "role_to_users");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await role_to_user.readAll(search, order, pagination, benignErrorReporter);
+            return await role_to_user.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -127,8 +144,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "role_to_usersConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await role_to_user.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await role_to_user.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -146,8 +162,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'role_to_user', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneRole_to_user");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await role_to_user.readById(id, benignErrorReporter);
+            return await role_to_user.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -164,23 +179,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'role_to_user', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await role_to_user.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableRole_to_user - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableRole_to_user: async function(_, context) {
-        if (await checkAuthorization(context, 'role_to_user', 'read') === true) {
-            return helper.vueTable(context.request, role_to_user, ["id"]);
+            return await role_to_user.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -199,8 +198,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -216,7 +213,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -237,8 +234,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -254,7 +249,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -273,8 +268,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'role_to_user', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -283,7 +276,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -302,8 +295,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'role_to_user', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -311,7 +302,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -336,25 +327,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdRole_to_user = await role_to_user.addOne(inputSanitized, benignErrorReporter);
-            await createdRole_to_user.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdRole_to_user = await role_to_user.addOne(inputSanitized, context.benignErrors);
+            await createdRole_to_user.handleAssociations(inputSanitized, context.benignErrors);
             return createdRole_to_user;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddRole_to_userCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddRole_to_userCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'role_to_user', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return role_to_user.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -372,8 +347,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'role_to_user', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return role_to_user.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return role_to_user.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -398,9 +373,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedRole_to_user = await role_to_user.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRole_to_user.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedRole_to_user = await role_to_user.updateOne(inputSanitized, context.benignErrors);
+            await updatedRole_to_user.handleAssociations(inputSanitized, context.benignErrors);
             return updatedRole_to_user;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -417,11 +391,25 @@ module.exports = {
      */
     csvTableTemplateRole_to_user: async function(_, context) {
         if (await checkAuthorization(context, 'role_to_user', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return role_to_user.csvTableTemplate(benignErrorReporter);
+            return role_to_user.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * role_to_usersZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    role_to_usersZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "role_to_user", "read")) === true) {
+            return role_to_user.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

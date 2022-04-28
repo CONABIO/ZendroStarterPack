@@ -255,13 +255,13 @@ monitor.prototype.remove_cumulus_monitor = async function(input, benignErrorRepo
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let monitor = await resolvers.readOneMonitor({
         id: id
@@ -270,9 +270,11 @@ async function countAllAssociatedRecords(id, context) {
     if (monitor === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let get_to_many_associated_fk = 0;
 
-    promises_to_many.push(monitor.countFilteredVisits({}, context));
+    get_to_many_associated_fk += Array.isArray(monitor.visit_ids) ? monitor.visit_ids.length : 0;
     promises_to_one.push(monitor.cumulus_monitor({}, context));
+
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -280,7 +282,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -291,12 +293,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`monitor with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`monitor with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const monitor_record = await resolvers.readOneMonitor({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * monitors - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -315,8 +334,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'monitor', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "monitors");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await monitor.readAll(search, order, pagination, benignErrorReporter);
+            return await monitor.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -341,8 +359,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "monitorsConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await monitor.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await monitor.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -360,8 +377,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'monitor', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneMonitor");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await monitor.readById(id, benignErrorReporter);
+            return await monitor.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -378,23 +394,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'monitor', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await monitor.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableMonitor - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableMonitor: async function(_, context) {
-        if (await checkAuthorization(context, 'monitor', 'read') === true) {
-            return helper.vueTable(context.request, monitor, ["id", "first_name", "last_name", "second_last_name", "contact"]);
+            return await monitor.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -413,8 +413,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -430,7 +428,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -451,8 +449,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -468,7 +464,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -487,8 +483,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'monitor', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -497,7 +491,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -516,8 +510,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'monitor', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -525,7 +517,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -550,25 +542,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdMonitor = await monitor.addOne(inputSanitized, benignErrorReporter);
-            await createdMonitor.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdMonitor = await monitor.addOne(inputSanitized, context.benignErrors);
+            await createdMonitor.handleAssociations(inputSanitized, context.benignErrors);
             return createdMonitor;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddMonitorCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddMonitorCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'monitor', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return monitor.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -586,8 +562,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'monitor', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return monitor.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return monitor.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -612,9 +588,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedMonitor = await monitor.updateOne(inputSanitized, benignErrorReporter);
-            await updatedMonitor.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedMonitor = await monitor.updateOne(inputSanitized, context.benignErrors);
+            await updatedMonitor.handleAssociations(inputSanitized, context.benignErrors);
             return updatedMonitor;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -629,7 +604,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateMonitorWithCumulus_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -639,7 +613,7 @@ module.exports = {
                 id
             }) => id)), monitor);
         }
-        return await monitor.bulkAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await monitor.bulkAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateMonitorWithCumulus_id - bulkDisAssociaton resolver of given ids
@@ -649,7 +623,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateMonitorWithCumulus_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -659,7 +632,7 @@ module.exports = {
                 id
             }) => id)), monitor);
         }
-        return await monitor.bulkDisAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await monitor.bulkDisAssociateMonitorWithCumulus_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
@@ -671,11 +644,25 @@ module.exports = {
      */
     csvTableTemplateMonitor: async function(_, context) {
         if (await checkAuthorization(context, 'monitor', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return monitor.csvTableTemplate(benignErrorReporter);
+            return monitor.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * monitorsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    monitorsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "monitor", "read")) === true) {
+            return monitor.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

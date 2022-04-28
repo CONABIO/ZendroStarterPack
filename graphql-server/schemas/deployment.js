@@ -101,17 +101,6 @@ type DeploymentEdge{
   node: deployment!
 }
 
-  type VueTableDeployment{
-    data : [deployment]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum deploymentField {
     id
     date_deployment
@@ -154,20 +143,22 @@ type DeploymentEdge{
     deployments(search: searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationInput! ): [deployment]
     readOneDeployment(id: ID!): deployment
     countDeployments(search: searchDeploymentInput ): Int
-    vueTableDeployment : VueTableDeployment
     csvTableTemplateDeployment: [String]
     deploymentsConnection(search:searchDeploymentInput, order: [ orderDeploymentInput ], pagination: paginationCursorInput! ): DeploymentConnection
     validateDeploymentForCreation( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDeploymentForUpdating(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateDeploymentForDeletion(id: ID!): Boolean!
     validateDeploymentAfterReading(id: ID!): Boolean!
+    """
+    deploymentsZendroDefinition would return the static Zendro data model definition
+    """
+    deploymentsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addDeployment( date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String , addDevice:ID, addNode:ID, addCumulus:ID  , addFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): deployment!
     updateDeployment(id: ID!, date_deployment: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String , addDevice:ID, removeDevice:ID , addNode:ID, removeNode:ID , addCumulus:ID, removeCumulus:ID   , addFiles:[ID], removeFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): deployment!
     deleteDeployment(id: ID!): String!
-    bulkAddDeploymentCsv: String!
     bulkAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateDeploymentWithDevice_id(bulkAssociationInput: [bulkAssociationDeploymentWithDevice_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateDeploymentWithNode_id(bulkAssociationInput: [bulkAssociationDeploymentWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

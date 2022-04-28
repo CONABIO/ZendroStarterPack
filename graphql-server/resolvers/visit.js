@@ -11,8 +11,6 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
-const CreateVisitToCumulus = require('../utils/create-visit-to-cumulus');
-const updateSipecamCalendar = require('../utils/update-sipecam-calendar');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
@@ -316,7 +314,6 @@ visit.prototype.add_monitors = async function(input, benignErrorReporter) {
 visit.prototype.add_cumulus_visit = async function(input, benignErrorReporter) {
     await visit.add_cumulus_id(this.getIdValue(), input.addCumulus_visit, benignErrorReporter);
     this.cumulus_id = input.addCumulus_visit;
-    await CreateVisitToCumulus(this.cumulus_id);
 }
 
 /**
@@ -326,6 +323,31 @@ visit.prototype.add_cumulus_visit = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 visit.prototype.add_unique_node_pristine = async function(input, benignErrorReporter) {
+    const associated = await visit.readAllCursor({
+            field: "pristine_id",
+            operator: "eq",
+            value: input.addUnique_node_pristine
+        },
+        undefined, {
+            first: 2
+        },
+        benignErrorReporter
+    );
+    const num = associated.visits.length;
+    if (num > 0) {
+        if (num > 1) {
+            benignErrorReporter.push({
+                message: `Please manually fix inconsistent data! Record has been added without association!`,
+            });
+            return 0;
+        } else {
+            const id = associated.visits[0].id;
+            const removed = await visit.remove_pristine_id(id, input.addUnique_node_pristine, benignErrorReporter);
+            benignErrorReporter.push({
+                message: `Hint: update ${removed} existing association!`,
+            });
+        }
+    }
     await visit.add_pristine_id(this.getIdValue(), input.addUnique_node_pristine, benignErrorReporter);
     this.pristine_id = input.addUnique_node_pristine;
 }
@@ -337,6 +359,31 @@ visit.prototype.add_unique_node_pristine = async function(input, benignErrorRepo
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 visit.prototype.add_unique_node_disturbed = async function(input, benignErrorReporter) {
+    const associated = await visit.readAllCursor({
+            field: "disturbed_id",
+            operator: "eq",
+            value: input.addUnique_node_disturbed
+        },
+        undefined, {
+            first: 2
+        },
+        benignErrorReporter
+    );
+    const num = associated.visits.length;
+    if (num > 0) {
+        if (num > 1) {
+            benignErrorReporter.push({
+                message: `Please manually fix inconsistent data! Record has been added without association!`,
+            });
+            return 0;
+        } else {
+            const id = associated.visits[0].id;
+            const removed = await visit.remove_disturbed_id(id, input.addUnique_node_disturbed, benignErrorReporter);
+            benignErrorReporter.push({
+                message: `Hint: update ${removed} existing association!`,
+            });
+        }
+    }
     await visit.add_disturbed_id(this.getIdValue(), input.addUnique_node_disturbed, benignErrorReporter);
     this.disturbed_id = input.addUnique_node_disturbed;
 }
@@ -396,13 +443,13 @@ visit.prototype.remove_unique_node_disturbed = async function(input, benignError
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let visit = await resolvers.readOneVisit({
         id: id
@@ -411,11 +458,13 @@ async function countAllAssociatedRecords(id, context) {
     if (visit === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let get_to_many_associated_fk = 0;
 
-    promises_to_many.push(visit.countFilteredMonitors({}, context));
+    get_to_many_associated_fk += Array.isArray(visit.monitor_ids) ? visit.monitor_ids.length : 0;
     promises_to_one.push(visit.cumulus_visit({}, context));
     promises_to_one.push(visit.unique_node_pristine({}, context));
     promises_to_one.push(visit.unique_node_disturbed({}, context));
+
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -423,7 +472,7 @@ async function countAllAssociatedRecords(id, context) {
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -434,12 +483,29 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`visit with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`visit with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+const updateAssociations = async (id, context) => {
+    const visit_record = await resolvers.readOneVisit({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
+}
 module.exports = {
     /**
      * visits - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -458,8 +524,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'visit', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "visits");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await visit.readAll(search, order, pagination, benignErrorReporter);
+            return await visit.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -484,8 +549,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "visitsConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await visit.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await visit.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -503,8 +567,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'visit', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneVisit");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await visit.readById(id, benignErrorReporter);
+            return await visit.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -521,23 +584,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'visit', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await visit.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableVisit - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableVisit: async function(_, context) {
-        if (await checkAuthorization(context, 'visit', 'read') === true) {
-            return helper.vueTable(context.request, visit, ["id", "comments", "report_first_season", "report_second_season"]);
+            return await visit.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -556,8 +603,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -573,7 +618,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -594,8 +639,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -611,7 +654,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -630,8 +673,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'visit', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -640,7 +681,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -659,8 +700,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'visit', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -668,7 +707,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -693,25 +732,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdVisit = await visit.addOne(inputSanitized, benignErrorReporter);
-            await createdVisit.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdVisit = await visit.addOne(inputSanitized, context.benignErrors);
+            await createdVisit.handleAssociations(inputSanitized, context.benignErrors);
             return createdVisit;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddVisitCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddVisitCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'visit', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return visit.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -729,8 +752,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'visit', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return visit.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return visit.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -755,10 +778,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedVisit = await visit.updateOne(inputSanitized, benignErrorReporter);
-            await updatedVisit.handleAssociations(inputSanitized, benignErrorReporter);
-            await updateSipecamCalendar(inputSanitized,updatedVisit);
+            let updatedVisit = await visit.updateOne(inputSanitized, context.benignErrors);
+            await updatedVisit.handleAssociations(inputSanitized, context.benignErrors);
             return updatedVisit;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -773,7 +794,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateVisitWithCumulus_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -783,7 +803,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkAssociateVisitWithPristine_id - bulkAssociaton resolver of given ids
@@ -793,7 +813,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateVisitWithPristine_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -803,7 +822,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkAssociateVisitWithDisturbed_id - bulkAssociaton resolver of given ids
@@ -813,7 +832,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateVisitWithDisturbed_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -823,7 +841,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateVisitWithCumulus_id - bulkDisAssociaton resolver of given ids
@@ -833,7 +851,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateVisitWithCumulus_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -843,7 +860,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkDisAssociateVisitWithCumulus_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateVisitWithPristine_id - bulkDisAssociaton resolver of given ids
@@ -853,7 +870,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateVisitWithPristine_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -863,7 +879,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkDisAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkDisAssociateVisitWithPristine_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateVisitWithDisturbed_id - bulkDisAssociaton resolver of given ids
@@ -873,7 +889,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateVisitWithDisturbed_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -883,7 +898,7 @@ module.exports = {
                 id
             }) => id)), visit);
         }
-        return await visit.bulkDisAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await visit.bulkDisAssociateVisitWithDisturbed_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
@@ -895,11 +910,25 @@ module.exports = {
      */
     csvTableTemplateVisit: async function(_, context) {
         if (await checkAuthorization(context, 'visit', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return visit.csvTableTemplate(benignErrorReporter);
+            return visit.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+
+    /**
+     * visitsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    visitsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "visit", "read")) === true) {
+            return visit.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
 }

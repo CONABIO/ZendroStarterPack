@@ -77,4 +77,5 @@ module.exports = `
   scalar GeometryCollection
   scalar Feature
   scalar FeatureCollection
+  scalar GraphQLJSONObject
 `;

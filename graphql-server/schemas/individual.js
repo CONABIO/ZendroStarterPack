@@ -90,17 +90,6 @@ type IndividualEdge{
   node: individual!
 }
 
-  type VueTableIndividual{
-    data : [individual]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum individualField {
     id
     date_trap
@@ -141,20 +130,22 @@ type IndividualEdge{
     individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput! ): [individual]
     readOneIndividual(id: ID!): individual
     countIndividuals(search: searchIndividualInput ): Int
-    vueTableIndividual : VueTableIndividual
     csvTableTemplateIndividual: [String]
     individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput! ): IndividualConnection
     validateIndividualForCreation( date_trap: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String, clave_posicion_malla: String, arete: Int , addAssociated_node:ID, addAssociated_cumulus:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateIndividualForUpdating(id: ID!, date_trap: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String, clave_posicion_malla: String, arete: Int , addAssociated_node:ID, removeAssociated_node:ID , addAssociated_cumulus:ID, removeAssociated_cumulus:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateIndividualForDeletion(id: ID!): Boolean!
     validateIndividualAfterReading(id: ID!): Boolean!
+    """
+    individualsZendroDefinition would return the static Zendro data model definition
+    """
+    individualsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addIndividual( date_trap: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String, clave_posicion_malla: String, arete: Int , addAssociated_node:ID, addAssociated_cumulus:ID   , skipAssociationsExistenceChecks:Boolean = false): individual!
     updateIndividual(id: ID!, date_trap: DateTime, latitude: Float, longitude: Float, altitude: Float, comments: String, metadata: JSON, kobo_url: String, clave_posicion_malla: String, arete: Int , addAssociated_node:ID, removeAssociated_node:ID , addAssociated_cumulus:ID, removeAssociated_cumulus:ID    , skipAssociationsExistenceChecks:Boolean = false): individual!
     deleteIndividual(id: ID!): String!
-    bulkAddIndividualCsv: String!
     bulkAssociateIndividualWithNode_id(bulkAssociationInput: [bulkAssociationIndividualWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateIndividualWithNode_id(bulkAssociationInput: [bulkAssociationIndividualWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateIndividualWithCumulus_id(bulkAssociationInput: [bulkAssociationIndividualWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

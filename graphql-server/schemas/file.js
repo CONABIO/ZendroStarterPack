@@ -53,17 +53,6 @@ type FileEdge{
   node: file!
 }
 
-  type VueTableFile{
-    data : [file]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum fileField {
     id
     url
@@ -95,20 +84,22 @@ type FileEdge{
     files(search: searchFileInput, order: [ orderFileInput ], pagination: paginationInput! ): [file]
     readOneFile(id: ID!): file
     countFiles(search: searchFileInput ): Int
-    vueTableFile : VueTableFile
     csvTableTemplateFile: [String]
     filesConnection(search:searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput! ): FileConnection
     validateFileForCreation( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForUpdating(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForDeletion(id: ID!): Boolean!
     validateFileAfterReading(id: ID!): Boolean!
+    """
+    filesZendroDefinition would return the static Zendro data model definition
+    """
+    filesZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addFile( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
     updateFile(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
     deleteFile(id: ID!): String!
-    bulkAddFileCsv: String!
     bulkAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }

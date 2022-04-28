@@ -172,17 +172,6 @@ type CumulusEdge{
   node: cumulus!
 }
 
-  type VueTableCumulus{
-    data : [cumulus]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum cumulusField {
     id
     name
@@ -218,20 +207,22 @@ type CumulusEdge{
     cumulus(search: searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationInput! ): [cumulus]
     readOneCumulus(id: ID!): cumulus
     countCumulus(search: searchCumulusInput ): Int
-    vueTableCumulus : VueTableCumulus
     csvTableTemplateCumulus: [String]
     cumulusConnection(search:searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput! ): CumulusConnection
     validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCumulusForDeletion(id: ID!): Boolean!
     validateCumulusAfterReading(id: ID!): Boolean!
+    """
+    cumulusZendroDefinition would return the static Zendro data model definition
+    """
+    cumulusZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addCumulus( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     updateCumulus(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
-    bulkAddCumulusCsv: String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput: [bulkAssociationCumulusWithEcosystem_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

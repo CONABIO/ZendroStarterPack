@@ -1115,13 +1115,13 @@ cumulus.prototype.remove_unique_ecosystem = async function(input, benignErrorRep
 
 
 /**
- * countAllAssociatedRecords - Count records associated with another given record
+ * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
  * @param  {ID} id      Id of the record which the associations will be counted
  * @param  {objec} context Default context by resolver
  * @return {Int}         Number of associated records
  */
-async function countAllAssociatedRecords(id, context) {
+async function countAssociatedRecordsWithRejectReaction(id, context) {
 
     let cumulus = await resolvers.readOneCumulus({
         id: id
@@ -1130,9 +1130,10 @@ async function countAllAssociatedRecords(id, context) {
     if (cumulus === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
-
+    let get_to_many_associated_fk = 0;
     promises_to_many.push(cumulus.countFilteredDevices({}, context));
-    promises_to_many.push(cumulus.countFilteredAssociated_partners({}, context));
+
+    get_to_many_associated_fk += Array.isArray(cumulus.user_ids) ? cumulus.user_ids.length : 0;
     promises_to_many.push(cumulus.countFilteredVisits({}, context));
     promises_to_many.push(cumulus.countFilteredMonitors({}, context));
     promises_to_many.push(cumulus.countFilteredNodes({}, context));
@@ -1141,13 +1142,14 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_one.push(cumulus.cumulus_criteria({}, context));
     promises_to_one.push(cumulus.unique_ecosystem({}, context));
 
+
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
 }
 
 /**
@@ -1158,10 +1160,28 @@ async function countAllAssociatedRecords(id, context) {
  * @return {boolean}         True if it is allowed to be deleted and false otherwise
  */
 async function validForDeletion(id, context) {
-    if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`cumulus with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
+        throw new Error(`cumulus with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
+}
+
+/**
+ * updateAssociations - update associations for a given record
+ *
+ * @param  {ID} id      Id of record
+ * @param  {object} context Default context by resolver
+ */
+ const updateAssociations = async (id, context) => {
+    const cumulus_record = await resolvers.readOneCumulus({
+            id: id
+        },
+        context
+    );
+    const pagi_first = globals.LIMIT_RECORDS;
+
+
+
 }
 
 /**
@@ -1264,8 +1284,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'cumulus', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "cumulus");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await cumulus.readAll(search, order, pagination, benignErrorReporter);
+            return await cumulus.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1290,8 +1309,7 @@ module.exports = {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
             helper.checkCountAndReduceRecordsLimit(limit, context, "cumulusConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await cumulus.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await cumulus.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1309,8 +1327,7 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'cumulus', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneCumulus");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await cumulus.readById(id, benignErrorReporter);
+            return await cumulus.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1327,23 +1344,7 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'cumulus', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await cumulus.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableCumulus - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableCumulus: async function(_, context) {
-        if (await checkAuthorization(context, 'cumulus', 'read') === true) {
-            return helper.vueTable(context.request, cumulus, ["id", "name"]);
+            return await cumulus.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1362,8 +1363,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -1379,7 +1378,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -1400,8 +1399,6 @@ module.exports = {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
             ]);
-
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             try {
                 if (!input.skipAssociationsExistenceChecks) {
                     await helper.validateAssociationArgsExistence(
@@ -1417,7 +1414,7 @@ module.exports = {
                 );
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -1436,8 +1433,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'cumulus', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
@@ -1446,7 +1441,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -1465,8 +1460,6 @@ module.exports = {
         id
     }, context) => {
         if ((await checkAuthorization(context, 'cumulus', 'read')) === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
@@ -1474,7 +1467,7 @@ module.exports = {
                     id);
                 return true;
             } catch (error) {
-                benignErrorReporter.reportError(error);
+                context.benignErrors.push(error);
                 return false;
             }
         } else {
@@ -1499,25 +1492,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdCumulus = await cumulus.addOne(inputSanitized, benignErrorReporter);
-            await createdCumulus.handleAssociations(inputSanitized, benignErrorReporter);
+            let createdCumulus = await cumulus.addOne(inputSanitized, context.benignErrors);
+            await createdCumulus.handleAssociations(inputSanitized, context.benignErrors);
             return createdCumulus;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * bulkAddCumulusCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddCumulusCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'cumulus', 'create') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return cumulus.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1535,8 +1512,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'cumulus', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return cumulus.deleteOne(id, benignErrorReporter);
+                await updateAssociations(id, context);
+                return cumulus.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -1561,9 +1538,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedCumulus = await cumulus.updateOne(inputSanitized, benignErrorReporter);
-            await updatedCumulus.handleAssociations(inputSanitized, benignErrorReporter);
+            let updatedCumulus = await cumulus.updateOne(inputSanitized, context.benignErrors);
+            await updatedCumulus.handleAssociations(inputSanitized, context.benignErrors);
             return updatedCumulus;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -1578,7 +1554,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateCumulusWithCriteria_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -1588,7 +1563,7 @@ module.exports = {
                 id
             }) => id)), cumulus);
         }
-        return await cumulus.bulkAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await cumulus.bulkAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkAssociateCumulusWithEcosystem_id - bulkAssociaton resolver of given ids
@@ -1598,7 +1573,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkAssociateCumulusWithEcosystem_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -1608,7 +1582,7 @@ module.exports = {
                 id
             }) => id)), cumulus);
         }
-        return await cumulus.bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await cumulus.bulkAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateCumulusWithCriteria_id - bulkDisAssociaton resolver of given ids
@@ -1618,7 +1592,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateCumulusWithCriteria_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -1628,7 +1601,7 @@ module.exports = {
                 id
             }) => id)), cumulus);
         }
-        return await cumulus.bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await cumulus.bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateCumulusWithEcosystem_id - bulkDisAssociaton resolver of given ids
@@ -1638,7 +1611,6 @@ module.exports = {
      * @return {string} returns message on success
      */
     bulkDisAssociateCumulusWithEcosystem_id: async function(bulkAssociationInput, context) {
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -1648,7 +1620,7 @@ module.exports = {
                 id
             }) => id)), cumulus);
         }
-        return await cumulus.bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await cumulus.bulkDisAssociateCumulusWithEcosystem_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
@@ -1660,13 +1632,26 @@ module.exports = {
      */
     csvTableTemplateCumulus: async function(_, context) {
         if (await checkAuthorization(context, 'cumulus', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return cumulus.csvTableTemplate(benignErrorReporter);
+            return cumulus.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
+    /**
+     * cumulusZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    cumulusZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "cumulus", "read")) === true) {
+            return cumulus.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * updateOrCreateConvexHull - Updates cumulus geometry with convex hull created from all nodes associeted with it
      * 
@@ -1675,7 +1660,7 @@ module.exports = {
      * @param   {boolean} add                    boolean that indicates if node is going to be added or removed
      * @return  {boolean}                        This function only return true
      */
-    updateOrCreateConvexHull: async function(nodeCumulus,currentAssociation,add) {
+     updateOrCreateConvexHull: async function(nodeCumulus,currentAssociation,add) {
         // Remove node from convex hull geom for the previuos cumulus
         //
         // third value in createAndSaveConvexHull set to false, to indicate that
@@ -1688,6 +1673,6 @@ module.exports = {
             await createAndSaveConvexHull(nodeCumulus.addCumulus_node,nodeCumulus.id,true); 
 
         return true;
-    }
+    },
 
 }

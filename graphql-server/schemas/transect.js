@@ -77,17 +77,6 @@ type TransectEdge{
   node: transect!
 }
 
-  type VueTableTransect{
-    data : [transect]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum transectField {
     id
     number
@@ -123,20 +112,22 @@ type TransectEdge{
     transects(search: searchTransectInput, order: [ orderTransectInput ], pagination: paginationInput! ): [transect]
     readOneTransect(id: ID!): transect
     countTransects(search: searchTransectInput ): Int
-    vueTableTransect : VueTableTransect
     csvTableTemplateTransect: [String]
     transectsConnection(search:searchTransectInput, order: [ orderTransectInput ], pagination: paginationCursorInput! ): TransectConnection
     validateTransectForCreation( number: Int, sum_vegetation_structure: Float, sum_indicator_species: Float, sum_impact: Float, date_transecto: DateTime, latitude: Float, longitude: Float, percentage: Float , addAssociated_node:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateTransectForUpdating(id: ID!, number: Int, sum_vegetation_structure: Float, sum_indicator_species: Float, sum_impact: Float, date_transecto: DateTime, latitude: Float, longitude: Float, percentage: Float , addAssociated_node:ID, removeAssociated_node:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateTransectForDeletion(id: ID!): Boolean!
     validateTransectAfterReading(id: ID!): Boolean!
+    """
+    transectsZendroDefinition would return the static Zendro data model definition
+    """
+    transectsZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addTransect( number: Int, sum_vegetation_structure: Float, sum_indicator_species: Float, sum_impact: Float, date_transecto: DateTime, latitude: Float, longitude: Float, percentage: Float , addAssociated_node:ID   , skipAssociationsExistenceChecks:Boolean = false): transect!
     updateTransect(id: ID!, number: Int, sum_vegetation_structure: Float, sum_indicator_species: Float, sum_impact: Float, date_transecto: DateTime, latitude: Float, longitude: Float, percentage: Float , addAssociated_node:ID, removeAssociated_node:ID    , skipAssociationsExistenceChecks:Boolean = false): transect!
     deleteTransect(id: ID!): String!
-    bulkAddTransectCsv: String!
     bulkAssociateTransectWithNode_id(bulkAssociationInput: [bulkAssociationTransectWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateTransectWithNode_id(bulkAssociationInput: [bulkAssociationTransectWithNode_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }

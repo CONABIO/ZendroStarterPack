@@ -50,17 +50,6 @@ type RoleEdge{
   node: role!
 }
 
-  type VueTableRole{
-    data : [role]
-    total: Int
-    per_page: Int
-    current_page: Int
-    last_page: Int
-    prev_page_url: String
-    next_page_url: String
-    from: Int
-    to: Int
-  }
   enum roleField {
     id
     name
@@ -86,19 +75,21 @@ type RoleEdge{
     roles(search: searchRoleInput, order: [ orderRoleInput ], pagination: paginationInput! ): [role]
     readOneRole(id: ID!): role
     countRoles(search: searchRoleInput ): Int
-    vueTableRole : VueTableRole
     csvTableTemplateRole: [String]
     rolesConnection(search:searchRoleInput, order: [ orderRoleInput ], pagination: paginationCursorInput! ): RoleConnection
     validateRoleForCreation( name: String, description: String   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateRoleForUpdating(id: ID!, name: String, description: String   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateRoleForDeletion(id: ID!): Boolean!
     validateRoleAfterReading(id: ID!): Boolean!
+    """
+    rolesZendroDefinition would return the static Zendro data model definition
+    """
+    rolesZendroDefinition: GraphQLJSONObject
   }
 
   type Mutation {
     addRole( name: String, description: String   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
     updateRole(id: ID!, name: String, description: String   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): role!
     deleteRole(id: ID!): String!
-    bulkAddRoleCsv: String!
       }
 `;
