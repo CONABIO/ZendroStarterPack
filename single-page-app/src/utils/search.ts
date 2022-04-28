@@ -33,14 +33,6 @@ export function createSearch(
         value: `%${value}%`,
         operator: 'like',
       });
-    } else if (type === '[Int]') {
-      const validIntArray = value.split(',').every(isIntValue);
-      if (validIntArray)
-        acc.push({
-          field: name,
-          value: value,
-          operator: 'in',
-        });
     } else if (type === 'uuid' && isUUID(value)) {
       acc.push({
         field: name,

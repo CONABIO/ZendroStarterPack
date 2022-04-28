@@ -13,6 +13,7 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
+const { parseInt } = require('lodash');
 const associationArgsDef = {
     'addDevice': 'device_catalog',
     'addCumulus_device': 'cumulus',
@@ -301,10 +302,32 @@ physical_device.prototype.remove_device = async function(input, benignErrorRepor
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 physical_device.prototype.remove_cumulus_device = async function(input, benignErrorReporter) {
+    let toChange = await physical_device.findOne({
+        where: { 
+            id: this.getIdValue() 
+        }
+    });
+    let previous_ids =  [];
+    if(toChange.previous_cumulus_ids)
+        previous_ids = toChange.previous_cumulus_ids
+                                                .replace('[','')
+                                                .replace(']','')
+                                                .split(',')
+                                                .map(v => parseInt(v));
+
+    if( ! previous_ids.includes(this.cumulus_id) )
+        previous_ids.push(this.cumulus_id)
+    
+    await physical_device.update(
+        { "previous_cumulus_ids": '[' + previous_ids.toString() + ']'},
+        { returning: true, where: {id: this.getIdValue() } }
+    );
+
     if (input.removeCumulus_device == this.cumulus_id) {
         await physical_device.remove_cumulus_id(this.getIdValue(), input.removeCumulus_device, benignErrorReporter);
         this.cumulus_id = null;
     }
+    
 }
 
 

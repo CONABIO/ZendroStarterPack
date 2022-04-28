@@ -5,6 +5,7 @@
 const path = require('path');
 const cumulus = require(path.join(__dirname, '..', 'models', 'index.js')).cumulus;
 const node = require(path.join(__dirname, '..', 'models', 'index.js')).node;
+const physical_device = require(path.join(__dirname, '..', 'models', 'index.js')).physical_device;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -979,6 +980,28 @@ cumulus.prototype.remove_devices = async function(input, benignErrorReporter) {
             [models.physical_device.idAttribute()]: associatedRecordId
         }
     });
+    for(const device of bulkAssociationInput) {
+        let toChange = await physical_device.findOne({
+            where: { 
+                id: device.id
+            }
+        });
+        let previous_ids =  [];
+        if(toChange.previous_cumulus_ids)
+            previous_ids = toChange.previous_cumulus_ids
+                                                    .replace('[','')
+                                                    .replace(']','')
+                                                    .split(',')
+                                                    .map(v => parseInt(v));
+    
+        if( ! previous_ids.includes(device.cumulus_id) )
+            previous_ids.push(device.cumulus_id)
+        
+        await physical_device.update(
+            { "previous_cumulus_ids": '[' + previous_ids.toString() + ']'},
+            { returning: true, where: {id: device.id } }
+        );
+    }
     await models.physical_device.bulkDisAssociatePhysical_deviceWithCumulus_id(bulkAssociationInput, benignErrorReporter);
 }
 
