@@ -2,7 +2,11 @@
 const modelWhitelist = [
     "cumulus",
     "node",
-    "ecosystem"
+    "ecosystem",
+    "visit",
+    "individual",
+    "physical_device",
+    "deployment"
 ];
 
 const actionsWhitelist = [
