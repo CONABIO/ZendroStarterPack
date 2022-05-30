@@ -6,7 +6,8 @@ const modelWhitelist = [
     "visit",
     "individual",
     "physical_device",
-    "deployment"
+    "deployment",
+    "transect"
 ];
 
 const actionsWhitelist = [
