@@ -18,6 +18,7 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: [
+                    'annotation',
                     'calendar',
                     'cumulus',
                     'cumulus_criteria',
@@ -45,6 +46,7 @@ module.exports = {
             roles: 'reader',
             allows: [{
                 resources: [
+                    'annotation',
                     'calendar',
                     'cumulus',
                     'cumulus_criteria',

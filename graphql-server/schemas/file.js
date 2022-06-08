@@ -14,13 +14,7 @@ module.exports = `
     @original-field
     
     """
-    metadata: JSON
-
-    """
-    @original-field
-    
-    """
-    date: DateTime
+    id_alfresco: String
 
     """
     @original-field
@@ -32,10 +26,38 @@ module.exports = `
     @original-field
     
     """
+    updatedAt: DateTime
+
+    """
+    @original-field
+    
+    """
+    createdAt: DateTime
+
+    """
+    @original-field
+    
+    """
     deployment_id: Int
 
     associated_deployment(search: searchDeploymentInput): deployment
     
+    """
+    @search-request
+    """
+    file_annotationsFilter(search: searchAnnotationInput, order: [ orderAnnotationInput ], pagination: paginationInput!): [annotation]
+
+
+    """
+    @search-request
+    """
+    file_annotationsConnection(search: searchAnnotationInput, order: [ orderAnnotationInput ], pagination: paginationCursorInput!): AnnotationConnection
+
+    """
+    @count-request
+    """
+    countFilteredFile_annotations(search: searchAnnotationInput) : Int
+  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -56,9 +78,10 @@ type FileEdge{
   enum fileField {
     id
     url
-    metadata
-    date
+    id_alfresco
     storage
+    updatedAt
+    createdAt
     deployment_id
   }
   
@@ -86,8 +109,8 @@ type FileEdge{
     countFiles(search: searchFileInput ): Int
     csvTableTemplateFile: [String]
     filesConnection(search:searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput! ): FileConnection
-    validateFileForCreation( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateFileForUpdating(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForCreation( url: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForUpdating(id: ID!, url: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForDeletion(id: ID!): Boolean!
     validateFileAfterReading(id: ID!): Boolean!
     """
@@ -97,8 +120,8 @@ type FileEdge{
   }
 
   type Mutation {
-    addFile( url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID   , skipAssociationsExistenceChecks:Boolean = false): file!
-    updateFile(id: ID!, url: String, metadata: JSON, date: DateTime, storage: String , addAssociated_deployment:ID, removeAssociated_deployment:ID    , skipAssociationsExistenceChecks:Boolean = false): file!
+    addFile( url: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): file!
+    updateFile(id: ID!, url: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): file!
     deleteFile(id: ID!): String!
     bulkAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

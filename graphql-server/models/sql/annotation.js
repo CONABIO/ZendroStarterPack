@@ -18,31 +18,21 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'file',
+    model: 'annotation',
     storageType: 'sql',
     attributes: {
-        url: 'String',
-        id_alfresco: 'String',
-        storage: 'String',
+        has_fauna: 'Boolean',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        deployment_id: 'Int'
+        comments: 'String',
+        file_id: 'Int'
     },
     associations: {
-        associated_deployment: {
+        fileTo: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'files',
-            target: 'deployment',
-            targetKey: 'deployment_id',
-            keysIn: 'file',
-            targetStorageType: 'sql'
-        },
-        file_annotations: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'fileTo',
-            target: 'annotation',
+            reverseAssociation: 'file_annotations',
+            target: 'file',
             targetKey: 'file_id',
             keysIn: 'annotation',
             targetStorageType: 'sql'
@@ -59,7 +49,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class file extends Sequelize.Model {
+module.exports = class annotation extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -69,14 +59,8 @@ module.exports = class file extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            url: {
-                type: Sequelize[dict['String']]
-            },
-            id_alfresco: {
-                type: Sequelize[dict['String']]
-            },
-            storage: {
-                type: Sequelize[dict['String']]
+            has_fauna: {
+                type: Sequelize[dict['Boolean']]
             },
             updatedAt: {
                 type: Sequelize[dict['DateTime']]
@@ -84,14 +68,17 @@ module.exports = class file extends Sequelize.Model {
             createdAt: {
                 type: Sequelize[dict['DateTime']]
             },
-            deployment_id: {
+            comments: {
+                type: Sequelize[dict['String']]
+            },
+            file_id: {
                 type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "file",
-            tableName: "files",
+            modelName: "annotation",
+            tableName: "annotations",
             sequelize
         });
     }
@@ -139,12 +126,8 @@ module.exports = class file extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        file.belongsTo(models.deployment, {
-            as: 'associated_deployment',
-            foreignKey: 'deployment_id'
-        });
-        file.hasMany(models.annotation, {
-            as: 'file_annotations',
+        annotation.belongsTo(models.file, {
+            as: 'fileTo',
             foreignKey: 'file_id'
         });
     }
@@ -157,13 +140,13 @@ module.exports = class file extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: file.idAttribute(),
+            field: annotation.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await file.readAllCursor(queryArg);
-        cursorRes = cursorRes.files.reduce(
-            (map, obj) => ((map[obj[file.idAttribute()]] = obj), map), {}
+        let cursorRes = await annotation.readAllCursor(queryArg);
+        cursorRes = cursorRes.annotations.reduce(
+            (map, obj) => ((map[obj[annotation.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -171,7 +154,7 @@ module.exports = class file extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(file.batchReadById, {
+    static readByIdLoader = new DataLoader(annotation.batchReadById, {
         cache: false,
     });
 
@@ -180,11 +163,11 @@ module.exports = class file extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type file, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type annotation, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await file.readByIdLoader.load(id);
+        return await annotation.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -196,7 +179,7 @@ module.exports = class file extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, file.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, annotation.definition.attributes);
         return super.count(options);
     }
 
@@ -211,9 +194,9 @@ module.exports = class file extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), file.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => file.postReadCast(x))
+        records = records.map(x => annotation.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -229,10 +212,10 @@ module.exports = class file extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), file.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => file.postReadCast(x))
+        records = records.map(x => annotation.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -243,7 +226,7 @@ module.exports = class file extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), file.definition.attributes);
+            }, this.idAttribute(), annotation.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -252,7 +235,7 @@ module.exports = class file extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            files: edges.map((edge) => edge.node)
+            annotations: edges.map((edge) => edge.node)
         };
     }
 
@@ -266,7 +249,7 @@ module.exports = class file extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = file.preWriteCast(input)
+        input = annotation.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -274,8 +257,8 @@ module.exports = class file extends Sequelize.Model {
                 });
                 return item;
             });
-            file.postReadCast(result.dataValues)
-            file.postReadCast(result._previousDataValues)
+            annotation.postReadCast(result.dataValues)
+            annotation.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -315,7 +298,7 @@ module.exports = class file extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = file.preWriteCast(input)
+        input = annotation.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -328,8 +311,8 @@ module.exports = class file extends Sequelize.Model {
                 });
                 return updated;
             });
-            file.postReadCast(result.dataValues)
-            file.postReadCast(result._previousDataValues)
+            annotation.postReadCast(result.dataValues)
+            annotation.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -352,16 +335,16 @@ module.exports = class file extends Sequelize.Model {
 
 
     /**
-     * add_deployment_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_file_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   deployment_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async add_deployment_id(id, deployment_id, benignErrorReporter) {
+    static async add_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await file.update({
-                deployment_id: deployment_id
+            let updated = await annotation.update({
+                file_id: file_id
             }, {
                 where: {
                     id: id
@@ -376,20 +359,20 @@ module.exports = class file extends Sequelize.Model {
     }
 
     /**
-     * remove_deployment_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   deployment_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_deployment_id(id, deployment_id, benignErrorReporter) {
+    static async remove_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await file.update({
-                deployment_id: null
+            let updated = await annotation.update({
+                file_id: null
             }, {
                 where: {
                     id: id,
-                    deployment_id: deployment_id
+                    file_id: file_id
                 }
             });
             return updated[0];
@@ -405,21 +388,21 @@ module.exports = class file extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateFileWithDeployment_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotationWithFile_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateFileWithDeployment_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "deployment_id");
+    static async bulkAssociateAnnotationWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            deployment_id,
+            file_id,
             id
         }) => {
             promises.push(super.update({
-                deployment_id: deployment_id
+                file_id: file_id
             }, {
                 where: {
                     id: id
@@ -432,25 +415,25 @@ module.exports = class file extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateFileWithDeployment_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotationWithFile_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateFileWithDeployment_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "deployment_id");
+    static async bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            deployment_id,
+            file_id,
             id
         }) => {
             promises.push(super.update({
-                deployment_id: null
+                file_id: null
             }, {
                 where: {
                     id: id,
-                    deployment_id: deployment_id
+                    file_id: file_id
                 }
             }));
         })
@@ -466,7 +449,7 @@ module.exports = class file extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return file.definition.id.name;
+        return annotation.definition.id.name;
     }
 
     /**
@@ -475,16 +458,16 @@ module.exports = class file extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return file.definition.id.type;
+        return annotation.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of file.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotation.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[file.idAttribute()];
+        return this[annotation.idAttribute()];
     }
 
     /**
@@ -505,9 +488,9 @@ module.exports = class file extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  file to a base 64 String
+     * base64Encode - Encode  annotation to a base 64 String
      *
-     * @return {string} The file object, encoded in a base 64 String
+     * @return {string} The annotation object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -518,28 +501,28 @@ module.exports = class file extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The file object, encoded in a base 64 String
+     * @return {string} The annotation object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of file.
+     * stripAssociations - Instance method for getting all attributes of annotation.
      *
-     * @return {object} The attributes of file in object form
+     * @return {object} The attributes of annotation in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(file.definition.attributes);
+        let attributes = Object.keys(annotation.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of file that are marked as external IDs.
+     * externalIdsArray - Get all attributes of annotation that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of file that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of annotation that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -551,7 +534,7 @@ module.exports = class file extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of file.
+     * externalIdsObject - Get all external IDs of annotation.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

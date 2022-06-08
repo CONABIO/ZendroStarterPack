@@ -1,0 +1,22 @@
+{
+    "model": "annotation",
+    "storageType": "sql",
+    "attributes": {
+        "has_fauna": "Boolean",
+        "updatedAt": "DateTime",
+        "createdAt": "DateTime",
+        "comments": "String",
+        "file_id": "Int"
+    },
+    "associations": {
+        "fileTo": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "file_annotations",
+            "target": "file",
+            "targetKey": "file_id",
+            "keysIn": "annotation",
+            "targetStorageType": "sql"
+        }
+    }
+}

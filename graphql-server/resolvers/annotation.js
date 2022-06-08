@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const file = require(path.join(__dirname, '..', 'models', 'index.js')).file;
+const annotation = require(path.join(__dirname, '..', 'models', 'index.js')).annotation;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,38 +14,37 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addAssociated_deployment': 'deployment',
-    'addFile_annotations': 'annotation'
+    'addFileTo': 'file'
 }
 
 
 
 /**
- * file.prototype.associated_deployment - Return associated record
+ * annotation.prototype.fileTo - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-file.prototype.associated_deployment = async function({
+annotation.prototype.fileTo = async function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.deployment_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.file_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneDeployment({
-                [models.deployment.idAttribute()]: this.deployment_id
+            return resolvers.readOneFile({
+                [models.file.idAttribute()]: this.file_id
             }, context)
         } else {
 
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.deployment.idAttribute(),
-                "value": this.deployment_id,
+                "field": models.file.idAttribute(),
+                "value": this.file_id,
                 "operator": "eq"
             });
-            let found = (await resolvers.deploymentsConnection({
+            let found = (await resolvers.filesConnection({
                 search: nsearch,
                 pagination: {
                     first: 1
@@ -59,93 +58,6 @@ file.prototype.associated_deployment = async function({
     }
 }
 
-/**
- * file.prototype.file_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-file.prototype.file_annotationsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.annotations({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * file.prototype.countFilteredFile_annotations - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-file.prototype.countFilteredFile_annotations = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countAnnotations({
-        search: nsearch
-    }, context);
-}
-
-/**
- * file.prototype.file_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-file.prototype.file_annotationsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.annotationsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -156,85 +68,45 @@ file.prototype.file_annotationsConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.handleAssociations = async function(input, benignErrorReporter) {
+annotation.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addFile_annotations)) {
-        promises_add.push(this.add_file_annotations(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addAssociated_deployment)) {
-        promises_add.push(this.add_associated_deployment(input, benignErrorReporter));
+
+    if (helper.isNotUndefinedAndNotNull(input.addFileTo)) {
+        promises_add.push(this.add_fileTo(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeFile_annotations)) {
-        promises_remove.push(this.remove_file_annotations(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeAssociated_deployment)) {
-        promises_remove.push(this.remove_associated_deployment(input, benignErrorReporter));
+
+    if (helper.isNotUndefinedAndNotNull(input.removeFileTo)) {
+        promises_remove.push(this.remove_fileTo(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_file_annotations - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_fileTo - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.add_file_annotations = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotation.bulkAssociateAnnotationWithFile_id(bulkAssociationInput, benignErrorReporter);
+annotation.prototype.add_fileTo = async function(input, benignErrorReporter) {
+    await annotation.add_file_id(this.getIdValue(), input.addFileTo, benignErrorReporter);
+    this.file_id = input.addFileTo;
 }
 
 /**
- * add_associated_deployment - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-file.prototype.add_associated_deployment = async function(input, benignErrorReporter) {
-    await file.add_deployment_id(this.getIdValue(), input.addAssociated_deployment, benignErrorReporter);
-    this.deployment_id = input.addAssociated_deployment;
-}
-
-/**
- * remove_file_annotations - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_fileTo - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.remove_file_annotations = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removeFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotation.bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_associated_deployment - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-file.prototype.remove_associated_deployment = async function(input, benignErrorReporter) {
-    if (input.removeAssociated_deployment == this.deployment_id) {
-        await file.remove_deployment_id(this.getIdValue(), input.removeAssociated_deployment, benignErrorReporter);
-        this.deployment_id = null;
+annotation.prototype.remove_fileTo = async function(input, benignErrorReporter) {
+    if (input.removeFileTo == this.file_id) {
+        await annotation.remove_file_id(this.getIdValue(), input.removeFileTo, benignErrorReporter);
+        this.file_id = null;
     }
 }
 
@@ -249,16 +121,15 @@ file.prototype.remove_associated_deployment = async function(input, benignErrorR
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let file = await resolvers.readOneFile({
+    let annotation = await resolvers.readOneAnnotation({
         id: id
     }, context);
     //check that record actually exists
-    if (file === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (annotation === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_many.push(file.countFilteredFile_annotations({}, context));
-    promises_to_one.push(file.associated_deployment({}, context));
+    promises_to_one.push(annotation.fileTo({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -279,7 +150,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`file with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`annotation with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -291,7 +162,7 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const file_record = await resolvers.readOneFile({
+    const annotation_record = await resolvers.readOneAnnotation({
             id: id
         },
         context
@@ -303,7 +174,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * files - Check user authorization and return certain number, specified in pagination argument, of records that
+     * annotations - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -312,21 +183,21 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    files: async function({
+    annotations: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "files");
-            return await file.readAll(search, order, pagination, context.benignErrors);
+        if (await checkAuthorization(context, 'annotation', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "annotations");
+            return await annotation.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * filesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -335,65 +206,65 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    filesConnection: async function({
+    annotationsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
+        if (await checkAuthorization(context, 'annotation', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "filesConnection");
-            return await file.readAllCursor(search, order, pagination, context.benignErrors);
+            helper.checkCountAndReduceRecordsLimit(limit, context, "annotationsConnection");
+            return await annotation.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneFile - Check user authorization and return one record with the specified id in the id argument.
+     * readOneAnnotation - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneFile: async function({
+    readOneAnnotation: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneFile");
-            return await file.readById(id, context.benignErrors);
+        if (await checkAuthorization(context, 'annotation', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneAnnotation");
+            return await annotation.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countFiles - Counts number of records that holds the conditions specified in the search argument
+     * countAnnotations - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countFiles: async function({
+    countAnnotations: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            return await file.countRecords(search, context.benignErrors);
+        if (await checkAuthorization(context, 'annotation', 'read') === true) {
+            return await annotation.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateFileForCreation - Check user authorization and validate input argument for creation.
+     * validateAnnotationForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'file', 'read');
+    validateAnnotationForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'annotation', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -408,7 +279,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    file,
+                    annotation,
                     inputSanitized
                 );
                 return true;
@@ -422,14 +293,14 @@ module.exports = {
     },
 
     /**
-     * validateFileForUpdating - Check user authorization and validate input argument for updating.
+     * validateAnnotationForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'file', 'read');
+    validateAnnotationForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'annotation', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -444,7 +315,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    file,
+                    annotation,
                     inputSanitized
                 );
                 return true;
@@ -458,21 +329,21 @@ module.exports = {
     },
 
     /**
-     * validateFileForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateAnnotationForDeletion - Check user authorization and validate record by ID for deletion.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForDeletion: async ({
+    validateAnnotationForDeletion: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'file', 'read')) === true) {
+        if ((await checkAuthorization(context, 'annotation', 'read')) === true) {
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    file,
+                    annotation,
                     id);
                 return true;
             } catch (error) {
@@ -485,20 +356,20 @@ module.exports = {
     },
 
     /**
-     * validateFileAfterReading - Check user authorization and validate record by ID after reading.
+     * validateAnnotationAfterReading - Check user authorization and validate record by ID after reading.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileAfterReading: async ({
+    validateAnnotationAfterReading: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'file', 'read')) === true) {
+        if ((await checkAuthorization(context, 'annotation', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    file,
+                    annotation,
                     id);
                 return true;
             } catch (error) {
@@ -510,7 +381,7 @@ module.exports = {
         }
     },
     /**
-     * addFile - Check user authorization and creates a new record with data specified in the input argument.
+     * addAnnotation - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -518,8 +389,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addFile: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'file', 'create');
+    addAnnotation: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'annotation', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -527,28 +398,28 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdFile = await file.addOne(inputSanitized, context.benignErrors);
-            await createdFile.handleAssociations(inputSanitized, context.benignErrors);
-            return createdFile;
+            let createdAnnotation = await annotation.addOne(inputSanitized, context.benignErrors);
+            await createdAnnotation.handleAssociations(inputSanitized, context.benignErrors);
+            return createdAnnotation;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteFile - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteAnnotation - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteFile: async function({
+    deleteAnnotation: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'file', 'delete') === true) {
+        if (await checkAuthorization(context, 'annotation', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
-                return file.deleteOne(id, context.benignErrors);
+                return annotation.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -556,7 +427,7 @@ module.exports = {
     },
 
     /**
-     * updateFile - Check user authorization and update the record specified in the input argument
+     * updateAnnotation - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -564,8 +435,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateFile: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'file', 'update');
+    updateAnnotation: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'annotation', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -573,78 +444,78 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedFile = await file.updateOne(inputSanitized, context.benignErrors);
-            await updatedFile.handleAssociations(inputSanitized, context.benignErrors);
-            return updatedFile;
+            let updatedAnnotation = await annotation.updateOne(inputSanitized, context.benignErrors);
+            await updatedAnnotation.handleAssociations(inputSanitized, context.benignErrors);
+            return updatedAnnotation;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAssociateFileWithDeployment_id - bulkAssociaton resolver of given ids
+     * bulkAssociateAnnotationWithFile_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
+    bulkAssociateAnnotationWithFile_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                deployment_id
-            }) => deployment_id)), models.deployment);
+                file_id
+            }) => file_id)), models.file);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), file);
+            }) => id)), annotation);
         }
-        return await file.bulkAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotation.bulkAssociateAnnotationWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkDisAssociateFileWithDeployment_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateAnnotationWithFile_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateAnnotationWithFile_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                deployment_id
-            }) => deployment_id)), models.deployment);
+                file_id
+            }) => file_id)), models.file);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), file);
+            }) => id)), annotation);
         }
-        return await file.bulkDisAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotation.bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
-     * csvTableTemplateFile - Returns table's template
+     * csvTableTemplateAnnotation - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateFile: async function(_, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            return file.csvTableTemplate(context.benignErrors);
+    csvTableTemplateAnnotation: async function(_, context) {
+        if (await checkAuthorization(context, 'annotation', 'read') === true) {
+            return annotation.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * filesZendroDefinition - Return data model definition
+     * annotationsZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    filesZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "file", "read")) === true) {
-            return file.definition;
+    annotationsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "annotation", "read")) === true) {
+            return annotation.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

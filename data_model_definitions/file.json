@@ -2,11 +2,11 @@
     "model": "file",
     "storageType": "sql",
     "attributes": {
-        "id": "uuid",
         "url": "String",
-        "metadata": "JSON",
-        "date": "DateTime",
+        "id_alfresco": "String",
         "storage": "String",
+        "updatedAt": "DateTime",
+        "createdAt": "DateTime",
         "deployment_id": "Int"
     },
     "associations": {
@@ -18,7 +18,15 @@
             "targetKey": "deployment_id",
             "keysIn": "file",
             "targetStorageType": "sql"
+        },
+        "file_annotations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "fileTo",
+            "target": "annotation",
+            "targetKey": "file_id",
+            "keysIn": "annotation",
+            "targetStorageType": "sql"
         }
-    },
-    "internalId": "id"
+    }
 }
