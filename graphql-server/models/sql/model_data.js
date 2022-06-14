@@ -18,47 +18,23 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'annotation',
+    model: 'model_data',
     storageType: 'sql',
     attributes: {
-        classification_method: 'String',
-        classification_by: 'String',
-        observation_type: 'String',
-        label_id: 'String',
-        label: 'String',
-        confidence: 'Float',
-        behaviour: 'String',
-        sex: 'String',
-        age: 'Int',
-        bbox_geometry: 'Polygon',
-        geometry_wkt: 'GeometryCollection',
-        timestamp_video: 'DateTime',
-        frequency_min: 'Float',
-        frequency_max: 'Float',
-        time_min: 'Float',
-        time_max: 'Float',
+        version: 'String',
+        commit_dvc_of_data_ref: 'String',
+        commit_dvc_of_model: 'String',
+        url_repo_model_info: 'String',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        comments: 'String',
-        file_id: 'Int',
-        model_id: 'Int',
-        taxon_id: 'Int'
+        comments: 'String'
     },
     associations: {
-        fileTo: {
-            type: 'many_to_one',
+        model_annotations: {
+            type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'file_annotations',
-            target: 'file',
-            targetKey: 'file_id',
-            keysIn: 'annotation',
-            targetStorageType: 'sql'
-        },
-        model: {
-            type: 'many_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'model_annotations',
-            target: 'model_data',
+            reverseAssociation: 'model',
+            target: 'annotation',
             targetKey: 'model_id',
             keysIn: 'annotation',
             targetStorageType: 'sql'
@@ -75,7 +51,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class annotation extends Sequelize.Model {
+module.exports = class model_data extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -85,53 +61,17 @@ module.exports = class annotation extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            classification_method: {
+            version: {
                 type: Sequelize[dict['String']]
             },
-            classification_by: {
+            commit_dvc_of_data_ref: {
                 type: Sequelize[dict['String']]
             },
-            observation_type: {
+            commit_dvc_of_model: {
                 type: Sequelize[dict['String']]
             },
-            label_id: {
+            url_repo_model_info: {
                 type: Sequelize[dict['String']]
-            },
-            label: {
-                type: Sequelize[dict['String']]
-            },
-            confidence: {
-                type: Sequelize[dict['Float']]
-            },
-            behaviour: {
-                type: Sequelize[dict['String']]
-            },
-            sex: {
-                type: Sequelize[dict['String']]
-            },
-            age: {
-                type: Sequelize[dict['Int']]
-            },
-            bbox_geometry: {
-                type: Sequelize[dict['Polygon']]
-            },
-            geometry_wkt: {
-                type: Sequelize[dict['GeometryCollection']]
-            },
-            timestamp_video: {
-                type: Sequelize[dict['DateTime']]
-            },
-            frequency_min: {
-                type: Sequelize[dict['Float']]
-            },
-            frequency_max: {
-                type: Sequelize[dict['Float']]
-            },
-            time_min: {
-                type: Sequelize[dict['Float']]
-            },
-            time_max: {
-                type: Sequelize[dict['Float']]
             },
             updatedAt: {
                 type: Sequelize[dict['DateTime']]
@@ -141,21 +81,12 @@ module.exports = class annotation extends Sequelize.Model {
             },
             comments: {
                 type: Sequelize[dict['String']]
-            },
-            file_id: {
-                type: Sequelize[dict['Int']]
-            },
-            model_id: {
-                type: Sequelize[dict['Int']]
-            },
-            taxon_id: {
-                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "annotation",
-            tableName: "annotations",
+            modelName: "model_data",
+            tableName: "model_data",
             sequelize
         });
     }
@@ -203,12 +134,8 @@ module.exports = class annotation extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        annotation.belongsTo(models.file, {
-            as: 'fileTo',
-            foreignKey: 'file_id'
-        });
-        annotation.belongsTo(models.model_data, {
-            as: 'model',
+        model_data.hasMany(models.annotation, {
+            as: 'model_annotations',
             foreignKey: 'model_id'
         });
     }
@@ -221,13 +148,13 @@ module.exports = class annotation extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: annotation.idAttribute(),
+            field: model_data.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await annotation.readAllCursor(queryArg);
-        cursorRes = cursorRes.annotations.reduce(
-            (map, obj) => ((map[obj[annotation.idAttribute()]] = obj), map), {}
+        let cursorRes = await model_data.readAllCursor(queryArg);
+        cursorRes = cursorRes.model_data.reduce(
+            (map, obj) => ((map[obj[model_data.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -235,7 +162,7 @@ module.exports = class annotation extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(annotation.batchReadById, {
+    static readByIdLoader = new DataLoader(model_data.batchReadById, {
         cache: false,
     });
 
@@ -244,11 +171,11 @@ module.exports = class annotation extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type annotation, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type model_data, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await annotation.readByIdLoader.load(id);
+        return await model_data.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -260,7 +187,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, annotation.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, model_data.definition.attributes);
         return super.count(options);
     }
 
@@ -275,9 +202,9 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), model_data.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => annotation.postReadCast(x))
+        records = records.map(x => model_data.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -293,10 +220,10 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), model_data.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => annotation.postReadCast(x))
+        records = records.map(x => model_data.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -307,7 +234,7 @@ module.exports = class annotation extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), annotation.definition.attributes);
+            }, this.idAttribute(), model_data.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -316,7 +243,7 @@ module.exports = class annotation extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            annotations: edges.map((edge) => edge.node)
+            model_data: edges.map((edge) => edge.node)
         };
     }
 
@@ -330,7 +257,7 @@ module.exports = class annotation extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = annotation.preWriteCast(input)
+        input = model_data.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -338,8 +265,8 @@ module.exports = class annotation extends Sequelize.Model {
                 });
                 return item;
             });
-            annotation.postReadCast(result.dataValues)
-            annotation.postReadCast(result._previousDataValues)
+            model_data.postReadCast(result.dataValues)
+            model_data.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -379,7 +306,7 @@ module.exports = class annotation extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = annotation.preWriteCast(input)
+        input = model_data.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -392,8 +319,8 @@ module.exports = class annotation extends Sequelize.Model {
                 });
                 return updated;
             });
-            annotation.postReadCast(result.dataValues)
-            annotation.postReadCast(result._previousDataValues)
+            model_data.postReadCast(result.dataValues)
+            model_data.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -415,212 +342,12 @@ module.exports = class annotation extends Sequelize.Model {
 
 
 
-    /**
-     * add_file_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_file_id(id, file_id, benignErrorReporter) {
-        try {
-            let updated = await annotation.update({
-                file_id: file_id
-            }, {
-                where: {
-                    id: id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * add_model_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   model_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_model_id(id, model_id, benignErrorReporter) {
-        try {
-            let updated = await annotation.update({
-                model_id: model_id
-            }, {
-                where: {
-                    id: id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-
-    /**
-     * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_file_id(id, file_id, benignErrorReporter) {
-        try {
-            let updated = await annotation.update({
-                file_id: null
-            }, {
-                where: {
-                    id: id,
-                    file_id: file_id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * remove_model_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   model_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_model_id(id, model_id, benignErrorReporter) {
-        try {
-            let updated = await annotation.update({
-                model_id: null
-            }, {
-                where: {
-                    id: id,
-                    model_id: model_id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
 
 
 
 
 
-    /**
-     * bulkAssociateAnnotationWithFile_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateAnnotationWithFile_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            file_id,
-            id
-        }) => {
-            promises.push(super.update({
-                file_id: file_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-    /**
-     * bulkAssociateAnnotationWithModel_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateAnnotationWithModel_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "model_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            model_id,
-            id
-        }) => {
-            promises.push(super.update({
-                model_id: model_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-
-    /**
-     * bulkDisAssociateAnnotationWithFile_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            file_id,
-            id
-        }) => {
-            promises.push(super.update({
-                file_id: null
-            }, {
-                where: {
-                    id: id,
-                    file_id: file_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateAnnotationWithModel_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateAnnotationWithModel_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "model_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            model_id,
-            id
-        }) => {
-            promises.push(super.update({
-                model_id: null
-            }, {
-                where: {
-                    id: id,
-                    model_id: model_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
 
@@ -630,7 +357,7 @@ module.exports = class annotation extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return annotation.definition.id.name;
+        return model_data.definition.id.name;
     }
 
     /**
@@ -639,16 +366,16 @@ module.exports = class annotation extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return annotation.definition.id.type;
+        return model_data.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotation.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of model_data.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[annotation.idAttribute()];
+        return this[model_data.idAttribute()];
     }
 
     /**
@@ -669,9 +396,9 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  annotation to a base 64 String
+     * base64Encode - Encode  model_data to a base 64 String
      *
-     * @return {string} The annotation object, encoded in a base 64 String
+     * @return {string} The model_data object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -682,28 +409,28 @@ module.exports = class annotation extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The annotation object, encoded in a base 64 String
+     * @return {string} The model_data object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of annotation.
+     * stripAssociations - Instance method for getting all attributes of model_data.
      *
-     * @return {object} The attributes of annotation in object form
+     * @return {object} The attributes of model_data in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(annotation.definition.attributes);
+        let attributes = Object.keys(model_data.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of annotation that are marked as external IDs.
+     * externalIdsArray - Get all attributes of model_data that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of annotation that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of model_data that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -715,7 +442,7 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of annotation.
+     * externalIdsObject - Get all external IDs of model_data.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

@@ -63,8 +63,13 @@ export default function InputField({
         return <SelectField {...props} selected={value as string | null} />;
     case 'Point':
     case 'Multipoint':
+    case 'LineString':
+    case 'MultiLineString':
     case 'Polygon':
     case 'MultiPolygon':
+    case 'GeometryCollection':
+    case 'Feature':
+    case 'FeatureCollection':
     case 'JSON':
       return <ObjectField {...props} value={value as string | null} />;
     case '[String]':

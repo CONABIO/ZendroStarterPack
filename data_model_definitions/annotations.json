@@ -2,11 +2,28 @@
     "model": "annotation",
     "storageType": "sql",
     "attributes": {
-        "has_fauna": "Boolean",
+        "classification_method": "String",
+        "classification_by": "String",
+        "observation_type": "String",
+        "label_id": "String",
+        "label": "String",
+        "confidence": "Float",
+        "behaviour": "String",
+        "sex": "String", 
+        "age": "Int",
+        "bbox_geometry": "Polygon",
+        "geometry_wkt": "GeometryCollection",
+        "timestamp_video": "DateTime",
+        "frequency_min": "Float",
+        "frequency_max": "Float",
+        "time_min": "Float",
+        "time_max": "Float",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
         "comments": "String",
-        "file_id": "Int"
+        "file_id": "Int",
+        "model_id": "Int",
+        "taxon_id": "Int"
     },
     "associations": {
         "fileTo": {
@@ -15,6 +32,15 @@
             "reverseAssociation": "file_annotations",
             "target": "file",
             "targetKey": "file_id",
+            "keysIn": "annotation",
+            "targetStorageType": "sql"
+        },
+        "model": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "model_annotations",
+            "target": "model_data",
+            "targetKey": "model_id",
             "keysIn": "annotation",
             "targetStorageType": "sql"
         }

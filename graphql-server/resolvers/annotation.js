@@ -14,7 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addFileTo': 'file'
+    'addFileTo': 'file',
+    'addModel': 'model_data'
 }
 
 
@@ -57,6 +58,44 @@ annotation.prototype.fileTo = async function({
         }
     }
 }
+/**
+ * annotation.prototype.model - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+annotation.prototype.model = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.model_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneModel_data({
+                [models.model_data.idAttribute()]: this.model_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.model_data.idAttribute(),
+                "value": this.model_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.model_dataConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -75,12 +114,18 @@ annotation.prototype.handleAssociations = async function(input, benignErrorRepor
     if (helper.isNotUndefinedAndNotNull(input.addFileTo)) {
         promises_add.push(this.add_fileTo(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addModel)) {
+        promises_add.push(this.add_model(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
     if (helper.isNotUndefinedAndNotNull(input.removeFileTo)) {
         promises_remove.push(this.remove_fileTo(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeModel)) {
+        promises_remove.push(this.remove_model(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -98,6 +143,17 @@ annotation.prototype.add_fileTo = async function(input, benignErrorReporter) {
 }
 
 /**
+ * add_model - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotation.prototype.add_model = async function(input, benignErrorReporter) {
+    await annotation.add_model_id(this.getIdValue(), input.addModel, benignErrorReporter);
+    this.model_id = input.addModel;
+}
+
+/**
  * remove_fileTo - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -107,6 +163,19 @@ annotation.prototype.remove_fileTo = async function(input, benignErrorReporter) 
     if (input.removeFileTo == this.file_id) {
         await annotation.remove_file_id(this.getIdValue(), input.removeFileTo, benignErrorReporter);
         this.file_id = null;
+    }
+}
+
+/**
+ * remove_model - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotation.prototype.remove_model = async function(input, benignErrorReporter) {
+    if (input.removeModel == this.model_id) {
+        await annotation.remove_model_id(this.getIdValue(), input.removeModel, benignErrorReporter);
+        this.model_id = null;
     }
 }
 
@@ -130,6 +199,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     promises_to_one.push(annotation.fileTo({}, context));
+    promises_to_one.push(annotation.model({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -472,6 +542,25 @@ module.exports = {
         return await annotation.bulkAssociateAnnotationWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
+     * bulkAssociateAnnotationWithModel_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateAnnotationWithModel_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                model_id
+            }) => model_id)), models.model_data);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotation);
+        }
+        return await annotation.bulkAssociateAnnotationWithModel_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
      * bulkDisAssociateAnnotationWithFile_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -489,6 +578,25 @@ module.exports = {
             }) => id)), annotation);
         }
         return await annotation.bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
+     * bulkDisAssociateAnnotationWithModel_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateAnnotationWithModel_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                model_id
+            }) => model_id)), models.model_data);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotation);
+        }
+        return await annotation.bulkDisAssociateAnnotationWithModel_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**

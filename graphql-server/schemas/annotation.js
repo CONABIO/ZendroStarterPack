@@ -8,7 +8,97 @@ module.exports = `
     @original-field
     
     """
-    has_fauna: Boolean
+    classification_method: String
+
+    """
+    @original-field
+    
+    """
+    classification_by: String
+
+    """
+    @original-field
+    
+    """
+    observation_type: String
+
+    """
+    @original-field
+    
+    """
+    label_id: String
+
+    """
+    @original-field
+    
+    """
+    label: String
+
+    """
+    @original-field
+    
+    """
+    confidence: Float
+
+    """
+    @original-field
+    
+    """
+    behaviour: String
+
+    """
+    @original-field
+    
+    """
+    sex: String
+
+    """
+    @original-field
+    
+    """
+    age: Int
+
+    """
+    @original-field
+    
+    """
+    bbox_geometry: Polygon
+
+    """
+    @original-field
+    
+    """
+    geometry_wkt: GeometryCollection
+
+    """
+    @original-field
+    
+    """
+    timestamp_video: DateTime
+
+    """
+    @original-field
+    
+    """
+    frequency_min: Float
+
+    """
+    @original-field
+    
+    """
+    frequency_max: Float
+
+    """
+    @original-field
+    
+    """
+    time_min: Float
+
+    """
+    @original-field
+    
+    """
+    time_max: Float
 
     """
     @original-field
@@ -34,7 +124,20 @@ module.exports = `
     """
     file_id: Int
 
+    """
+    @original-field
+    
+    """
+    model_id: Int
+
+    """
+    @original-field
+    
+    """
+    taxon_id: Int
+
     fileTo(search: searchFileInput): file
+  model(search: searchModel_dataInput): model_data
     
     
     """
@@ -55,11 +158,28 @@ type AnnotationEdge{
 
   enum annotationField {
     id
-    has_fauna
+    classification_method
+    classification_by
+    observation_type
+    label_id
+    label
+    confidence
+    behaviour
+    sex
+    age
+    bbox_geometry
+    geometry_wkt
+    timestamp_video
+    frequency_min
+    frequency_max
+    time_min
+    time_max
     updatedAt
     createdAt
     comments
     file_id
+    model_id
+    taxon_id
   }
   
   input searchAnnotationInput {
@@ -78,6 +198,9 @@ type AnnotationEdge{
   input bulkAssociationAnnotationWithFile_idInput{
     id: ID!
     file_id: ID!
+  }  input bulkAssociationAnnotationWithModel_idInput{
+    id: ID!
+    model_id: ID!
   }
 
   type Query {
@@ -86,8 +209,8 @@ type AnnotationEdge{
     countAnnotations(search: searchAnnotationInput ): Int
     csvTableTemplateAnnotation: [String]
     annotationsConnection(search:searchAnnotationInput, order: [ orderAnnotationInput ], pagination: paginationCursorInput! ): AnnotationConnection
-    validateAnnotationForCreation( has_fauna: Boolean, updatedAt: DateTime, createdAt: DateTime, comments: String , addFileTo:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateAnnotationForUpdating(id: ID!, has_fauna: Boolean, updatedAt: DateTime, createdAt: DateTime, comments: String , addFileTo:ID, removeFileTo:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAnnotationForCreation( classification_method: String, classification_by: String, observation_type: String, label_id: String, label: String, confidence: Float, behaviour: String, sex: String, age: Int, bbox_geometry: Polygon, geometry_wkt: GeometryCollection, timestamp_video: DateTime, frequency_min: Float, frequency_max: Float, time_min: Float, time_max: Float, updatedAt: DateTime, createdAt: DateTime, comments: String, taxon_id: Int , addFileTo:ID, addModel:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAnnotationForUpdating(id: ID!, classification_method: String, classification_by: String, observation_type: String, label_id: String, label: String, confidence: Float, behaviour: String, sex: String, age: Int, bbox_geometry: Polygon, geometry_wkt: GeometryCollection, timestamp_video: DateTime, frequency_min: Float, frequency_max: Float, time_min: Float, time_max: Float, updatedAt: DateTime, createdAt: DateTime, comments: String, taxon_id: Int , addFileTo:ID, removeFileTo:ID , addModel:ID, removeModel:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateAnnotationForDeletion(id: ID!): Boolean!
     validateAnnotationAfterReading(id: ID!): Boolean!
     """
@@ -97,10 +220,12 @@ type AnnotationEdge{
   }
 
   type Mutation {
-    addAnnotation( has_fauna: Boolean, updatedAt: DateTime, createdAt: DateTime, comments: String , addFileTo:ID   , skipAssociationsExistenceChecks:Boolean = false): annotation!
-    updateAnnotation(id: ID!, has_fauna: Boolean, updatedAt: DateTime, createdAt: DateTime, comments: String , addFileTo:ID, removeFileTo:ID    , skipAssociationsExistenceChecks:Boolean = false): annotation!
+    addAnnotation( classification_method: String, classification_by: String, observation_type: String, label_id: String, label: String, confidence: Float, behaviour: String, sex: String, age: Int, bbox_geometry: Polygon, geometry_wkt: GeometryCollection, timestamp_video: DateTime, frequency_min: Float, frequency_max: Float, time_min: Float, time_max: Float, updatedAt: DateTime, createdAt: DateTime, comments: String, taxon_id: Int , addFileTo:ID, addModel:ID   , skipAssociationsExistenceChecks:Boolean = false): annotation!
+    updateAnnotation(id: ID!, classification_method: String, classification_by: String, observation_type: String, label_id: String, label: String, confidence: Float, behaviour: String, sex: String, age: Int, bbox_geometry: Polygon, geometry_wkt: GeometryCollection, timestamp_video: DateTime, frequency_min: Float, frequency_max: Float, time_min: Float, time_max: Float, updatedAt: DateTime, createdAt: DateTime, comments: String, taxon_id: Int , addFileTo:ID, removeFileTo:ID , addModel:ID, removeModel:ID    , skipAssociationsExistenceChecks:Boolean = false): annotation!
     deleteAnnotation(id: ID!): String!
     bulkAssociateAnnotationWithFile_id(bulkAssociationInput: [bulkAssociationAnnotationWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput: [bulkAssociationAnnotationWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateAnnotationWithModel_id(bulkAssociationInput: [bulkAssociationAnnotationWithModel_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateAnnotationWithModel_id(bulkAssociationInput: [bulkAssociationAnnotationWithModel_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

@@ -1,0 +1,24 @@
+{
+    "model": "model_data",
+    "storageType": "sql",
+    "attributes": {
+        "version": "String",
+        "commit_dvc_of_data_ref": "String",
+        "commit_dvc_of_model": "String",
+        "url_repo_model_info": "String",
+        "updatedAt": "DateTime",
+        "createdAt": "DateTime",
+        "comments": "String" 
+    },
+    "associations": {
+        "model_annotations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "model",
+            "target": "annotation",
+            "targetKey": "model_id",
+            "keysIn": "annotation",
+            "targetStorageType": "sql"
+        }
+    }
+}

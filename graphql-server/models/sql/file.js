@@ -22,6 +22,7 @@ const definition = {
     storageType: 'sql',
     attributes: {
         url: 'String',
+        type: 'String',
         id_alfresco: 'String',
         storage: 'String',
         updatedAt: 'DateTime',
@@ -70,6 +71,9 @@ module.exports = class file extends Sequelize.Model {
         return super.init({
 
             url: {
+                type: Sequelize[dict['String']]
+            },
+            type: {
                 type: Sequelize[dict['String']]
             },
             id_alfresco: {
