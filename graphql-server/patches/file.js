@@ -9,12 +9,11 @@ module.exports.logic_patch = function(file) {
         input = file.preWriteCast(input)
         try {
             // validate if unique alfresco_id
-            await file.findOne({ where: { id_alfresco: input.id_alfresco } })
-            .then(function (u) { 
-                if (u) {
-                    throw new Error('Alfresco id already registered!');  
-                }
-            });
+            const alreadyRegistered = await file.findOne({ where: { id_alfresco: input.id_alfresco } })
+
+            if(alreadyRegistered) {
+                return alreadyRegistered;
+            }
 
             const result = await file.sequelize.transaction(async (t) => {
                 let item = await file.create(input, {
