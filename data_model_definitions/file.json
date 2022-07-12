@@ -24,9 +24,9 @@
             "type": "one_to_many",
             "implementation": "foreignkeys",
             "reverseAssociation": "fileTo",
-            "target": "annotation",
+            "target": "annotation_geom_observation_type",
             "targetKey": "file_id",
-            "keysIn": "annotation",
+            "keysIn": "annotation_geom_observation_type",
             "targetStorageType": "sql"
         }
     }

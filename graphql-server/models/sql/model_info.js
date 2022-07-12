@@ -18,7 +18,7 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'model_data',
+    model: 'model_info',
     storageType: 'sql',
     attributes: {
         version: 'String',
@@ -34,9 +34,9 @@ const definition = {
             type: 'one_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'model',
-            target: 'annotation',
+            target: 'annotation_geom_observation_type',
             targetKey: 'model_id',
-            keysIn: 'annotation',
+            keysIn: 'annotation_geom_observation_type',
             targetStorageType: 'sql'
         }
     },
@@ -51,7 +51,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class model_data extends Sequelize.Model {
+module.exports = class model_info extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -85,8 +85,8 @@ module.exports = class model_data extends Sequelize.Model {
 
 
         }, {
-            modelName: "model_data",
-            tableName: "model_data",
+            modelName: "model_info",
+            tableName: "model_infos",
             sequelize
         });
     }
@@ -134,7 +134,7 @@ module.exports = class model_data extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        model_data.hasMany(models.annotation, {
+        model_info.hasMany(models.annotation_geom_observation_type, {
             as: 'model_annotations',
             foreignKey: 'model_id'
         });
@@ -148,13 +148,13 @@ module.exports = class model_data extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: model_data.idAttribute(),
+            field: model_info.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await model_data.readAllCursor(queryArg);
-        cursorRes = cursorRes.model_data.reduce(
-            (map, obj) => ((map[obj[model_data.idAttribute()]] = obj), map), {}
+        let cursorRes = await model_info.readAllCursor(queryArg);
+        cursorRes = cursorRes.model_infos.reduce(
+            (map, obj) => ((map[obj[model_info.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -162,7 +162,7 @@ module.exports = class model_data extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(model_data.batchReadById, {
+    static readByIdLoader = new DataLoader(model_info.batchReadById, {
         cache: false,
     });
 
@@ -171,11 +171,11 @@ module.exports = class model_data extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type model_data, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type model_info, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await model_data.readByIdLoader.load(id);
+        return await model_info.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -187,7 +187,7 @@ module.exports = class model_data extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, model_data.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, model_info.definition.attributes);
         return super.count(options);
     }
 
@@ -202,9 +202,9 @@ module.exports = class model_data extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), model_data.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), model_info.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => model_data.postReadCast(x))
+        records = records.map(x => model_info.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -220,10 +220,10 @@ module.exports = class model_data extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), model_data.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), model_info.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => model_data.postReadCast(x))
+        records = records.map(x => model_info.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -234,7 +234,7 @@ module.exports = class model_data extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), model_data.definition.attributes);
+            }, this.idAttribute(), model_info.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -243,7 +243,7 @@ module.exports = class model_data extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            model_data: edges.map((edge) => edge.node)
+            model_infos: edges.map((edge) => edge.node)
         };
     }
 
@@ -257,7 +257,7 @@ module.exports = class model_data extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = model_data.preWriteCast(input)
+        input = model_info.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -265,8 +265,8 @@ module.exports = class model_data extends Sequelize.Model {
                 });
                 return item;
             });
-            model_data.postReadCast(result.dataValues)
-            model_data.postReadCast(result._previousDataValues)
+            model_info.postReadCast(result.dataValues)
+            model_info.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -306,7 +306,7 @@ module.exports = class model_data extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = model_data.preWriteCast(input)
+        input = model_info.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -319,8 +319,8 @@ module.exports = class model_data extends Sequelize.Model {
                 });
                 return updated;
             });
-            model_data.postReadCast(result.dataValues)
-            model_data.postReadCast(result._previousDataValues)
+            model_info.postReadCast(result.dataValues)
+            model_info.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -357,7 +357,7 @@ module.exports = class model_data extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return model_data.definition.id.name;
+        return model_info.definition.id.name;
     }
 
     /**
@@ -366,16 +366,16 @@ module.exports = class model_data extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return model_data.definition.id.type;
+        return model_info.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of model_data.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of model_info.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[model_data.idAttribute()];
+        return this[model_info.idAttribute()];
     }
 
     /**
@@ -396,9 +396,9 @@ module.exports = class model_data extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  model_data to a base 64 String
+     * base64Encode - Encode  model_info to a base 64 String
      *
-     * @return {string} The model_data object, encoded in a base 64 String
+     * @return {string} The model_info object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -409,28 +409,28 @@ module.exports = class model_data extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The model_data object, encoded in a base 64 String
+     * @return {string} The model_info object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of model_data.
+     * stripAssociations - Instance method for getting all attributes of model_info.
      *
-     * @return {object} The attributes of model_data in object form
+     * @return {object} The attributes of model_info in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(model_data.definition.attributes);
+        let attributes = Object.keys(model_info.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of model_data that are marked as external IDs.
+     * externalIdsArray - Get all attributes of model_info that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of model_data that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of model_info that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -442,7 +442,7 @@ module.exports = class model_data extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of model_data.
+     * externalIdsObject - Get all external IDs of model_info.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

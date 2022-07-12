@@ -1,5 +1,5 @@
 {
-    "model": "model_data",
+    "model": "model_info",
     "storageType": "sql",
     "attributes": {
         "version": "String",
@@ -15,9 +15,9 @@
             "type": "one_to_many",
             "implementation": "foreignkeys",
             "reverseAssociation": "model",
-            "target": "annotation",
+            "target": "annotation_geom_observation_type",
             "targetKey": "model_id",
-            "keysIn": "annotation",
+            "keysIn": "annotation_geom_observation_type",
             "targetStorageType": "sql"
         }
     }

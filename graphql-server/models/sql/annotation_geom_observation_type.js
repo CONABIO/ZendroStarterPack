@@ -18,20 +18,14 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'annotation',
+    model: 'annotation_geom_observation_type',
     storageType: 'sql',
     attributes: {
-        classification_method: 'String',
-        classification_by: 'String',
+        annotations_by: 'String',
         observation_type: 'String',
-        label_id: 'String',
-        label: 'String',
         confidence: 'Float',
-        behaviour: 'String',
-        sex: 'String',
-        age: 'Int',
         bbox_geometry: 'Polygon',
-        geometry_wkt: 'GeometryCollection',
+        geometry: 'GeometryCollection',
         timestamp_video: 'DateTime',
         frequency_min: 'Float',
         frequency_max: 'Float',
@@ -39,10 +33,8 @@ const definition = {
         time_max: 'Float',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        comments: 'String',
         file_id: 'Int',
-        model_id: 'Int',
-        taxon_id: 'Int'
+        model_id: 'Int'
     },
     associations: {
         fileTo: {
@@ -51,16 +43,16 @@ const definition = {
             reverseAssociation: 'file_annotations',
             target: 'file',
             targetKey: 'file_id',
-            keysIn: 'annotation',
+            keysIn: 'annotation_geom_observation_type',
             targetStorageType: 'sql'
         },
         model: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'model_annotations',
-            target: 'model_data',
+            target: 'model_info',
             targetKey: 'model_id',
-            keysIn: 'annotation',
+            keysIn: 'annotation_geom_observation_type',
             targetStorageType: 'sql'
         }
     },
@@ -75,7 +67,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class annotation extends Sequelize.Model {
+module.exports = class annotation_geom_observation_type extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -85,37 +77,19 @@ module.exports = class annotation extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            classification_method: {
-                type: Sequelize[dict['String']]
-            },
-            classification_by: {
+            annotations_by: {
                 type: Sequelize[dict['String']]
             },
             observation_type: {
                 type: Sequelize[dict['String']]
             },
-            label_id: {
-                type: Sequelize[dict['String']]
-            },
-            label: {
-                type: Sequelize[dict['String']]
-            },
             confidence: {
                 type: Sequelize[dict['Float']]
-            },
-            behaviour: {
-                type: Sequelize[dict['String']]
-            },
-            sex: {
-                type: Sequelize[dict['String']]
-            },
-            age: {
-                type: Sequelize[dict['Int']]
             },
             bbox_geometry: {
                 type: Sequelize[dict['Polygon']]
             },
-            geometry_wkt: {
+            geometry: {
                 type: Sequelize[dict['GeometryCollection']]
             },
             timestamp_video: {
@@ -139,23 +113,17 @@ module.exports = class annotation extends Sequelize.Model {
             createdAt: {
                 type: Sequelize[dict['DateTime']]
             },
-            comments: {
-                type: Sequelize[dict['String']]
-            },
             file_id: {
                 type: Sequelize[dict['Int']]
             },
             model_id: {
                 type: Sequelize[dict['Int']]
-            },
-            taxon_id: {
-                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "annotation",
-            tableName: "annotations",
+            modelName: "annotation_geom_observation_type",
+            tableName: "annotation_geom_observation_types",
             sequelize
         });
     }
@@ -203,11 +171,11 @@ module.exports = class annotation extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        annotation.belongsTo(models.file, {
+        annotation_geom_observation_type.belongsTo(models.file, {
             as: 'fileTo',
             foreignKey: 'file_id'
         });
-        annotation.belongsTo(models.model_data, {
+        annotation_geom_observation_type.belongsTo(models.model_info, {
             as: 'model',
             foreignKey: 'model_id'
         });
@@ -221,13 +189,13 @@ module.exports = class annotation extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: annotation.idAttribute(),
+            field: annotation_geom_observation_type.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await annotation.readAllCursor(queryArg);
-        cursorRes = cursorRes.annotations.reduce(
-            (map, obj) => ((map[obj[annotation.idAttribute()]] = obj), map), {}
+        let cursorRes = await annotation_geom_observation_type.readAllCursor(queryArg);
+        cursorRes = cursorRes.annotation_geom_observation_types.reduce(
+            (map, obj) => ((map[obj[annotation_geom_observation_type.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -235,7 +203,7 @@ module.exports = class annotation extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(annotation.batchReadById, {
+    static readByIdLoader = new DataLoader(annotation_geom_observation_type.batchReadById, {
         cache: false,
     });
 
@@ -244,11 +212,11 @@ module.exports = class annotation extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type annotation, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type annotation_geom_observation_type, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await annotation.readByIdLoader.load(id);
+        return await annotation_geom_observation_type.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -260,7 +228,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, annotation.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, annotation_geom_observation_type.definition.attributes);
         return super.count(options);
     }
 
@@ -275,9 +243,9 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotation_geom_observation_type.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => annotation.postReadCast(x))
+        records = records.map(x => annotation_geom_observation_type.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -293,10 +261,10 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotation.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotation_geom_observation_type.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => annotation.postReadCast(x))
+        records = records.map(x => annotation_geom_observation_type.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -307,7 +275,7 @@ module.exports = class annotation extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), annotation.definition.attributes);
+            }, this.idAttribute(), annotation_geom_observation_type.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -316,7 +284,7 @@ module.exports = class annotation extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            annotations: edges.map((edge) => edge.node)
+            annotation_geom_observation_types: edges.map((edge) => edge.node)
         };
     }
 
@@ -330,7 +298,7 @@ module.exports = class annotation extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = annotation.preWriteCast(input)
+        input = annotation_geom_observation_type.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -338,8 +306,8 @@ module.exports = class annotation extends Sequelize.Model {
                 });
                 return item;
             });
-            annotation.postReadCast(result.dataValues)
-            annotation.postReadCast(result._previousDataValues)
+            annotation_geom_observation_type.postReadCast(result.dataValues)
+            annotation_geom_observation_type.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -379,7 +347,7 @@ module.exports = class annotation extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = annotation.preWriteCast(input)
+        input = annotation_geom_observation_type.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -392,8 +360,8 @@ module.exports = class annotation extends Sequelize.Model {
                 });
                 return updated;
             });
-            annotation.postReadCast(result.dataValues)
-            annotation.postReadCast(result._previousDataValues)
+            annotation_geom_observation_type.postReadCast(result.dataValues)
+            annotation_geom_observation_type.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -424,7 +392,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async add_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await annotation.update({
+            let updated = await annotation_geom_observation_type.update({
                 file_id: file_id
             }, {
                 where: {
@@ -447,7 +415,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async add_model_id(id, model_id, benignErrorReporter) {
         try {
-            let updated = await annotation.update({
+            let updated = await annotation_geom_observation_type.update({
                 model_id: model_id
             }, {
                 where: {
@@ -471,7 +439,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async remove_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await annotation.update({
+            let updated = await annotation_geom_observation_type.update({
                 file_id: null
             }, {
                 where: {
@@ -495,7 +463,7 @@ module.exports = class annotation extends Sequelize.Model {
      */
     static async remove_model_id(id, model_id, benignErrorReporter) {
         try {
-            let updated = await annotation.update({
+            let updated = await annotation_geom_observation_type.update({
                 model_id: null
             }, {
                 where: {
@@ -516,13 +484,13 @@ module.exports = class annotation extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateAnnotationWithFile_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotation_geom_observation_typeWithFile_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAnnotationWithFile_id(bulkAssociationInput) {
+    static async bulkAssociateAnnotation_geom_observation_typeWithFile_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -542,13 +510,13 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateAnnotationWithModel_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotation_geom_observation_typeWithModel_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAnnotationWithModel_id(bulkAssociationInput) {
+    static async bulkAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "model_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -569,13 +537,13 @@ module.exports = class annotation extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateAnnotationWithFile_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotation_geom_observation_typeWithFile_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput) {
+    static async bulkDisAssociateAnnotation_geom_observation_typeWithFile_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -596,13 +564,13 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateAnnotationWithModel_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotation_geom_observation_typeWithModel_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAnnotationWithModel_id(bulkAssociationInput) {
+    static async bulkDisAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "model_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -630,7 +598,7 @@ module.exports = class annotation extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return annotation.definition.id.name;
+        return annotation_geom_observation_type.definition.id.name;
     }
 
     /**
@@ -639,16 +607,16 @@ module.exports = class annotation extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return annotation.definition.id.type;
+        return annotation_geom_observation_type.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotation.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotation_geom_observation_type.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[annotation.idAttribute()];
+        return this[annotation_geom_observation_type.idAttribute()];
     }
 
     /**
@@ -669,9 +637,9 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  annotation to a base 64 String
+     * base64Encode - Encode  annotation_geom_observation_type to a base 64 String
      *
-     * @return {string} The annotation object, encoded in a base 64 String
+     * @return {string} The annotation_geom_observation_type object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -682,28 +650,28 @@ module.exports = class annotation extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The annotation object, encoded in a base 64 String
+     * @return {string} The annotation_geom_observation_type object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of annotation.
+     * stripAssociations - Instance method for getting all attributes of annotation_geom_observation_type.
      *
-     * @return {object} The attributes of annotation in object form
+     * @return {object} The attributes of annotation_geom_observation_type in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(annotation.definition.attributes);
+        let attributes = Object.keys(annotation_geom_observation_type.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of annotation that are marked as external IDs.
+     * externalIdsArray - Get all attributes of annotation_geom_observation_type that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of annotation that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of annotation_geom_observation_type that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -715,7 +683,7 @@ module.exports = class annotation extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of annotation.
+     * externalIdsObject - Get all external IDs of annotation_geom_observation_type.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

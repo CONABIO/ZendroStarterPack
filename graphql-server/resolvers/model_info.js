@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const model_data = require(path.join(__dirname, '..', 'models', 'index.js')).model_data;
+const model_info = require(path.join(__dirname, '..', 'models', 'index.js')).model_info;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,14 +14,14 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addModel_annotations': 'annotation'
+    'addModel_annotations': 'annotation_geom_observation_type'
 }
 
 
 
 
 /**
- * model_data.prototype.model_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * model_info.prototype.model_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -31,7 +31,7 @@ const associationArgsDef = {
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-model_data.prototype.model_annotationsFilter = function({
+model_info.prototype.model_annotationsFilter = function({
     search,
     order,
     pagination
@@ -46,7 +46,7 @@ model_data.prototype.model_annotationsFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations({
+    return resolvers.annotation_geom_observation_types({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -54,13 +54,13 @@ model_data.prototype.model_annotationsFilter = function({
 }
 
 /**
- * model_data.prototype.countFilteredModel_annotations - Count number of associated records that holds the conditions specified in the search argument
+ * model_info.prototype.countFilteredModel_annotations - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-model_data.prototype.countFilteredModel_annotations = function({
+model_info.prototype.countFilteredModel_annotations = function({
     search
 }, context) {
 
@@ -71,13 +71,13 @@ model_data.prototype.countFilteredModel_annotations = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations({
+    return resolvers.countAnnotation_geom_observation_types({
         search: nsearch
     }, context);
 }
 
 /**
- * model_data.prototype.model_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * model_info.prototype.model_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -87,7 +87,7 @@ model_data.prototype.countFilteredModel_annotations = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-model_data.prototype.model_annotationsConnection = function({
+model_info.prototype.model_annotationsConnection = function({
     search,
     order,
     pagination
@@ -101,7 +101,7 @@ model_data.prototype.model_annotationsConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotationsConnection({
+    return resolvers.annotation_geom_observation_typesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -117,7 +117,7 @@ model_data.prototype.model_annotationsConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_data.prototype.handleAssociations = async function(input, benignErrorReporter) {
+model_info.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
     if (helper.isNonEmptyArray(input.addModel_annotations)) {
@@ -140,15 +140,15 @@ model_data.prototype.handleAssociations = async function(input, benignErrorRepor
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_data.prototype.add_model_annotations = async function(input, benignErrorReporter) {
+model_info.prototype.add_model_annotations = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addModel_annotations.map(associatedRecordId => {
         return {
             model_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
+            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation.bulkAssociateAnnotationWithModel_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotation_geom_observation_type.bulkAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -158,15 +158,15 @@ model_data.prototype.add_model_annotations = async function(input, benignErrorRe
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_data.prototype.remove_model_annotations = async function(input, benignErrorReporter) {
+model_info.prototype.remove_model_annotations = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeModel_annotations.map(associatedRecordId => {
         return {
             model_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
+            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation.bulkDisAssociateAnnotationWithModel_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotation_geom_observation_type.bulkDisAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -180,15 +180,15 @@ model_data.prototype.remove_model_annotations = async function(input, benignErro
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let model_data = await resolvers.readOneModel_data({
+    let model_info = await resolvers.readOneModel_info({
         id: id
     }, context);
     //check that record actually exists
-    if (model_data === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (model_info === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_many.push(model_data.countFilteredModel_annotations({}, context));
+    promises_to_many.push(model_info.countFilteredModel_annotations({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -209,7 +209,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`model_data with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`model_info with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -221,7 +221,7 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const model_data_record = await resolvers.readOneModel_data({
+    const model_info_record = await resolvers.readOneModel_info({
             id: id
         },
         context
@@ -233,7 +233,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * model_data - Check user authorization and return certain number, specified in pagination argument, of records that
+     * model_infos - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -242,21 +242,21 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    model_data: async function({
+    model_infos: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'model_data', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "model_data");
-            return await model_data.readAll(search, order, pagination, context.benignErrors);
+        if (await checkAuthorization(context, 'model_info', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "model_infos");
+            return await model_info.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * model_dataConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * model_infosConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -265,65 +265,65 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    model_dataConnection: async function({
+    model_infosConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'model_data', 'read') === true) {
+        if (await checkAuthorization(context, 'model_info', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "model_dataConnection");
-            return await model_data.readAllCursor(search, order, pagination, context.benignErrors);
+            helper.checkCountAndReduceRecordsLimit(limit, context, "model_infosConnection");
+            return await model_info.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneModel_data - Check user authorization and return one record with the specified id in the id argument.
+     * readOneModel_info - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneModel_data: async function({
+    readOneModel_info: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'model_data', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneModel_data");
-            return await model_data.readById(id, context.benignErrors);
+        if (await checkAuthorization(context, 'model_info', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneModel_info");
+            return await model_info.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countModel_data - Counts number of records that holds the conditions specified in the search argument
+     * countModel_infos - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countModel_data: async function({
+    countModel_infos: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'model_data', 'read') === true) {
-            return await model_data.countRecords(search, context.benignErrors);
+        if (await checkAuthorization(context, 'model_info', 'read') === true) {
+            return await model_info.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateModel_dataForCreation - Check user authorization and validate input argument for creation.
+     * validateModel_infoForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_dataForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'model_data', 'read');
+    validateModel_infoForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'model_info', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -338,7 +338,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    model_data,
+                    model_info,
                     inputSanitized
                 );
                 return true;
@@ -352,14 +352,14 @@ module.exports = {
     },
 
     /**
-     * validateModel_dataForUpdating - Check user authorization and validate input argument for updating.
+     * validateModel_infoForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_dataForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'model_data', 'read');
+    validateModel_infoForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'model_info', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -374,7 +374,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    model_data,
+                    model_info,
                     inputSanitized
                 );
                 return true;
@@ -388,21 +388,21 @@ module.exports = {
     },
 
     /**
-     * validateModel_dataForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateModel_infoForDeletion - Check user authorization and validate record by ID for deletion.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_dataForDeletion: async ({
+    validateModel_infoForDeletion: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'model_data', 'read')) === true) {
+        if ((await checkAuthorization(context, 'model_info', 'read')) === true) {
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    model_data,
+                    model_info,
                     id);
                 return true;
             } catch (error) {
@@ -415,20 +415,20 @@ module.exports = {
     },
 
     /**
-     * validateModel_dataAfterReading - Check user authorization and validate record by ID after reading.
+     * validateModel_infoAfterReading - Check user authorization and validate record by ID after reading.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_dataAfterReading: async ({
+    validateModel_infoAfterReading: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'model_data', 'read')) === true) {
+        if ((await checkAuthorization(context, 'model_info', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    model_data,
+                    model_info,
                     id);
                 return true;
             } catch (error) {
@@ -440,7 +440,7 @@ module.exports = {
         }
     },
     /**
-     * addModel_data - Check user authorization and creates a new record with data specified in the input argument.
+     * addModel_info - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -448,8 +448,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addModel_data: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'model_data', 'create');
+    addModel_info: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'model_info', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -457,28 +457,28 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdModel_data = await model_data.addOne(inputSanitized, context.benignErrors);
-            await createdModel_data.handleAssociations(inputSanitized, context.benignErrors);
-            return createdModel_data;
+            let createdModel_info = await model_info.addOne(inputSanitized, context.benignErrors);
+            await createdModel_info.handleAssociations(inputSanitized, context.benignErrors);
+            return createdModel_info;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteModel_data - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteModel_info - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteModel_data: async function({
+    deleteModel_info: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'model_data', 'delete') === true) {
+        if (await checkAuthorization(context, 'model_info', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
-                return model_data.deleteOne(id, context.benignErrors);
+                return model_info.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -486,7 +486,7 @@ module.exports = {
     },
 
     /**
-     * updateModel_data - Check user authorization and update the record specified in the input argument
+     * updateModel_info - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -494,8 +494,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateModel_data: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'model_data', 'update');
+    updateModel_info: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'model_info', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -503,9 +503,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedModel_data = await model_data.updateOne(inputSanitized, context.benignErrors);
-            await updatedModel_data.handleAssociations(inputSanitized, context.benignErrors);
-            return updatedModel_data;
+            let updatedModel_info = await model_info.updateOne(inputSanitized, context.benignErrors);
+            await updatedModel_info.handleAssociations(inputSanitized, context.benignErrors);
+            return updatedModel_info;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -513,30 +513,30 @@ module.exports = {
 
 
     /**
-     * csvTableTemplateModel_data - Returns table's template
+     * csvTableTemplateModel_info - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateModel_data: async function(_, context) {
-        if (await checkAuthorization(context, 'model_data', 'read') === true) {
-            return model_data.csvTableTemplate(context.benignErrors);
+    csvTableTemplateModel_info: async function(_, context) {
+        if (await checkAuthorization(context, 'model_info', 'read') === true) {
+            return model_info.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * model_dataZendroDefinition - Return data model definition
+     * model_infosZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    model_dataZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "model_data", "read")) === true) {
-            return model_data.definition;
+    model_infosZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "model_info", "read")) === true) {
+            return model_info.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

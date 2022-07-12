@@ -15,7 +15,7 @@ const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addAssociated_deployment': 'deployment',
-    'addFile_annotations': 'annotation'
+    'addFile_annotations': 'annotation_geom_observation_type'
 }
 
 
@@ -85,7 +85,7 @@ file.prototype.file_annotationsFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations({
+    return resolvers.annotation_geom_observation_types({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -110,7 +110,7 @@ file.prototype.countFilteredFile_annotations = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations({
+    return resolvers.countAnnotation_geom_observation_types({
         search: nsearch
     }, context);
 }
@@ -140,7 +140,7 @@ file.prototype.file_annotationsConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotationsConnection({
+    return resolvers.annotation_geom_observation_typesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -190,10 +190,10 @@ file.prototype.add_file_annotations = async function(input, benignErrorReporter)
     let bulkAssociationInput = input.addFile_annotations.map(associatedRecordId => {
         return {
             file_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
+            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation.bulkAssociateAnnotationWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotation_geom_observation_type.bulkAssociateAnnotation_geom_observation_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -219,10 +219,10 @@ file.prototype.remove_file_annotations = async function(input, benignErrorReport
     let bulkAssociationInput = input.removeFile_annotations.map(associatedRecordId => {
         return {
             file_id: this.getIdValue(),
-            [models.annotation.idAttribute()]: associatedRecordId
+            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation.bulkDisAssociateAnnotationWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotation_geom_observation_type.bulkDisAssociateAnnotation_geom_observation_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**

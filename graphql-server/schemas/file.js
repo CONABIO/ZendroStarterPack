@@ -51,18 +51,18 @@ module.exports = `
     """
     @search-request
     """
-    file_annotationsFilter(search: searchAnnotationInput, order: [ orderAnnotationInput ], pagination: paginationInput!): [annotation]
+    file_annotationsFilter(search: searchAnnotation_geom_observation_typeInput, order: [ orderAnnotation_geom_observation_typeInput ], pagination: paginationInput!): [annotation_geom_observation_type]
 
 
     """
     @search-request
     """
-    file_annotationsConnection(search: searchAnnotationInput, order: [ orderAnnotationInput ], pagination: paginationCursorInput!): AnnotationConnection
+    file_annotationsConnection(search: searchAnnotation_geom_observation_typeInput, order: [ orderAnnotation_geom_observation_typeInput ], pagination: paginationCursorInput!): Annotation_geom_observation_typeConnection
 
     """
     @count-request
     """
-    countFilteredFile_annotations(search: searchAnnotationInput) : Int
+    countFilteredFile_annotations(search: searchAnnotation_geom_observation_typeInput) : Int
   
     
     """
