@@ -7,7 +7,8 @@ const modelWhitelist = [
     "individual",
     "physical_device",
     "deployment",
-    "transect"
+    "transect",
+    "file"
 ];
 
 const actionsWhitelist = [
