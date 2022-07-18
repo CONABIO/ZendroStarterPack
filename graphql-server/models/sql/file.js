@@ -43,9 +43,9 @@ const definition = {
             type: 'one_to_many',
             implementation: 'foreignkeys',
             reverseAssociation: 'fileTo',
-            target: 'annotation_geom_observation_type',
+            target: 'annotations_geom_obs_type',
             targetKey: 'file_id',
-            keysIn: 'annotation_geom_observation_type',
+            keysIn: 'annotations_geom_obs_type',
             targetStorageType: 'sql'
         }
     },
@@ -147,7 +147,7 @@ module.exports = class file extends Sequelize.Model {
             as: 'associated_deployment',
             foreignKey: 'deployment_id'
         });
-        file.hasMany(models.annotation_geom_observation_type, {
+        file.hasMany(models.annotations_geom_obs_type, {
             as: 'file_annotations',
             foreignKey: 'file_id'
         });

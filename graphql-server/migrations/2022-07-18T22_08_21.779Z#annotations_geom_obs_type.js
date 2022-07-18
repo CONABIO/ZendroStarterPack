@@ -18,9 +18,9 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.pipeline_info.storageHandler;
+            const storageHandler = await zendro.models.annotations_geom_obs_type.storageHandler;
             await storageHandler.getQueryInterface()
-                .createTable('model_infos', {
+                .createTable('annotations_geom_obs_types', {
                     id: {
                         type: Sequelize[dict['Int']],
                         primaryKey: true,
@@ -35,16 +35,40 @@ module.exports = {
                         type: Sequelize.DATE
                     },
 
-                    version: {
+                    classified_by: {
                         type: Sequelize[dict['String']]
                     },
-                    commit_dvc_of_data_ref: {
+                    classification_method: {
                         type: Sequelize[dict['String']]
                     },
-                    commit_dvc_of_model: {
+                    observation_type: {
                         type: Sequelize[dict['String']]
                     },
-                    url_repo_model_info: {
+                    confidence: {
+                        type: Sequelize[dict['Float']]
+                    },
+                    geometry: {
+                        type: Sequelize[dict['GeometryCollection']]
+                    },
+                    video_frame_num: {
+                        type: Sequelize[dict['Int']]
+                    },
+                    frequency_min: {
+                        type: Sequelize[dict['Float']]
+                    },
+                    frequency_max: {
+                        type: Sequelize[dict['Float']]
+                    },
+                    time_min: {
+                        type: Sequelize[dict['Float']]
+                    },
+                    time_max: {
+                        type: Sequelize[dict['Float']]
+                    },
+                    metadata: {
+                        type: Sequelize[dict['JSON']]
+                    },
+                    product_id_alfesco: {
                         type: Sequelize[dict['String']]
                     },
                     updatedAt: {
@@ -53,8 +77,11 @@ module.exports = {
                     createdAt: {
                         type: Sequelize[dict['DateTime']]
                     },
-                    comments: {
-                        type: Sequelize[dict['String']]
+                    file_id: {
+                        type: Sequelize[dict['Int']]
+                    },
+                    pipeline_id: {
+                        type: Sequelize[dict['Int']]
                     }
 
                 });
@@ -70,14 +97,14 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.model_info.storageHandler;
-            const recordsExists = await zendro.models.model_info.count();
+            const storageHandler = await zendro.models.annotations_geom_obs_type.storageHandler;
+            const recordsExists = await zendro.models.annotations_geom_obs_type.count();
             if (recordsExists && !DOWN_MIGRATION) {
-                throw new Error(`You are trying to delete all records of model_info and its associations. 
+                throw new Error(`You are trying to delete all records of annotations_geom_obs_type and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 
             and re-execute this down-migration.`);
             }
-            await storageHandler.getQueryInterface().dropTable('model_infos');
+            await storageHandler.getQueryInterface().dropTable('annotations_geom_obs_types');
         } catch (error) {
             throw new Error(error);
         }

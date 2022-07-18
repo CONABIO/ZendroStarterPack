@@ -1,23 +1,23 @@
 {
-    "model": "model_info",
+    "model": "pipeline_info",
     "storageType": "sql",
     "attributes": {
         "version": "String",
         "commit_dvc_of_data_ref": "String",
         "commit_dvc_of_model": "String",
-        "url_repo_model_info": "String",
+        "url_repo_model": "String",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
-        "comments": "String" 
+        "comments": "String"
     },
     "associations": {
-        "model_annotations": {
+        "pipeline_annotations": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "model",
-            "target": "annotation_geom_observation_type",
-            "targetKey": "model_id",
-            "keysIn": "annotation_geom_observation_type",
+            "reverseAssociation": "pipeline",
+            "target": "annotations_geom_obs_type",
+            "targetKey": "pipeline_id",
+            "keysIn": "annotations_geom_obs_type",
             "targetStorageType": "sql"
         }
     }

@@ -18,7 +18,7 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: [
-                    'annotation_geom_observation_type',
+                    'annotations_geom_obs_type',
                     'calendar',
                     'cumulus',
                     'cumulus_criteria',
@@ -29,7 +29,7 @@ module.exports = {
                     'file',
                     'individual',
                     'institution',
-                    'model_info',
+                    'pipeline_info',
                     'monitor',
                     'node',
                     'physical_device',
@@ -47,7 +47,7 @@ module.exports = {
             roles: 'reader',
             allows: [{
                 resources: [
-                    'annotation_geom_observation_type',
+                    'annotations_geom_obs_type',
                     'calendar',
                     'cumulus',
                     'cumulus_criteria',
@@ -58,7 +58,7 @@ module.exports = {
                     'file',
                     'individual',
                     'institution',
-                    'model_info',
+                    'pipeline_info',
                     'monitor',
                     'node',
                     'physical_device',

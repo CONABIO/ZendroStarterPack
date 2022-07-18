@@ -6,16 +6,16 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(model_info) {
+module.exports.validator_patch = function(pipeline_info) {
 
-    model_info.prototype.validationControl = {
+    pipeline_info.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    model_info.prototype.validatorSchema = {
+    pipeline_info.prototype.validatorSchema = {
         "$async": true,
         "properties": {
             "version": {
@@ -27,7 +27,7 @@ module.exports.validator_patch = function(model_info) {
             "commit_dvc_of_model": {
                 "type": ["string", "null"]
             },
-            "url_repo_model_info": {
+            "url_repo_model": {
                 "type": ["string", "null"]
             },
             "updatedAt": {
@@ -50,19 +50,19 @@ module.exports.validator_patch = function(model_info) {
         }
     }
 
-    model_info.prototype.asyncValidate = ajv.compile(
-        model_info.prototype.validatorSchema
+    pipeline_info.prototype.asyncValidate = ajv.compile(
+        pipeline_info.prototype.validatorSchema
     )
 
-    model_info.prototype.validateForCreate = async function(record) {
-        return await model_info.prototype.asyncValidate(record)
+    pipeline_info.prototype.validateForCreate = async function(record) {
+        return await pipeline_info.prototype.asyncValidate(record)
     }
 
-    model_info.prototype.validateForUpdate = async function(record) {
-        return await model_info.prototype.asyncValidate(record)
+    pipeline_info.prototype.validateForUpdate = async function(record) {
+        return await pipeline_info.prototype.asyncValidate(record)
     }
 
-    model_info.prototype.validateForDelete = async function(id) {
+    pipeline_info.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -73,9 +73,9 @@ module.exports.validator_patch = function(model_info) {
         }
     }
 
-    model_info.prototype.validateAfterRead = async function(record) {
-        return await model_info.prototype.asyncValidate(record)
+    pipeline_info.prototype.validateAfterRead = async function(record) {
+        return await pipeline_info.prototype.asyncValidate(record)
     }
 
-    return model_info
+    return pipeline_info
 }

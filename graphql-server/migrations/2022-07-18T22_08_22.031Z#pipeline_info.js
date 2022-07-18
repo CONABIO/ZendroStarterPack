@@ -20,7 +20,7 @@ module.exports = {
         try {
             const storageHandler = await zendro.models.pipeline_info.storageHandler;
             await storageHandler.getQueryInterface()
-                .createTable('model_infos', {
+                .createTable('pipeline_infos', {
                     id: {
                         type: Sequelize[dict['Int']],
                         primaryKey: true,
@@ -44,7 +44,7 @@ module.exports = {
                     commit_dvc_of_model: {
                         type: Sequelize[dict['String']]
                     },
-                    url_repo_model_info: {
+                    url_repo_model: {
                         type: Sequelize[dict['String']]
                     },
                     updatedAt: {
@@ -70,14 +70,14 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.model_info.storageHandler;
-            const recordsExists = await zendro.models.model_info.count();
+            const storageHandler = await zendro.models.pipeline_info.storageHandler;
+            const recordsExists = await zendro.models.pipeline_info.count();
             if (recordsExists && !DOWN_MIGRATION) {
-                throw new Error(`You are trying to delete all records of model_info and its associations. 
+                throw new Error(`You are trying to delete all records of pipeline_info and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 
             and re-execute this down-migration.`);
             }
-            await storageHandler.getQueryInterface().dropTable('model_infos');
+            await storageHandler.getQueryInterface().dropTable('pipeline_infos');
         } catch (error) {
             throw new Error(error);
         }

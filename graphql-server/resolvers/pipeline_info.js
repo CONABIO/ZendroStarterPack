@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const model_info = require(path.join(__dirname, '..', 'models', 'index.js')).model_info;
+const pipeline_info = require(path.join(__dirname, '..', 'models', 'index.js')).pipeline_info;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,14 +14,14 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addModel_annotations': 'annotation_geom_observation_type'
+    'addPipeline_annotations': 'annotations_geom_obs_type'
 }
 
 
 
 
 /**
- * model_info.prototype.model_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * pipeline_info.prototype.pipeline_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -31,7 +31,7 @@ const associationArgsDef = {
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-model_info.prototype.model_annotationsFilter = function({
+pipeline_info.prototype.pipeline_annotationsFilter = function({
     search,
     order,
     pagination
@@ -41,12 +41,12 @@ model_info.prototype.model_annotationsFilter = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "model_id",
+        "field": "pipeline_id",
         "value": this.getIdValue(),
         "operator": "eq"
     });
 
-    return resolvers.annotation_geom_observation_types({
+    return resolvers.annotations_geom_obs_types({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -54,30 +54,30 @@ model_info.prototype.model_annotationsFilter = function({
 }
 
 /**
- * model_info.prototype.countFilteredModel_annotations - Count number of associated records that holds the conditions specified in the search argument
+ * pipeline_info.prototype.countFilteredPipeline_annotations - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-model_info.prototype.countFilteredModel_annotations = function({
+pipeline_info.prototype.countFilteredPipeline_annotations = function({
     search
 }, context) {
 
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "model_id",
+        "field": "pipeline_id",
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotation_geom_observation_types({
+    return resolvers.countAnnotations_geom_obs_types({
         search: nsearch
     }, context);
 }
 
 /**
- * model_info.prototype.model_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * pipeline_info.prototype.pipeline_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -87,7 +87,7 @@ model_info.prototype.countFilteredModel_annotations = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-model_info.prototype.model_annotationsConnection = function({
+pipeline_info.prototype.pipeline_annotationsConnection = function({
     search,
     order,
     pagination
@@ -97,11 +97,11 @@ model_info.prototype.model_annotationsConnection = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "model_id",
+        "field": "pipeline_id",
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotation_geom_observation_typesConnection({
+    return resolvers.annotations_geom_obs_typesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -117,56 +117,56 @@ model_info.prototype.model_annotationsConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_info.prototype.handleAssociations = async function(input, benignErrorReporter) {
+pipeline_info.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addModel_annotations)) {
-        promises_add.push(this.add_model_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addPipeline_annotations)) {
+        promises_add.push(this.add_pipeline_annotations(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeModel_annotations)) {
-        promises_remove.push(this.remove_model_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removePipeline_annotations)) {
+        promises_remove.push(this.remove_pipeline_annotations(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_model_annotations - field Mutation for to_many associations to add
+ * add_pipeline_annotations - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_info.prototype.add_model_annotations = async function(input, benignErrorReporter) {
+pipeline_info.prototype.add_pipeline_annotations = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addModel_annotations.map(associatedRecordId => {
+    let bulkAssociationInput = input.addPipeline_annotations.map(associatedRecordId => {
         return {
-            model_id: this.getIdValue(),
-            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
+            pipeline_id: this.getIdValue(),
+            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation_geom_observation_type.bulkAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
- * remove_model_annotations - field Mutation for to_many associations to remove
+ * remove_pipeline_annotations - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-model_info.prototype.remove_model_annotations = async function(input, benignErrorReporter) {
+pipeline_info.prototype.remove_pipeline_annotations = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeModel_annotations.map(associatedRecordId => {
+    let bulkAssociationInput = input.removePipeline_annotations.map(associatedRecordId => {
         return {
-            model_id: this.getIdValue(),
-            [models.annotation_geom_observation_type.idAttribute()]: associatedRecordId
+            pipeline_id: this.getIdValue(),
+            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotation_geom_observation_type.bulkDisAssociateAnnotation_geom_observation_typeWithModel_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -180,15 +180,15 @@ model_info.prototype.remove_model_annotations = async function(input, benignErro
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let model_info = await resolvers.readOneModel_info({
+    let pipeline_info = await resolvers.readOnePipeline_info({
         id: id
     }, context);
     //check that record actually exists
-    if (model_info === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (pipeline_info === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_many.push(model_info.countFilteredModel_annotations({}, context));
+    promises_to_many.push(pipeline_info.countFilteredPipeline_annotations({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -209,7 +209,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`model_info with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`pipeline_info with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -221,7 +221,7 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const model_info_record = await resolvers.readOneModel_info({
+    const pipeline_info_record = await resolvers.readOnePipeline_info({
             id: id
         },
         context
@@ -233,7 +233,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * model_infos - Check user authorization and return certain number, specified in pagination argument, of records that
+     * pipeline_infos - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -242,21 +242,21 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    model_infos: async function({
+    pipeline_infos: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'model_info', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "model_infos");
-            return await model_info.readAll(search, order, pagination, context.benignErrors);
+        if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "pipeline_infos");
+            return await pipeline_info.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * model_infosConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * pipeline_infosConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -265,65 +265,65 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    model_infosConnection: async function({
+    pipeline_infosConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'model_info', 'read') === true) {
+        if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "model_infosConnection");
-            return await model_info.readAllCursor(search, order, pagination, context.benignErrors);
+            helper.checkCountAndReduceRecordsLimit(limit, context, "pipeline_infosConnection");
+            return await pipeline_info.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneModel_info - Check user authorization and return one record with the specified id in the id argument.
+     * readOnePipeline_info - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneModel_info: async function({
+    readOnePipeline_info: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'model_info', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneModel_info");
-            return await model_info.readById(id, context.benignErrors);
+        if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOnePipeline_info");
+            return await pipeline_info.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countModel_infos - Counts number of records that holds the conditions specified in the search argument
+     * countPipeline_infos - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countModel_infos: async function({
+    countPipeline_infos: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'model_info', 'read') === true) {
-            return await model_info.countRecords(search, context.benignErrors);
+        if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+            return await pipeline_info.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateModel_infoForCreation - Check user authorization and validate input argument for creation.
+     * validatePipeline_infoForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_infoForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'model_info', 'read');
+    validatePipeline_infoForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'pipeline_info', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -338,7 +338,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    model_info,
+                    pipeline_info,
                     inputSanitized
                 );
                 return true;
@@ -352,14 +352,14 @@ module.exports = {
     },
 
     /**
-     * validateModel_infoForUpdating - Check user authorization and validate input argument for updating.
+     * validatePipeline_infoForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_infoForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'model_info', 'read');
+    validatePipeline_infoForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'pipeline_info', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -374,7 +374,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    model_info,
+                    pipeline_info,
                     inputSanitized
                 );
                 return true;
@@ -388,21 +388,21 @@ module.exports = {
     },
 
     /**
-     * validateModel_infoForDeletion - Check user authorization and validate record by ID for deletion.
+     * validatePipeline_infoForDeletion - Check user authorization and validate record by ID for deletion.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_infoForDeletion: async ({
+    validatePipeline_infoForDeletion: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'model_info', 'read')) === true) {
+        if ((await checkAuthorization(context, 'pipeline_info', 'read')) === true) {
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    model_info,
+                    pipeline_info,
                     id);
                 return true;
             } catch (error) {
@@ -415,20 +415,20 @@ module.exports = {
     },
 
     /**
-     * validateModel_infoAfterReading - Check user authorization and validate record by ID after reading.
+     * validatePipeline_infoAfterReading - Check user authorization and validate record by ID after reading.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateModel_infoAfterReading: async ({
+    validatePipeline_infoAfterReading: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'model_info', 'read')) === true) {
+        if ((await checkAuthorization(context, 'pipeline_info', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    model_info,
+                    pipeline_info,
                     id);
                 return true;
             } catch (error) {
@@ -440,7 +440,7 @@ module.exports = {
         }
     },
     /**
-     * addModel_info - Check user authorization and creates a new record with data specified in the input argument.
+     * addPipeline_info - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -448,8 +448,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addModel_info: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'model_info', 'create');
+    addPipeline_info: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'pipeline_info', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -457,28 +457,28 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdModel_info = await model_info.addOne(inputSanitized, context.benignErrors);
-            await createdModel_info.handleAssociations(inputSanitized, context.benignErrors);
-            return createdModel_info;
+            let createdPipeline_info = await pipeline_info.addOne(inputSanitized, context.benignErrors);
+            await createdPipeline_info.handleAssociations(inputSanitized, context.benignErrors);
+            return createdPipeline_info;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteModel_info - Check user authorization and delete a record with the specified id in the id argument.
+     * deletePipeline_info - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteModel_info: async function({
+    deletePipeline_info: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'model_info', 'delete') === true) {
+        if (await checkAuthorization(context, 'pipeline_info', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
-                return model_info.deleteOne(id, context.benignErrors);
+                return pipeline_info.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -486,7 +486,7 @@ module.exports = {
     },
 
     /**
-     * updateModel_info - Check user authorization and update the record specified in the input argument
+     * updatePipeline_info - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -494,8 +494,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateModel_info: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'model_info', 'update');
+    updatePipeline_info: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'pipeline_info', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -503,9 +503,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedModel_info = await model_info.updateOne(inputSanitized, context.benignErrors);
-            await updatedModel_info.handleAssociations(inputSanitized, context.benignErrors);
-            return updatedModel_info;
+            let updatedPipeline_info = await pipeline_info.updateOne(inputSanitized, context.benignErrors);
+            await updatedPipeline_info.handleAssociations(inputSanitized, context.benignErrors);
+            return updatedPipeline_info;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -513,30 +513,30 @@ module.exports = {
 
 
     /**
-     * csvTableTemplateModel_info - Returns table's template
+     * csvTableTemplatePipeline_info - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateModel_info: async function(_, context) {
-        if (await checkAuthorization(context, 'model_info', 'read') === true) {
-            return model_info.csvTableTemplate(context.benignErrors);
+    csvTableTemplatePipeline_info: async function(_, context) {
+        if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+            return pipeline_info.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * model_infosZendroDefinition - Return data model definition
+     * pipeline_infosZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    model_infosZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "model_info", "read")) === true) {
-            return model_info.definition;
+    pipeline_infosZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "pipeline_info", "read")) === true) {
+            return pipeline_info.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

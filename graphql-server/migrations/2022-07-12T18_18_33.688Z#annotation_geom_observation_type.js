@@ -18,7 +18,7 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.annotation_geom_observation_type.storageHandler;
+            const storageHandler = await zendro.models.annotations_geom_obs_type.storageHandler;
             await storageHandler.getQueryInterface()
                 .createTable('annotation_geom_observation_types', {
                     id: {
