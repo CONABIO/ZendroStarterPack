@@ -155,6 +155,22 @@ module.exports = `
     """
     countFilteredIndividuals(search: searchIndividualInput) : Int
   
+    """
+    @search-request
+    """
+    file_countsFilter(search: searchFile_countInput, order: [ orderFile_countInput ], pagination: paginationInput!): [file_count]
+
+
+    """
+    @search-request
+    """
+    file_countsConnection(search: searchFile_countInput, order: [ orderFile_countInput ], pagination: paginationCursorInput!): File_countConnection
+
+    """
+    @count-request
+    """
+    countFilteredFile_counts(search: searchFile_countInput) : Int
+  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -209,8 +225,8 @@ type CumulusEdge{
     countCumulus(search: searchCumulusInput ): Int
     csvTableTemplateCumulus: [String]
     cumulusConnection(search:searchCumulusInput, order: [ orderCumulusInput ], pagination: paginationCursorInput! ): CumulusConnection
-    validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForCreation( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID], addFile_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCumulusForUpdating(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addFile_counts:[ID], removeFile_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateCumulusForDeletion(id: ID!): Boolean!
     validateCumulusAfterReading(id: ID!): Boolean!
     """
@@ -220,8 +236,8 @@ type CumulusEdge{
   }
 
   type Mutation {
-    addCumulus( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
-    updateCumulus(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    addCumulus( name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, addUnique_ecosystem:ID  , addDevices:[ID], addAssociated_partners:[ID], addVisits:[ID], addMonitors:[ID], addNodes:[ID], addDeployments:[ID], addIndividuals:[ID], addFile_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): cumulus!
+    updateCumulus(id: ID!, name: String, geometry: Polygon, con_socio: Int , addCumulus_criteria:ID, removeCumulus_criteria:ID , addUnique_ecosystem:ID, removeUnique_ecosystem:ID   , addDevices:[ID], removeDevices:[ID] , addAssociated_partners:[ID], removeAssociated_partners:[ID] , addVisits:[ID], removeVisits:[ID] , addMonitors:[ID], removeMonitors:[ID] , addNodes:[ID], removeNodes:[ID] , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addFile_counts:[ID], removeFile_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): cumulus!
     deleteCumulus(id: ID!): String!
     bulkAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateCumulusWithCriteria_id(bulkAssociationInput: [bulkAssociationCumulusWithCriteria_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

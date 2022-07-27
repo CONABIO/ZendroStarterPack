@@ -110,6 +110,15 @@ const definition = {
             targetKey: 'cumulus_id',
             keysIn: 'individual',
             targetStorageType: 'sql'
+        },
+        file_counts: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'cumulus_files',
+            target: 'file_count',
+            targetKey: 'cumulus_id',
+            keysIn: 'file_count',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -234,6 +243,10 @@ module.exports = class cumulus extends Sequelize.Model {
         });
         cumulus.hasMany(models.individual, {
             as: 'individuals',
+            foreignKey: 'cumulus_id'
+        });
+        cumulus.hasMany(models.file_count, {
+            as: 'file_counts',
             foreignKey: 'cumulus_id'
         });
     }
