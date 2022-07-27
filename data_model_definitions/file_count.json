@@ -1,0 +1,23 @@
+{
+    "model": "file_count",
+    "storageType": "sql",
+    "attributes": {
+        "delivery_date": "Date",
+        "audio_files": "Int",
+        "image_files": "Int",
+        "video_files": "Int",
+        "size": "Int",
+        "cumulus_id": "Int"
+    },
+    "associations": {
+      "cumulus_files": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "file_counts",
+        "target": "cumulus",
+        "targetKey": "cumulus_id",
+        "keysIn": "file_count",
+        "targetStorageType": "sql"
+      }
+    }
+}
