@@ -2,22 +2,19 @@
     "model": "annotations_geom_obs_type",
     "storageType": "sql",
     "attributes": {
-        "classified_by": "String",
-        "classification_method": "String",
+        "classified_by": "String", 
+        "classification_method": "String", 
         "observation_type": "String",
         "confidence": "Float",
-        "geometry": "GeometryCollection",
+        "geometry": "GeometryCollection", 
         "video_frame_num": "Int",
         "frequency_min": "Float",
         "frequency_max": "Float",
         "time_min": "Float",
         "time_max": "Float",
-        "metadata": "JSON",
-        "product_id_alfesco": "String",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
-        "file_id": "Int",
-        "pipeline_id": "Int"
+        "file_id": "Int"
     },
     "associations": {
         "fileTo": {
@@ -27,15 +24,6 @@
             "target": "file",
             "targetKey": "file_id",
             "keysIn": "annotations_geom_obs_type",
-            "targetStorageType": "sql"
-        },
-        "pipeline": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "pipeline_annotations",
-            "target": "pipeline_info",
-            "targetKey": "pipeline_id",
-            "keysIn": "annotation_geom_observation_type",
             "targetStorageType": "sql"
         }
     }

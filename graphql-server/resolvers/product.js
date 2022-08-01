@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const file = require(path.join(__dirname, '..', 'models', 'index.js')).file;
+const product = require(path.join(__dirname, '..', 'models', 'index.js')).product;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,39 +14,38 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addAssociated_deployment': 'deployment',
-    'addFile_annotations': 'annotations_geom_obs_type',
-    'addFile_products': 'product'
+    'addPipeline': 'pipeline_info',
+    'addFileAssoc': 'file'
 }
 
 
 
 /**
- * file.prototype.associated_deployment - Return associated record
+ * product.prototype.pipeline - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-file.prototype.associated_deployment = async function({
+product.prototype.pipeline = async function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.deployment_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.pipeline_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneDeployment({
-                [models.deployment.idAttribute()]: this.deployment_id
+            return resolvers.readOnePipeline_info({
+                [models.pipeline_info.idAttribute()]: this.pipeline_id
             }, context)
         } else {
 
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.deployment.idAttribute(),
-                "value": this.deployment_id,
+                "field": models.pipeline_info.idAttribute(),
+                "value": this.pipeline_id,
                 "operator": "eq"
             });
-            let found = (await resolvers.deploymentsConnection({
+            let found = (await resolvers.pipeline_infosConnection({
                 search: nsearch,
                 pagination: {
                     first: 1
@@ -61,7 +60,7 @@ file.prototype.associated_deployment = async function({
 }
 
 /**
- * file.prototype.file_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * product.prototype.fileAssocFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -71,94 +70,7 @@ file.prototype.associated_deployment = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_annotationsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.annotations_geom_obs_types({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * file.prototype.countFilteredFile_annotations - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-file.prototype.countFilteredFile_annotations = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countAnnotations_geom_obs_types({
-        search: nsearch
-    }, context);
-}
-
-/**
- * file.prototype.file_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-file.prototype.file_annotationsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "file_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.annotations_geom_obs_typesConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * file.prototype.file_productsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-file.prototype.file_productsFilter = function({
+product.prototype.fileAssocFilter = function({
     search,
     order,
     pagination
@@ -166,17 +78,17 @@ file.prototype.file_productsFilter = function({
 
 
     //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
+    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
         return [];
     }
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
+        "field": models.file.idAttribute(),
+        "value": this.file_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.products({
+    return resolvers.files({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -184,37 +96,37 @@ file.prototype.file_productsFilter = function({
 }
 
 /**
- * file.prototype.countFilteredFile_products - Count number of associated records that holds the conditions specified in the search argument
+ * product.prototype.countFilteredFileAssoc - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-file.prototype.countFilteredFile_products = function({
+product.prototype.countFilteredFileAssoc = function({
     search
 }, context) {
 
 
     //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
+    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
         return 0;
     }
 
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
+        "field": models.file.idAttribute(),
+        "value": this.file_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
 
-    return resolvers.countProducts({
+    return resolvers.countFiles({
         search: nsearch
     }, context);
 }
 
 /**
- * file.prototype.file_productsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * product.prototype.fileAssocConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -224,7 +136,7 @@ file.prototype.countFilteredFile_products = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_productsConnection = function({
+product.prototype.fileAssocConnection = function({
     search,
     order,
     pagination
@@ -232,10 +144,10 @@ file.prototype.file_productsConnection = function({
 
 
     //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
+    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
         return {
             edges: [],
-            products: [],
+            files: [],
             pageInfo: {
                 startCursor: null,
                 endCursor: null,
@@ -247,12 +159,12 @@ file.prototype.file_productsConnection = function({
 
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
+        "field": models.file.idAttribute(),
+        "value": this.file_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.productsConnection({
+    return resolvers.filesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -268,117 +180,75 @@ file.prototype.file_productsConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.handleAssociations = async function(input, benignErrorReporter) {
+product.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addFile_annotations)) {
-        promises_add.push(this.add_file_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addFileAssoc)) {
+        promises_add.push(this.add_fileAssoc(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addFile_products)) {
-        promises_add.push(this.add_file_products(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addAssociated_deployment)) {
-        promises_add.push(this.add_associated_deployment(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addPipeline)) {
+        promises_add.push(this.add_pipeline(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeFile_annotations)) {
-        promises_remove.push(this.remove_file_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeFileAssoc)) {
+        promises_remove.push(this.remove_fileAssoc(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeFile_products)) {
-        promises_remove.push(this.remove_file_products(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeAssociated_deployment)) {
-        promises_remove.push(this.remove_associated_deployment(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removePipeline)) {
+        promises_remove.push(this.remove_pipeline(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_file_annotations - field Mutation for to_many associations to add
+ * add_fileAssoc - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.add_file_annotations = async function(input, benignErrorReporter) {
+product.prototype.add_fileAssoc = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await product.add_file_ids(this.getIdValue(), input.addFileAssoc, benignErrorReporter);
+    this.file_ids = helper.unionIds(this.file_ids, input.addFileAssoc);
 }
 
 /**
- * add_file_products - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_pipeline - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.add_file_products = async function(input, benignErrorReporter) {
-
-    await file.add_product_ids(this.getIdValue(), input.addFile_products, benignErrorReporter);
-    this.product_ids = helper.unionIds(this.product_ids, input.addFile_products);
+product.prototype.add_pipeline = async function(input, benignErrorReporter) {
+    await product.add_pipeline_id(this.getIdValue(), input.addPipeline, benignErrorReporter);
+    this.pipeline_id = input.addPipeline;
 }
 
 /**
- * add_associated_deployment - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-file.prototype.add_associated_deployment = async function(input, benignErrorReporter) {
-    await file.add_deployment_id(this.getIdValue(), input.addAssociated_deployment, benignErrorReporter);
-    this.deployment_id = input.addAssociated_deployment;
-}
-
-/**
- * remove_file_annotations - field Mutation for to_many associations to remove
+ * remove_fileAssoc - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.remove_file_annotations = async function(input, benignErrorReporter) {
+product.prototype.remove_fileAssoc = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await product.remove_file_ids(this.getIdValue(), input.removeFileAssoc, benignErrorReporter);
+    this.file_ids = helper.differenceIds(this.file_ids, input.removeFileAssoc);
 }
 
 /**
- * remove_file_products - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_pipeline - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.remove_file_products = async function(input, benignErrorReporter) {
-
-    await file.remove_product_ids(this.getIdValue(), input.removeFile_products, benignErrorReporter);
-    this.product_ids = helper.differenceIds(this.product_ids, input.removeFile_products);
-}
-
-/**
- * remove_associated_deployment - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-file.prototype.remove_associated_deployment = async function(input, benignErrorReporter) {
-    if (input.removeAssociated_deployment == this.deployment_id) {
-        await file.remove_deployment_id(this.getIdValue(), input.removeAssociated_deployment, benignErrorReporter);
-        this.deployment_id = null;
+product.prototype.remove_pipeline = async function(input, benignErrorReporter) {
+    if (input.removePipeline == this.pipeline_id) {
+        await product.remove_pipeline_id(this.getIdValue(), input.removePipeline, benignErrorReporter);
+        this.pipeline_id = null;
     }
 }
 
@@ -393,18 +263,17 @@ file.prototype.remove_associated_deployment = async function(input, benignErrorR
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let file = await resolvers.readOneFile({
+    let product = await resolvers.readOneProduct({
         id: id
     }, context);
     //check that record actually exists
-    if (file === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (product === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_many.push(file.countFilteredFile_annotations({}, context));
 
-    get_to_many_associated_fk += Array.isArray(file.product_ids) ? file.product_ids.length : 0;
-    promises_to_one.push(file.associated_deployment({}, context));
+    get_to_many_associated_fk += Array.isArray(product.file_ids) ? product.file_ids.length : 0;
+    promises_to_one.push(product.pipeline({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -425,7 +294,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`file with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`product with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -437,7 +306,7 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const file_record = await resolvers.readOneFile({
+    const product_record = await resolvers.readOneProduct({
             id: id
         },
         context
@@ -449,7 +318,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * files - Check user authorization and return certain number, specified in pagination argument, of records that
+     * products - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -458,21 +327,21 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    files: async function({
+    products: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "files");
-            return await file.readAll(search, order, pagination, context.benignErrors);
+        if (await checkAuthorization(context, 'product', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "products");
+            return await product.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * filesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * productsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -481,65 +350,65 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    filesConnection: async function({
+    productsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
+        if (await checkAuthorization(context, 'product', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "filesConnection");
-            return await file.readAllCursor(search, order, pagination, context.benignErrors);
+            helper.checkCountAndReduceRecordsLimit(limit, context, "productsConnection");
+            return await product.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneFile - Check user authorization and return one record with the specified id in the id argument.
+     * readOneProduct - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneFile: async function({
+    readOneProduct: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneFile");
-            return await file.readById(id, context.benignErrors);
+        if (await checkAuthorization(context, 'product', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneProduct");
+            return await product.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countFiles - Counts number of records that holds the conditions specified in the search argument
+     * countProducts - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countFiles: async function({
+    countProducts: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            return await file.countRecords(search, context.benignErrors);
+        if (await checkAuthorization(context, 'product', 'read') === true) {
+            return await product.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateFileForCreation - Check user authorization and validate input argument for creation.
+     * validateProductForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'file', 'read');
+    validateProductForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'product', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -554,7 +423,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    file,
+                    product,
                     inputSanitized
                 );
                 return true;
@@ -568,14 +437,14 @@ module.exports = {
     },
 
     /**
-     * validateFileForUpdating - Check user authorization and validate input argument for updating.
+     * validateProductForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'file', 'read');
+    validateProductForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'product', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -590,7 +459,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    file,
+                    product,
                     inputSanitized
                 );
                 return true;
@@ -604,21 +473,21 @@ module.exports = {
     },
 
     /**
-     * validateFileForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateProductForDeletion - Check user authorization and validate record by ID for deletion.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileForDeletion: async ({
+    validateProductForDeletion: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'file', 'read')) === true) {
+        if ((await checkAuthorization(context, 'product', 'read')) === true) {
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    file,
+                    product,
                     id);
                 return true;
             } catch (error) {
@@ -631,20 +500,20 @@ module.exports = {
     },
 
     /**
-     * validateFileAfterReading - Check user authorization and validate record by ID after reading.
+     * validateProductAfterReading - Check user authorization and validate record by ID after reading.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateFileAfterReading: async ({
+    validateProductAfterReading: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'file', 'read')) === true) {
+        if ((await checkAuthorization(context, 'product', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    file,
+                    product,
                     id);
                 return true;
             } catch (error) {
@@ -656,7 +525,7 @@ module.exports = {
         }
     },
     /**
-     * addFile - Check user authorization and creates a new record with data specified in the input argument.
+     * addProduct - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -664,8 +533,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addFile: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'file', 'create');
+    addProduct: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'product', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -673,28 +542,28 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdFile = await file.addOne(inputSanitized, context.benignErrors);
-            await createdFile.handleAssociations(inputSanitized, context.benignErrors);
-            return createdFile;
+            let createdProduct = await product.addOne(inputSanitized, context.benignErrors);
+            await createdProduct.handleAssociations(inputSanitized, context.benignErrors);
+            return createdProduct;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteFile - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteProduct - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteFile: async function({
+    deleteProduct: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'file', 'delete') === true) {
+        if (await checkAuthorization(context, 'product', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
-                return file.deleteOne(id, context.benignErrors);
+                return product.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -702,7 +571,7 @@ module.exports = {
     },
 
     /**
-     * updateFile - Check user authorization and update the record specified in the input argument
+     * updateProduct - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -710,8 +579,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateFile: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'file', 'update');
+    updateProduct: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'product', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -719,78 +588,78 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedFile = await file.updateOne(inputSanitized, context.benignErrors);
-            await updatedFile.handleAssociations(inputSanitized, context.benignErrors);
-            return updatedFile;
+            let updatedProduct = await product.updateOne(inputSanitized, context.benignErrors);
+            await updatedProduct.handleAssociations(inputSanitized, context.benignErrors);
+            return updatedProduct;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAssociateFileWithDeployment_id - bulkAssociaton resolver of given ids
+     * bulkAssociateProductWithPipeline_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
+    bulkAssociateProductWithPipeline_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                deployment_id
-            }) => deployment_id)), models.deployment);
+                pipeline_id
+            }) => pipeline_id)), models.pipeline_info);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), file);
+            }) => id)), product);
         }
-        return await file.bulkAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await product.bulkAssociateProductWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkDisAssociateFileWithDeployment_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateProductWithPipeline_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateFileWithDeployment_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateProductWithPipeline_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                deployment_id
-            }) => deployment_id)), models.deployment);
+                pipeline_id
+            }) => pipeline_id)), models.pipeline_info);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), file);
+            }) => id)), product);
         }
-        return await file.bulkDisAssociateFileWithDeployment_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await product.bulkDisAssociateProductWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
-     * csvTableTemplateFile - Returns table's template
+     * csvTableTemplateProduct - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateFile: async function(_, context) {
-        if (await checkAuthorization(context, 'file', 'read') === true) {
-            return file.csvTableTemplate(context.benignErrors);
+    csvTableTemplateProduct: async function(_, context) {
+        if (await checkAuthorization(context, 'product', 'read') === true) {
+            return product.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * filesZendroDefinition - Return data model definition
+     * productsZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    filesZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "file", "read")) === true) {
-            return file.definition;
+    productsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "product", "read")) === true) {
+            return product.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

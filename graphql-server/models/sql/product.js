@@ -18,23 +18,39 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'pipeline_info',
+    model: 'product',
     storageType: 'sql',
     attributes: {
-        version: 'String',
-        commit_dvc_of_data_ref: 'String',
-        commit_dvc_of_model: 'String',
-        url_repo_model: 'String',
-        updatedAt: 'DateTime',
+        type: 'String',
+        url: 'String',
+        observation_type: 'String',
+        producer: 'String',
+        project: 'String',
+        metadata: 'JSON',
+        audio_grid_id: 'Int',
+        audio_distance_to_mean: 'Float',
         createdAt: 'DateTime',
-        comments: 'String'
+        updatedAt: 'DateTime',
+        comments: 'String',
+        file_ids: '[Int]',
+        pipeline_id: 'Int'
     },
     associations: {
-        pipeline_products: {
-            type: 'one_to_many',
+        fileAssoc: {
+            type: 'many_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'pipeline',
-            target: 'product',
+            reverseAssociation: 'file_products',
+            target: 'file',
+            targetKey: 'product_ids',
+            sourceKey: 'file_ids',
+            keysIn: 'product',
+            targetStorageType: 'sql'
+        },
+        pipeline: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'pipeline_products',
+            target: 'pipeline_info',
             targetKey: 'pipeline_id',
             keysIn: 'product',
             targetStorageType: 'sql'
@@ -51,7 +67,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class pipeline_info extends Sequelize.Model {
+module.exports = class product extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -61,32 +77,51 @@ module.exports = class pipeline_info extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            version: {
+            type: {
                 type: Sequelize[dict['String']]
             },
-            commit_dvc_of_data_ref: {
+            url: {
                 type: Sequelize[dict['String']]
             },
-            commit_dvc_of_model: {
+            observation_type: {
                 type: Sequelize[dict['String']]
             },
-            url_repo_model: {
+            producer: {
                 type: Sequelize[dict['String']]
             },
-            updatedAt: {
-                type: Sequelize[dict['DateTime']]
+            project: {
+                type: Sequelize[dict['String']]
+            },
+            metadata: {
+                type: Sequelize[dict['JSON']]
+            },
+            audio_grid_id: {
+                type: Sequelize[dict['Int']]
+            },
+            audio_distance_to_mean: {
+                type: Sequelize[dict['Float']]
             },
             createdAt: {
                 type: Sequelize[dict['DateTime']]
             },
+            updatedAt: {
+                type: Sequelize[dict['DateTime']]
+            },
             comments: {
                 type: Sequelize[dict['String']]
+            },
+            file_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
+            },
+            pipeline_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "pipeline_info",
-            tableName: "pipeline_infos",
+            modelName: "product",
+            tableName: "products",
             sequelize
         });
     }
@@ -134,8 +169,8 @@ module.exports = class pipeline_info extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        pipeline_info.hasMany(models.product, {
-            as: 'pipeline_products',
+        product.belongsTo(models.pipeline_info, {
+            as: 'pipeline',
             foreignKey: 'pipeline_id'
         });
     }
@@ -148,13 +183,13 @@ module.exports = class pipeline_info extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: pipeline_info.idAttribute(),
+            field: product.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await pipeline_info.readAllCursor(queryArg);
-        cursorRes = cursorRes.pipeline_infos.reduce(
-            (map, obj) => ((map[obj[pipeline_info.idAttribute()]] = obj), map), {}
+        let cursorRes = await product.readAllCursor(queryArg);
+        cursorRes = cursorRes.products.reduce(
+            (map, obj) => ((map[obj[product.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -162,7 +197,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(pipeline_info.batchReadById, {
+    static readByIdLoader = new DataLoader(product.batchReadById, {
         cache: false,
     });
 
@@ -171,11 +206,11 @@ module.exports = class pipeline_info extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type pipeline_info, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type product, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await pipeline_info.readByIdLoader.load(id);
+        return await product.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -187,7 +222,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, pipeline_info.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, product.definition.attributes);
         return super.count(options);
     }
 
@@ -202,9 +237,9 @@ module.exports = class pipeline_info extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), pipeline_info.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), product.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => pipeline_info.postReadCast(x))
+        records = records.map(x => product.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -220,10 +255,10 @@ module.exports = class pipeline_info extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), pipeline_info.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), product.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => pipeline_info.postReadCast(x))
+        records = records.map(x => product.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -234,7 +269,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), pipeline_info.definition.attributes);
+            }, this.idAttribute(), product.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -243,7 +278,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            pipeline_infos: edges.map((edge) => edge.node)
+            products: edges.map((edge) => edge.node)
         };
     }
 
@@ -257,7 +292,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = pipeline_info.preWriteCast(input)
+        input = product.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -265,8 +300,8 @@ module.exports = class pipeline_info extends Sequelize.Model {
                 });
                 return item;
             });
-            pipeline_info.postReadCast(result.dataValues)
-            pipeline_info.postReadCast(result._previousDataValues)
+            product.postReadCast(result.dataValues)
+            product.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -306,7 +341,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = pipeline_info.preWriteCast(input)
+        input = product.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -319,8 +354,8 @@ module.exports = class pipeline_info extends Sequelize.Model {
                 });
                 return updated;
             });
-            pipeline_info.postReadCast(result.dataValues)
-            pipeline_info.postReadCast(result._previousDataValues)
+            product.postReadCast(result.dataValues)
+            product.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -342,12 +377,162 @@ module.exports = class pipeline_info extends Sequelize.Model {
 
 
 
+    /**
+     * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await product.update({
+                pipeline_id: pipeline_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * add_file_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   file_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_file_ids(id, file_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            file_ids.forEach(idx => {
+                promises.push(models.file.add_product_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.file_ids), file_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                file_ids: updated_ids
+            });
+        }
+    }
+
+    /**
+     * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await product.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_file_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   file_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_file_ids(id, file_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            file_ids.forEach(idx => {
+                promises.push(models.file.remove_product_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.file_ids), file_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                file_ids: updated_ids
+            });
+        }
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateProductWithPipeline_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateProductWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: pipeline_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
+
+    /**
+     * bulkDisAssociateProductWithPipeline_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateProductWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 
@@ -357,7 +542,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return pipeline_info.definition.id.name;
+        return product.definition.id.name;
     }
 
     /**
@@ -366,16 +551,16 @@ module.exports = class pipeline_info extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return pipeline_info.definition.id.type;
+        return product.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of pipeline_info.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of product.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[pipeline_info.idAttribute()];
+        return this[product.idAttribute()];
     }
 
     /**
@@ -396,9 +581,9 @@ module.exports = class pipeline_info extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  pipeline_info to a base 64 String
+     * base64Encode - Encode  product to a base 64 String
      *
-     * @return {string} The pipeline_info object, encoded in a base 64 String
+     * @return {string} The product object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -409,28 +594,28 @@ module.exports = class pipeline_info extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The pipeline_info object, encoded in a base 64 String
+     * @return {string} The product object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of pipeline_info.
+     * stripAssociations - Instance method for getting all attributes of product.
      *
-     * @return {object} The attributes of pipeline_info in object form
+     * @return {object} The attributes of product in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(pipeline_info.definition.attributes);
+        let attributes = Object.keys(product.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of pipeline_info that are marked as external IDs.
+     * externalIdsArray - Get all attributes of product that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of pipeline_info that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of product that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -442,7 +627,7 @@ module.exports = class pipeline_info extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of pipeline_info.
+     * externalIdsObject - Get all external IDs of product.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

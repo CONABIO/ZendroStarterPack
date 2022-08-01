@@ -11,13 +11,13 @@
         "comments": "String"
     },
     "associations": {
-        "pipeline_annotations": {
+        "pipeline_products": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
             "reverseAssociation": "pipeline",
-            "target": "annotations_geom_obs_type",
+            "target": "product",
             "targetKey": "pipeline_id",
-            "keysIn": "annotations_geom_obs_type",
+            "keysIn": "product",
             "targetStorageType": "sql"
         }
     }

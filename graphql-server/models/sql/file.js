@@ -27,7 +27,8 @@ const definition = {
         storage: 'String',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        deployment_id: 'Int'
+        deployment_id: 'Int',
+        product_ids: '[Int]'
     },
     associations: {
         associated_deployment: {
@@ -46,6 +47,16 @@ const definition = {
             target: 'annotations_geom_obs_type',
             targetKey: 'file_id',
             keysIn: 'annotations_geom_obs_type',
+            targetStorageType: 'sql'
+        },
+        file_products: {
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'fileAssoc',
+            target: 'product',
+            targetKey: 'file_ids',
+            sourceKey: 'product_ids',
+            keysIn: 'file',
             targetStorageType: 'sql'
         }
     },
@@ -90,6 +101,10 @@ module.exports = class file extends Sequelize.Model {
             },
             deployment_id: {
                 type: Sequelize[dict['Int']]
+            },
+            product_ids: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             }
 
 
@@ -378,6 +393,31 @@ module.exports = class file extends Sequelize.Model {
             });
         }
     }
+    /**
+     * add_product_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   product_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_product_ids(id, product_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            product_ids.forEach(idx => {
+                promises.push(models.product.add_file_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.product_ids), product_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                product_ids: updated_ids
+            });
+        }
+    }
 
     /**
      * remove_deployment_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -400,6 +440,31 @@ module.exports = class file extends Sequelize.Model {
         } catch (error) {
             benignErrorReporter.push({
                 message: error
+            });
+        }
+    }
+    /**
+     * remove_product_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   product_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_product_ids(id, product_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            product_ids.forEach(idx => {
+                promises.push(models.product.remove_file_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.product_ids), product_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                product_ids: updated_ids
             });
         }
     }

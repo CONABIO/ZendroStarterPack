@@ -14,8 +14,7 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addFileTo': 'file',
-    'addPipeline': 'pipeline_info'
+    'addFileTo': 'file'
 }
 
 
@@ -58,40 +57,6 @@ annotations_geom_obs_type.prototype.fileTo = async function({
         }
     }
 }
-/**
- * annotations_geom_obs_type.prototype.pipeline - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-annotations_geom_obs_type.prototype.pipeline = async function({
-    search
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "pipeline_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    let found = (await resolvers.pipeline_infosConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 pipeline_infos matching annotations_geom_obs_type with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the annotations_geom_obs_type model. Returning first pipeline_info.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
-}
 
 
 
@@ -110,18 +75,12 @@ annotations_geom_obs_type.prototype.handleAssociations = async function(input, b
     if (helper.isNotUndefinedAndNotNull(input.addFileTo)) {
         promises_add.push(this.add_fileTo(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addPipeline)) {
-        promises_add.push(this.add_pipeline(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
     if (helper.isNotUndefinedAndNotNull(input.removeFileTo)) {
         promises_remove.push(this.remove_fileTo(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removePipeline)) {
-        promises_remove.push(this.remove_pipeline(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -139,16 +98,6 @@ annotations_geom_obs_type.prototype.add_fileTo = async function(input, benignErr
 }
 
 /**
- * add_pipeline - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-annotations_geom_obs_type.prototype.add_pipeline = async function(input, benignErrorReporter) {
-    await models.pipeline_info.add_pipeline_id(input.addPipeline, this.getIdValue(), benignErrorReporter);
-}
-
-/**
  * remove_fileTo - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -159,16 +108,6 @@ annotations_geom_obs_type.prototype.remove_fileTo = async function(input, benign
         await annotations_geom_obs_type.remove_file_id(this.getIdValue(), input.removeFileTo, benignErrorReporter);
         this.file_id = null;
     }
-}
-
-/**
- * remove_pipeline - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-annotations_geom_obs_type.prototype.remove_pipeline = async function(input, benignErrorReporter) {
-    await models.pipeline_info.remove_pipeline_id(input.removePipeline, this.getIdValue(), benignErrorReporter);
 }
 
 
@@ -191,7 +130,6 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     promises_to_one.push(annotations_geom_obs_type.fileTo({}, context));
-    promises_to_one.push(annotations_geom_obs_type.pipeline({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);

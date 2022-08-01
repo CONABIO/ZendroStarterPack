@@ -46,6 +46,12 @@ module.exports = `
     """
     deployment_id: Int
 
+    """
+    @original-field
+    
+    """
+    product_ids: [Int]
+
     associated_deployment(search: searchDeploymentInput): deployment
     
     """
@@ -63,6 +69,22 @@ module.exports = `
     @count-request
     """
     countFilteredFile_annotations(search: searchAnnotations_geom_obs_typeInput) : Int
+  
+    """
+    @search-request
+    """
+    file_productsFilter(search: searchProductInput, order: [ orderProductInput ], pagination: paginationInput!): [product]
+
+
+    """
+    @search-request
+    """
+    file_productsConnection(search: searchProductInput, order: [ orderProductInput ], pagination: paginationCursorInput!): ProductConnection
+
+    """
+    @count-request
+    """
+    countFilteredFile_products(search: searchProductInput) : Int
   
     
     """
@@ -90,6 +112,7 @@ type FileEdge{
     updatedAt
     createdAt
     deployment_id
+    product_ids
   }
   
   input searchFileInput {
@@ -116,8 +139,8 @@ type FileEdge{
     countFiles(search: searchFileInput ): Int
     csvTableTemplateFile: [String]
     filesConnection(search:searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput! ): FileConnection
-    validateFileForCreation( url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateFileForUpdating(id: ID!, url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForCreation( url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID], addFile_products:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateFileForUpdating(id: ID!, url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID] , addFile_products:[ID], removeFile_products:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateFileForDeletion(id: ID!): Boolean!
     validateFileAfterReading(id: ID!): Boolean!
     """
@@ -127,8 +150,8 @@ type FileEdge{
   }
 
   type Mutation {
-    addFile( url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): file!
-    updateFile(id: ID!, url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): file!
+    addFile( url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID  , addFile_annotations:[ID], addFile_products:[ID] , skipAssociationsExistenceChecks:Boolean = false): file!
+    updateFile(id: ID!, url: String, type: String, id_alfresco: String, storage: String, updatedAt: DateTime, createdAt: DateTime , addAssociated_deployment:ID, removeAssociated_deployment:ID   , addFile_annotations:[ID], removeFile_annotations:[ID] , addFile_products:[ID], removeFile_products:[ID]  , skipAssociationsExistenceChecks:Boolean = false): file!
     deleteFile(id: ID!): String!
     bulkAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateFileWithDeployment_id(bulkAssociationInput: [bulkAssociationFileWithDeployment_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

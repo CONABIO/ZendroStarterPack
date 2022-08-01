@@ -1,0 +1,40 @@
+{
+    "model": "product",
+    "storageType": "sql",
+    "attributes": {
+        "type": "String", 
+        "url": "String", 
+        "observation_type": "String",
+        "producer": "String",
+        "project": "String",
+        "metadata": "JSON",
+        "audio_grid_id": "Int",
+        "audio_distance_to_mean": "Float",
+        "createdAt": "DateTime",
+        "updatedAt": "DateTime",
+        "comments": "String",
+        "file_ids": "[Int]",
+        "pipeline_id": "Int"
+    },
+    "associations": {
+        "fileAssoc": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "file_products",
+            "target": "file",
+            "targetKey": "product_ids",
+            "sourceKey": "file_ids",
+            "keysIn": "product",
+            "targetStorageType": "sql"
+        },
+        "pipeline": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "pipeline_products",
+            "target": "pipeline_info",
+            "targetKey": "pipeline_id",
+            "keysIn": "product",
+            "targetStorageType": "sql"
+        }
+    }
+}

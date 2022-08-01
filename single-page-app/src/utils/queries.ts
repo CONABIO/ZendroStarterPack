@@ -478,8 +478,7 @@ function parseQueryAssociations(
     get assocArgs() {
       return associations
         .reduce((acc: string[], curr) => {
-          const { namePlCp, nameCp } = getInflections(curr.name);
-          const mutationName = curr.type.includes('to_one') ? nameCp : namePlCp;
+          const { nameCp: mutationName } = getInflections(curr.name);
           acc.push(
             `$add${mutationName}: ${
               curr.type.includes('to_one') ? 'ID' : '[ID]'
@@ -498,13 +497,12 @@ function parseQueryAssociations(
     get assocVars() {
       return associations
         .reduce((acc: string[], curr) => {
-          const { namePlCp, nameCp } = getInflections(curr.name);
-          const mutationName = curr.type.includes('to_one') ? nameCp : namePlCp;
+          const { nameCp: mutationName } = getInflections(curr.name);
           acc.push(`add${mutationName}: $add${mutationName}`);
           acc.push(`remove${mutationName}: $remove${mutationName}`);
           return acc;
         }, [])
         .join(' ');
-    },
+    }
   };
 }

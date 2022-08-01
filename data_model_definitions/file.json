@@ -8,7 +8,8 @@
         "storage": "String",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
-        "deployment_id": "Int"
+        "deployment_id": "Int",
+        "product_ids": "[Int]"
     },
     "associations": {
         "associated_deployment": {
@@ -27,6 +28,16 @@
             "target": "annotations_geom_obs_type",
             "targetKey": "file_id",
             "keysIn": "annotations_geom_obs_type",
+            "targetStorageType": "sql"
+        },
+        "file_products": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "fileAssoc",
+            "target": "product",
+            "targetKey": "file_ids",
+            "sourceKey": "product_ids",
+            "keysIn": "file",
             "targetStorageType": "sql"
         }
     }

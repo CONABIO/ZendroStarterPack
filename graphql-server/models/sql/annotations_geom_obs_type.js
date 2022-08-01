@@ -31,12 +31,9 @@ const definition = {
         frequency_max: 'Float',
         time_min: 'Float',
         time_max: 'Float',
-        metadata: 'JSON',
-        product_id_alfesco: 'String',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        file_id: 'Int',
-        pipeline_id: 'Int'
+        file_id: 'Int'
     },
     associations: {
         fileTo: {
@@ -46,15 +43,6 @@ const definition = {
             target: 'file',
             targetKey: 'file_id',
             keysIn: 'annotations_geom_obs_type',
-            targetStorageType: 'sql'
-        },
-        pipeline: {
-            type: 'many_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'pipeline_annotations',
-            target: 'pipeline_info',
-            targetKey: 'pipeline_id',
-            keysIn: 'annotation_geom_observation_type',
             targetStorageType: 'sql'
         }
     },
@@ -109,12 +97,6 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             time_max: {
                 type: Sequelize[dict['Float']]
             },
-            metadata: {
-                type: Sequelize[dict['JSON']]
-            },
-            product_id_alfesco: {
-                type: Sequelize[dict['String']]
-            },
             updatedAt: {
                 type: Sequelize[dict['DateTime']]
             },
@@ -122,9 +104,6 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 type: Sequelize[dict['DateTime']]
             },
             file_id: {
-                type: Sequelize[dict['Int']]
-            },
-            pipeline_id: {
                 type: Sequelize[dict['Int']]
             }
 
@@ -182,10 +161,6 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         annotations_geom_obs_type.belongsTo(models.file, {
             as: 'fileTo',
             foreignKey: 'file_id'
-        });
-        annotations_geom_obs_type.belongsTo(models.pipeline_info, {
-            as: 'pipeline',
-            foreignKey: 'pipeline_id'
         });
     }
 
