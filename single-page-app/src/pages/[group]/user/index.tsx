@@ -55,7 +55,7 @@ import {
   useTableOrder,
   useTablePagination,
   UseTablePaginationProps,
-  useSearch,
+  useTableSearch,
 } from '@/zendro/model-table';
 
 const User: PageWithLayout = () => {
@@ -94,7 +94,7 @@ const User: PageWithLayout = () => {
   attributesWithThumbnail.unshift({ name: 'Thumbnail', type: 'String' });
 
   const [searchText, setSearchText] = useState('');
-  const tableSearch = useSearch({
+  const tableSearch = useTableSearch({
     attributes: model.attributes,
     primaryKey: model.primaryKey,
     searchText,

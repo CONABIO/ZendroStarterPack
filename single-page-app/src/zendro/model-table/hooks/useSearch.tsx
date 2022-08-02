@@ -36,14 +36,14 @@ export default function useSearch({
         ? {
             field: primaryKey,
             value: selectedRecords.toAdd.toString(),
-            valueType: 'Array',
+            valueType: selectedRecords.toAdd.length ? 'Array' : 'String',
             operator: 'in',
           }
         : associationFilter === 'records-to-remove' && selectedRecords
         ? {
             field: primaryKey,
             value: selectedRecords.toRemove.toString(),
-            valueType: 'Array',
+            valueType: selectedRecords.toRemove.length ? 'Array' : 'String',
             operator: 'in',
           }
         : undefined;

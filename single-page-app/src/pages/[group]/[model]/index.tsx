@@ -62,7 +62,7 @@ import {
   useTableOrder,
   useTablePagination,
   UseTablePaginationProps,
-  useSearch,
+  useTableSearch,
 } from '@/zendro/model-table';
 
 export interface ModelProps {
@@ -118,7 +118,7 @@ const Model: PageWithLayout<ModelProps> = (props) => {
   const zendro = useZendroClient();
 
   const [searchText, setSearchText] = useState('');
-  const tableSearch = useSearch({
+  const tableSearch = useTableSearch({
     attributes: model.attributes,
     primaryKey: model.primaryKey,
     searchText,

@@ -8,7 +8,7 @@ import TableSearch from './table-search';
 
 import useTableOrder from './hooks/useOrder';
 import useTablePagination from './hooks/usePagination';
-import useSearch from './hooks/useSearch';
+import useTableSearch from './hooks/useSearch';
 
 export * from './table';
 export * from './table-row';
@@ -26,5 +26,5 @@ export {
   TableSearch,
   useTableOrder,
   useTablePagination,
-  useSearch,
+  useTableSearch,
 };

@@ -47,7 +47,7 @@ import {
   TableSearch,
   useTablePagination,
   UseTablePaginationProps,
-  useSearch,
+  useTableSearch,
   useTableOrder,
   TableRecord,
   UseOrderProps,
@@ -123,7 +123,7 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
   /* VARIABLES */
 
   const [searchText, setSearchText] = useState('');
-  const tableSearch = useSearch({
+  const tableSearch = useTableSearch({
     associationFilter: recordsFilter,
     attributes: targetModel.attributes,
     primaryKey: targetModel.primaryKey,
@@ -197,7 +197,7 @@ const Association: PageWithLayout<AssociationUrlQuery> = (props) => {
           ? zendro.queries[props.model].withFilter[association.name]
               .readFiltered
           : zendro.queries[props.model].withFilter[association.name].readAll;
-      console.log(tableSearch)
+
       const variables: QueryModelTableRecordsVariables = {
         search: tableSearch,
         order: tableOrder,
@@ -675,7 +675,6 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       flexDirection: 'column',
       flexGrow: 1,
-      overflow: 'auto',
       padding: theme.spacing(3),
       width: '100%',
     },
