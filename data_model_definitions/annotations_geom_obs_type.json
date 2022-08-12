@@ -14,7 +14,8 @@
         "time_max": "Float",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
-        "file_id": "Int"
+        "file_id": "Int",
+        "user_id": "Int"
     },
     "associations": {
         "fileTo": {
@@ -23,6 +24,15 @@
             "reverseAssociation": "file_annotations",
             "target": "file",
             "targetKey": "file_id",
+            "keysIn": "annotations_geom_obs_type",
+            "targetStorageType": "sql"
+        },
+        "userTo": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "user_annotations",
+            "target": "user",
+            "targetKey": "user_id",
             "keysIn": "annotations_geom_obs_type",
             "targetStorageType": "sql"
         }

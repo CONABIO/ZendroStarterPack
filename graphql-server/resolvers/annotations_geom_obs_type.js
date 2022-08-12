@@ -14,7 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addFileTo': 'file'
+    'addFileTo': 'file',
+    'addUserTo': 'user'
 }
 
 
@@ -57,6 +58,44 @@ annotations_geom_obs_type.prototype.fileTo = async function({
         }
     }
 }
+/**
+ * annotations_geom_obs_type.prototype.userTo - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+annotations_geom_obs_type.prototype.userTo = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.user_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneUser({
+                [models.user.idAttribute()]: this.user_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.user.idAttribute(),
+                "value": this.user_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.usersConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -75,12 +114,18 @@ annotations_geom_obs_type.prototype.handleAssociations = async function(input, b
     if (helper.isNotUndefinedAndNotNull(input.addFileTo)) {
         promises_add.push(this.add_fileTo(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addUserTo)) {
+        promises_add.push(this.add_userTo(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
     if (helper.isNotUndefinedAndNotNull(input.removeFileTo)) {
         promises_remove.push(this.remove_fileTo(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeUserTo)) {
+        promises_remove.push(this.remove_userTo(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -98,6 +143,17 @@ annotations_geom_obs_type.prototype.add_fileTo = async function(input, benignErr
 }
 
 /**
+ * add_userTo - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom_obs_type.prototype.add_userTo = async function(input, benignErrorReporter) {
+    await annotations_geom_obs_type.add_user_id(this.getIdValue(), input.addUserTo, benignErrorReporter);
+    this.user_id = input.addUserTo;
+}
+
+/**
  * remove_fileTo - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -107,6 +163,19 @@ annotations_geom_obs_type.prototype.remove_fileTo = async function(input, benign
     if (input.removeFileTo == this.file_id) {
         await annotations_geom_obs_type.remove_file_id(this.getIdValue(), input.removeFileTo, benignErrorReporter);
         this.file_id = null;
+    }
+}
+
+/**
+ * remove_userTo - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom_obs_type.prototype.remove_userTo = async function(input, benignErrorReporter) {
+    if (input.removeUserTo == this.user_id) {
+        await annotations_geom_obs_type.remove_user_id(this.getIdValue(), input.removeUserTo, benignErrorReporter);
+        this.user_id = null;
     }
 }
 
@@ -130,6 +199,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     promises_to_one.push(annotations_geom_obs_type.fileTo({}, context));
+    promises_to_one.push(annotations_geom_obs_type.userTo({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -472,6 +542,25 @@ module.exports = {
         return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
+     * bulkAssociateAnnotations_geom_obs_typeWithUser_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateAnnotations_geom_obs_typeWithUser_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                user_id
+            }) => user_id)), models.user);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom_obs_type);
+        }
+        return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
      * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -489,6 +578,25 @@ module.exports = {
             }) => id)), annotations_geom_obs_type);
         }
         return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
+     * bulkDisAssociateAnnotations_geom_obs_typeWithUser_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateAnnotations_geom_obs_typeWithUser_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                user_id
+            }) => user_id)), models.user);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom_obs_type);
+        }
+        return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**

@@ -92,6 +92,22 @@ module.exports = `
     """
     countFilteredAssociated_cumulus(search: searchCumulusInput) : Int
   
+    """
+    @search-request
+    """
+    user_annotationsFilter(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationInput!): [annotations_geom_obs_type]
+
+
+    """
+    @search-request
+    """
+    user_annotationsConnection(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationCursorInput!): Annotations_geom_obs_typeConnection
+
+    """
+    @count-request
+    """
+    countFilteredUser_annotations(search: searchAnnotations_geom_obs_typeInput) : Int
+  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -146,8 +162,8 @@ type UserEdge{
     countUsers(search: searchUserInput ): Int
     csvTableTemplateUser: [String]
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput! ): UserConnection
-    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations:[ID], removeUser_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateUserForDeletion(id: ID!): Boolean!
     validateUserAfterReading(id: ID!): Boolean!
     """
@@ -157,8 +173,8 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations:[ID], removeUser_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

@@ -33,7 +33,8 @@ const definition = {
         time_max: 'Float',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
-        file_id: 'Int'
+        file_id: 'Int',
+        user_id: 'Int'
     },
     associations: {
         fileTo: {
@@ -42,6 +43,15 @@ const definition = {
             reverseAssociation: 'file_annotations',
             target: 'file',
             targetKey: 'file_id',
+            keysIn: 'annotations_geom_obs_type',
+            targetStorageType: 'sql'
+        },
+        userTo: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'user_annotations',
+            target: 'user',
+            targetKey: 'user_id',
             keysIn: 'annotations_geom_obs_type',
             targetStorageType: 'sql'
         }
@@ -105,6 +115,9 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             },
             file_id: {
                 type: Sequelize[dict['Int']]
+            },
+            user_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -161,6 +174,10 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         annotations_geom_obs_type.belongsTo(models.file, {
             as: 'fileTo',
             foreignKey: 'file_id'
+        });
+        annotations_geom_obs_type.belongsTo(models.user, {
+            as: 'userTo',
+            foreignKey: 'user_id'
         });
     }
 
@@ -389,6 +406,29 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             });
         }
     }
+    /**
+     * add_user_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_user_id(id, user_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom_obs_type.update({
+                user_id: user_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
 
     /**
      * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -405,6 +445,30 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 where: {
                     id: id,
                     file_id: file_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_user_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_user_id(id, user_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom_obs_type.update({
+                user_id: null
+            }, {
+                where: {
+                    id: id,
+                    user_id: user_id
                 }
             });
             return updated[0];
@@ -445,6 +509,32 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateAnnotations_geom_obs_typeWithUser_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: user_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton of given ids
@@ -466,6 +556,33 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 where: {
                     id: id,
                     file_id: file_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_geom_obs_typeWithUser_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: null
+            }, {
+                where: {
+                    id: id,
+                    user_id: user_id
                 }
             }));
         })

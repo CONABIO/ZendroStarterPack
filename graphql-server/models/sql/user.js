@@ -16,7 +16,6 @@ const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
 const moment = require('moment');
 const errorHelper = require('../../utils/errors');
-const bcrypt = require('bcrypt');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'user',
@@ -61,6 +60,15 @@ const definition = {
             targetKey: 'user_ids',
             sourceKey: 'cumulus_ids',
             keysIn: 'user',
+            targetStorageType: 'sql'
+        },
+        user_annotations: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'userTo',
+            target: 'annotations_geom_obs_type',
+            targetKey: 'user_id',
+            keysIn: 'annotations_geom_obs_type',
             targetStorageType: 'sql'
         }
     },
@@ -168,6 +176,10 @@ module.exports = class user extends Sequelize.Model {
         user.belongsTo(models.institution, {
             as: 'institutions',
             foreignKey: 'institution_id'
+        });
+        user.hasMany(models.annotations_geom_obs_type, {
+            as: 'user_annotations',
+            foreignKey: 'user_id'
         });
         user.belongsToMany(models.role, {
             as: 'roles',
@@ -296,8 +308,6 @@ module.exports = class user extends Sequelize.Model {
         await validatorUtil.validateData('validateForCreate', this, input);
         input = user.preWriteCast(input)
         try {
-            let hash = await bcrypt.hash(input.password, globals.SALT_ROUNDS);
-            input.password = hash;
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
                     transaction: t
@@ -347,11 +357,6 @@ module.exports = class user extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         input = user.preWriteCast(input)
         try {
-            //check if password wants to be updated:
-            if(input.password !== undefined){
-                let hash = await bcrypt.hash(input.password, globals.SALT_ROUNDS);
-                input.password = hash;
-            }
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
                 if (to_update === null) {
