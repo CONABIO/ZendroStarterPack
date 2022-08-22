@@ -2,3 +2,4 @@ gitted_sub_projs.tar.bz2
 *-bak
 
 node_modules
+.DS_Store
