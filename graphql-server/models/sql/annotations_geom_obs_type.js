@@ -34,7 +34,8 @@ const definition = {
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
         file_id: 'Int',
-        user_id: 'Int'
+        user_id: 'Int',
+        pipeline_id: 'Int'
     },
     associations: {
         fileTo: {
@@ -52,6 +53,15 @@ const definition = {
             reverseAssociation: 'user_annotations',
             target: 'user',
             targetKey: 'user_id',
+            keysIn: 'annotations_geom_obs_type',
+            targetStorageType: 'sql'
+        },
+        pipeline_annotation: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'annotations',
+            target: 'pipeline_info',
+            targetKey: 'pipeline_id',
             keysIn: 'annotations_geom_obs_type',
             targetStorageType: 'sql'
         }
@@ -118,6 +128,9 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             },
             user_id: {
                 type: Sequelize[dict['Int']]
+            },
+            pipeline_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -178,6 +191,10 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         annotations_geom_obs_type.belongsTo(models.user, {
             as: 'userTo',
             foreignKey: 'user_id'
+        });
+        annotations_geom_obs_type.belongsTo(models.pipeline_info, {
+            as: 'pipeline_annotation',
+            foreignKey: 'pipeline_id'
         });
     }
 
@@ -429,6 +446,29 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             });
         }
     }
+    /**
+     * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom_obs_type.update({
+                pipeline_id: pipeline_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
 
     /**
      * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -469,6 +509,30 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom_obs_type.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
                 }
             });
             return updated[0];
@@ -535,6 +599,32 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+    /**
+     * bulkAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: pipeline_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton of given ids
@@ -583,6 +673,33 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
                 }
             }));
         })

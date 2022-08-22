@@ -38,6 +38,15 @@ const definition = {
             targetKey: 'pipeline_id',
             keysIn: 'product',
             targetStorageType: 'sql'
+        },
+        annotations: {
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'pipeline_annotation',
+            target: 'annotations_geom_obs_type',
+            targetKey: 'pipeline_id',
+            keysIn: 'annotations_geom_obs_type',
+            targetStorageType: 'sql'
         }
     },
     id: {
@@ -136,6 +145,10 @@ module.exports = class pipeline_info extends Sequelize.Model {
     static associate(models) {
         pipeline_info.hasMany(models.product, {
             as: 'pipeline_products',
+            foreignKey: 'pipeline_id'
+        });
+        pipeline_info.hasMany(models.annotations_geom_obs_type, {
+            as: 'annotations',
             foreignKey: 'pipeline_id'
         });
     }

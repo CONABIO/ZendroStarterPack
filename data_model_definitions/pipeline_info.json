@@ -19,6 +19,15 @@
             "targetKey": "pipeline_id",
             "keysIn": "product",
             "targetStorageType": "sql"
+        },
+        "annotations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "pipeline_annotation",
+            "target": "annotations_geom_obs_type",
+            "targetKey": "pipeline_id",
+            "keysIn": "annotations_geom_obs_type",
+            "targetStorageType": "sql"
         }
     }
 }

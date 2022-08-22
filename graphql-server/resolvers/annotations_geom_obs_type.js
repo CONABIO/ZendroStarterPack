@@ -15,7 +15,8 @@ const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addFileTo': 'file',
-    'addUserTo': 'user'
+    'addUserTo': 'user',
+    'addPipeline_annotation': 'pipeline_info'
 }
 
 
@@ -96,6 +97,44 @@ annotations_geom_obs_type.prototype.userTo = async function({
         }
     }
 }
+/**
+ * annotations_geom_obs_type.prototype.pipeline_annotation - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+annotations_geom_obs_type.prototype.pipeline_annotation = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.pipeline_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOnePipeline_info({
+                [models.pipeline_info.idAttribute()]: this.pipeline_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.pipeline_info.idAttribute(),
+                "value": this.pipeline_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.pipeline_infosConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -117,6 +156,9 @@ annotations_geom_obs_type.prototype.handleAssociations = async function(input, b
     if (helper.isNotUndefinedAndNotNull(input.addUserTo)) {
         promises_add.push(this.add_userTo(input, benignErrorReporter));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addPipeline_annotation)) {
+        promises_add.push(this.add_pipeline_annotation(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
@@ -126,6 +168,9 @@ annotations_geom_obs_type.prototype.handleAssociations = async function(input, b
     }
     if (helper.isNotUndefinedAndNotNull(input.removeUserTo)) {
         promises_remove.push(this.remove_userTo(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removePipeline_annotation)) {
+        promises_remove.push(this.remove_pipeline_annotation(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -154,6 +199,17 @@ annotations_geom_obs_type.prototype.add_userTo = async function(input, benignErr
 }
 
 /**
+ * add_pipeline_annotation - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom_obs_type.prototype.add_pipeline_annotation = async function(input, benignErrorReporter) {
+    await annotations_geom_obs_type.add_pipeline_id(this.getIdValue(), input.addPipeline_annotation, benignErrorReporter);
+    this.pipeline_id = input.addPipeline_annotation;
+}
+
+/**
  * remove_fileTo - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -179,6 +235,19 @@ annotations_geom_obs_type.prototype.remove_userTo = async function(input, benign
     }
 }
 
+/**
+ * remove_pipeline_annotation - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom_obs_type.prototype.remove_pipeline_annotation = async function(input, benignErrorReporter) {
+    if (input.removePipeline_annotation == this.pipeline_id) {
+        await annotations_geom_obs_type.remove_pipeline_id(this.getIdValue(), input.removePipeline_annotation, benignErrorReporter);
+        this.pipeline_id = null;
+    }
+}
+
 
 
 /**
@@ -200,6 +269,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let get_to_many_associated_fk = 0;
     promises_to_one.push(annotations_geom_obs_type.fileTo({}, context));
     promises_to_one.push(annotations_geom_obs_type.userTo({}, context));
+    promises_to_one.push(annotations_geom_obs_type.pipeline_annotation({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -561,6 +631,25 @@ module.exports = {
         return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
+     * bulkAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateAnnotations_geom_obs_typeWithPipeline_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                pipeline_id
+            }) => pipeline_id)), models.pipeline_info);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom_obs_type);
+        }
+        return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
      * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
@@ -597,6 +686,25 @@ module.exports = {
             }) => id)), annotations_geom_obs_type);
         }
         return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
+     * bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                pipeline_id
+            }) => pipeline_id)), models.pipeline_info);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom_obs_type);
+        }
+        return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**

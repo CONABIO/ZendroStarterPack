@@ -14,7 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addPipeline_products': 'product'
+    'addPipeline_products': 'product',
+    'addAnnotations': 'annotations_geom_obs_type'
 }
 
 
@@ -107,6 +108,93 @@ pipeline_info.prototype.pipeline_productsConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * pipeline_info.prototype.annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+pipeline_info.prototype.annotationsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "pipeline_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.annotations_geom_obs_types({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * pipeline_info.prototype.countFilteredAnnotations - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+pipeline_info.prototype.countFilteredAnnotations = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "pipeline_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countAnnotations_geom_obs_types({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * pipeline_info.prototype.annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+pipeline_info.prototype.annotationsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "pipeline_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.annotations_geom_obs_typesConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -123,11 +211,17 @@ pipeline_info.prototype.handleAssociations = async function(input, benignErrorRe
     if (helper.isNonEmptyArray(input.addPipeline_products)) {
         promises_add.push(this.add_pipeline_products(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addAnnotations)) {
+        promises_add.push(this.add_annotations(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removePipeline_products)) {
         promises_remove.push(this.remove_pipeline_products(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeAnnotations)) {
+        promises_remove.push(this.remove_annotations(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -152,6 +246,24 @@ pipeline_info.prototype.add_pipeline_products = async function(input, benignErro
 }
 
 /**
+ * add_annotations - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+pipeline_info.prototype.add_annotations = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addAnnotations.map(associatedRecordId => {
+        return {
+            pipeline_id: this.getIdValue(),
+            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_pipeline_products - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -167,6 +279,24 @@ pipeline_info.prototype.remove_pipeline_products = async function(input, benignE
         }
     });
     await models.product.bulkDisAssociateProductWithPipeline_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_annotations - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+pipeline_info.prototype.remove_annotations = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeAnnotations.map(associatedRecordId => {
+        return {
+            pipeline_id: this.getIdValue(),
+            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -189,6 +319,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     promises_to_many.push(pipeline_info.countFilteredPipeline_products({}, context));
+    promises_to_many.push(pipeline_info.countFilteredAnnotations({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);

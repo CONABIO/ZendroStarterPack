@@ -15,7 +15,8 @@
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
         "file_id": "Int",
-        "user_id": "Int"
+        "user_id": "Int",
+        "pipeline_id": "Int"
     },
     "associations": {
         "fileTo": {
@@ -33,6 +34,15 @@
             "reverseAssociation": "user_annotations",
             "target": "user",
             "targetKey": "user_id",
+            "keysIn": "annotations_geom_obs_type",
+            "targetStorageType": "sql"
+        },
+        "pipeline_annotation": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "annotations",
+            "target": "pipeline_info",
+            "targetKey": "pipeline_id",
             "keysIn": "annotations_geom_obs_type",
             "targetStorageType": "sql"
         }
