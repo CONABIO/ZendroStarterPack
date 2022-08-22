@@ -1,6 +1,5 @@
 const path = require('path')
-const cumulus = require(path.join(__dirname, '..', 'models', 'index.js')).cumulus
-const visit = require(path.join(__dirname, '..', 'models', 'index.js')).visit
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const buildSipecamCalendar = require('./build-sipecam-calendar');
 
 /**
@@ -10,11 +9,11 @@ const buildSipecamCalendar = require('./build-sipecam-calendar');
  */
 module.exports = async (cumulusId) => {
     /* Get cumulus by its id */
-    var model = await cumulus.findOne({ 
+    var cumulus = await models.cumulus.findOne({ 
         where: { id: cumulusId },
         include: [
             {
-                model: visit,
+                model: models.visit,
                 as: "visits"
             }
         ] });
@@ -40,19 +39,19 @@ module.exports = async (cumulusId) => {
         }
     }
 
-    if(model.visits.length == 1) {
+    if(cumulus.visits.length == 1) {
     /*
         if there's only one visit associated with the cumulus
         tries to build the visit calendar.
      */
         await buildSipecamCalendar(
-            model.visits[0].date_first_season,
-            model.visits[0].id,
+            cumulus.visits[0].date_first_season,
+            cumulus.visits[0].id,
             cumulusId);
 
     }   else if (
-            model.visits.length > 1 
-            && model.visits.length < 5
+            cumulus.visits.length > 1 
+            && cumulus.visits.length < 5
         ) {
     /* 
         if there is more visits associated to the cumulus, but not all the 
@@ -60,7 +59,7 @@ module.exports = async (cumulusId) => {
         first visit with field date_first_season with a value
      */
         // find the visit with the first date of the first season
-        let found = model.visits.find(visit => visit.date_first_season);
+        let found = cumulus.visits.find(visit => visit.date_first_season);
 
         if (found)
             await buildSipecamCalendar(
@@ -69,9 +68,9 @@ module.exports = async (cumulusId) => {
                 cumulusId);
 
         // delete visits that doesn't have sipecam dates
-        await deleteVisits(model.visits);
+        await deleteVisits(cumulus.visits);
 
-    } else if ( model.visits.length > 5 ) {
+    } else if ( cumulus.visits.length > 5 ) {
     /* 
         if there are more than five visits associated to the cumulus, checks
         if all the visits has sipecam dates, if not then builds a calendar
@@ -79,7 +78,7 @@ module.exports = async (cumulusId) => {
         filled, and deletes all the remaining visits that doesn't have sipecam
         dates. 
      */
-        let found = model.visits.find(visit => !visit.date_sipecam_first_season);
+        let found = cumulus.visits.find(visit => !visit.date_sipecam_first_season);
 
         if (found) {
             let recentCreated = model.visits.reduce((a,b) => a.createdAt > b.createdAt ? a : b);
@@ -90,6 +89,6 @@ module.exports = async (cumulusId) => {
             }
 
         // delete visits that doesn't have sipecam dates 
-        await deleteVisits(model.visits);
+        await deleteVisits(cumulus.visits);
     }
 }

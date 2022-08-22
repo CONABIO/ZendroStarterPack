@@ -11,8 +11,6 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
-const CreateVisitToCumulus = require('../utils/create-visit-to-cumulus');
-const updateSipecamCalendar = require('../utils/update-sipecam-calendar');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
@@ -316,7 +314,6 @@ visit.prototype.add_monitors = async function(input, benignErrorReporter) {
 visit.prototype.add_cumulus_visit = async function(input, benignErrorReporter) {
     await visit.add_cumulus_id(this.getIdValue(), input.addCumulus_visit, benignErrorReporter);
     this.cumulus_id = input.addCumulus_visit;
-    await CreateVisitToCumulus(this.cumulus_id);
 }
 
 /**
@@ -783,7 +780,6 @@ module.exports = {
             }
             let updatedVisit = await visit.updateOne(inputSanitized, context.benignErrors);
             await updatedVisit.handleAssociations(inputSanitized, context.benignErrors);
-            await updateSipecamCalendar(inputSanitized,updatedVisit);
             return updatedVisit;
         } else {
             throw new Error("You don't have authorization to perform this action");

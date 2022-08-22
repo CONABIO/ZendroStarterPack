@@ -1,5 +1,5 @@
 const path = require('path')
-const visit = require(path.join(__dirname, '..', 'models', 'index.js')).visit
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 
 /**
  * @function - Builds a sipecam calendar given a initial date, and store it in visits model.
@@ -28,14 +28,14 @@ module.exports = async (initialDate,firstVisitId,cumulusId) => {
         // create visits
         for (let i = 0; i < 5; i++) {
             if (i === 0) {
-                await visit.update({
+                await models.visit.update({
                     date_sipecam_first_season: dates[0],
                     date_sipecam_second_season: dates[5]
                 }, {
                     where: { id: firstVisitId }
                 })
             } else {
-                await visit.create({
+                await models.visit.create({
                     date_sipecam_first_season: dates[i],
                     date_sipecam_second_season: dates[5 + i],
                     cumulus_id: cumulusId

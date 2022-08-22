@@ -12,7 +12,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-const { updateOrCreateConvexHull } = require('./cumulus');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCumulus_node': 'cumulus',
@@ -667,7 +666,6 @@ node.prototype.add_delivered_files = async function(input, benignErrorReporter) 
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 node.prototype.add_cumulus_node = async function(input, benignErrorReporter) {
-    await updateOrCreateConvexHull(input,this.cumulus_id,true);
     await node.add_cumulus_id(this.getIdValue(), input.addCumulus_node, benignErrorReporter);
     this.cumulus_id = input.addCumulus_node;
 }
@@ -783,7 +781,6 @@ node.prototype.remove_delivered_files = async function(input, benignErrorReporte
  */
 node.prototype.remove_cumulus_node = async function(input, benignErrorReporter) {
     if (input.removeCumulus_node == this.cumulus_id) {
-        await updateOrCreateConvexHull(input,this.cumulus_id,false);
         await node.remove_cumulus_id(this.getIdValue(), input.removeCumulus_node, benignErrorReporter);
         this.cumulus_id = null;
     }

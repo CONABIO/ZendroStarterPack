@@ -1,7 +1,5 @@
 const path = require('path')
-const cumulus = require(path.join(__dirname, '..', 'models', 'index.js')).cumulus
-const visit = require(path.join(__dirname, '..', 'models', 'index.js')).visit
-const buildSipecamCalendar = require('./build-sipecam-calendar');
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 
 /**
  * @function - Updates visit calendar given the first visit date for
@@ -16,18 +14,21 @@ module.exports = async (updateData,updatedVisit) => {
     if(updateData.date_first_season && updatedVisit.cumulus_id) {
 
         // get all associated visits with the cumulus
-        var modelCumulus = await cumulus.findOne({ 
+        var cumulus = await models.cumulus.findOne({ 
             where: { id: updatedVisit.cumulus_id },
             include: [
                 {
-                    model: visit,
+                    model: models.visit,
                     as: "visits"
                 }
             ],
             order: [['visits','date_sipecam_first_season', 'asc']] });
         
+        console.log("\n\n\n")
+        console.log(cumulus.visits[0].date_sipecam_first_season)
+        console.log(updatedVisit.date_sipecam_first_season)
         if(
-            modelCumulus.visits[0].date_sipecam_first_season
+            cumulus.visits[0].date_sipecam_first_season
             === 
             updatedVisit.date_sipecam_first_season) {
                 /*
@@ -64,12 +65,12 @@ module.exports = async (updateData,updatedVisit) => {
                 }
         
                 // create visits
-                for (let i = 0; i < modelCumulus.visits.length; i++) {
-                    await visit.update({
+                for (let i = 0; i < cumulus.visits.length; i++) {
+                    await models.visit.update({
                         date_sipecam_first_season: dates[i],
                         date_sipecam_second_season: dates[5 + i]
                     }, {
-                        where: { id: modelCumulus.visits[i].id }
+                        where: { id: cumulus.visits[i].id }
                     })
                 }
             }
