@@ -18,7 +18,7 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.annotation.storageHandler;
+            const storageHandler = await zendro.models.annotations_geom_obs_type.storageHandler;
             await storageHandler.getQueryInterface()
                 .createTable('annotations', {
                     id: {
@@ -64,8 +64,8 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.annotation.storageHandler;
-            const recordsExists = await zendro.models.annotation.count();
+            const storageHandler = await zendro.models.annotations_geom_obs_type.storageHandler;
+            const recordsExists = await zendro.models.annotations_geom_obs_type.count();
             if (recordsExists && !DOWN_MIGRATION) {
                 throw new Error(`You are trying to delete all records of annotation and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 

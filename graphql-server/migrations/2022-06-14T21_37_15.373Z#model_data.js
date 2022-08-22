@@ -18,7 +18,7 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.model_data.storageHandler;
+            const storageHandler = await zendro.models.pipeline_info.storageHandler;
             await storageHandler.getQueryInterface()
                 .createTable('model_data', {
                     id: {
@@ -70,8 +70,8 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.model_data.storageHandler;
-            const recordsExists = await zendro.models.model_data.count();
+            const storageHandler = await zendro.models.pipeline_info.storageHandler;
+            const recordsExists = await zendro.models.pipeline_info.count();
             if (recordsExists && !DOWN_MIGRATION) {
                 throw new Error(`You are trying to delete all records of model_data and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 

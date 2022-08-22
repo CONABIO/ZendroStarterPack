@@ -18,7 +18,7 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.visit.storageHandler;
+            const storageHandler = await zendro.models.physical_device.storageHandler;
             await storageHandler.getQueryInterface()
             .addColumn('physical_devices', 'previous_cumulus_ids', {
                 type: Sequelize[dict['[Int]']]
@@ -35,14 +35,14 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.visit.storageHandler;
-            const recordsExists = await zendro.models.visit.count();
+            const storageHandler = await zendro.models.physical_device.storageHandler;
+            const recordsExists = await zendro.models.physical_device.count();
             if (recordsExists && !DOWN_MIGRATION) {
                 throw new Error(`You are trying to delete all records of visit and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 
             and re-execute this down-migration.`);
             }
-            await storageHandler.getQueryInterface().dropTable('visits');
+            await storageHandler.getQueryInterface().dropTable('physical_devices');
         } catch (error) {
             throw new Error(error);
         }
