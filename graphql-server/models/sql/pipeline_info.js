@@ -23,7 +23,6 @@ const definition = {
     attributes: {
         version: 'String',
         commit_dvc_of_data_ref: 'String',
-        commit_dvc_of_model: 'String',
         url_repo_model: 'String',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
@@ -74,9 +73,6 @@ module.exports = class pipeline_info extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             commit_dvc_of_data_ref: {
-                type: Sequelize[dict['String']]
-            },
-            commit_dvc_of_model: {
                 type: Sequelize[dict['String']]
             },
             url_repo_model: {

@@ -4,7 +4,6 @@
     "attributes": {
         "version": "String",
         "commit_dvc_of_data_ref": "String",
-        "commit_dvc_of_model": "String",
         "url_repo_model": "String",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",

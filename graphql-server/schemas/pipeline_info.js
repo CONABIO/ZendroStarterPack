@@ -20,12 +20,6 @@ module.exports = `
     @original-field
     
     """
-    commit_dvc_of_model: String
-
-    """
-    @original-field
-    
-    """
     url_repo_model: String
 
     """
@@ -100,7 +94,6 @@ type Pipeline_infoEdge{
     id
     version
     commit_dvc_of_data_ref
-    commit_dvc_of_model
     url_repo_model
     updatedAt
     createdAt
@@ -128,8 +121,8 @@ type Pipeline_infoEdge{
     countPipeline_infos(search: searchPipeline_infoInput ): Int
     csvTableTemplatePipeline_info: [String]
     pipeline_infosConnection(search:searchPipeline_infoInput, order: [ orderPipeline_infoInput ], pagination: paginationCursorInput! ): Pipeline_infoConnection
-    validatePipeline_infoForCreation( version: String, commit_dvc_of_data_ref: String, commit_dvc_of_model: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validatePipeline_infoForUpdating(id: ID!, version: String, commit_dvc_of_data_ref: String, commit_dvc_of_model: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePipeline_infoForCreation( version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePipeline_infoForUpdating(id: ID!, version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validatePipeline_infoForDeletion(id: ID!): Boolean!
     validatePipeline_infoAfterReading(id: ID!): Boolean!
     """
@@ -139,8 +132,8 @@ type Pipeline_infoEdge{
   }
 
   type Mutation {
-    addPipeline_info( version: String, commit_dvc_of_data_ref: String, commit_dvc_of_model: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
-    updatePipeline_info(id: ID!, version: String, commit_dvc_of_data_ref: String, commit_dvc_of_model: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
+    addPipeline_info( version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
+    updatePipeline_info(id: ID!, version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
     deletePipeline_info(id: ID!): String!
       }
 `;
