@@ -3,6 +3,7 @@
     "storageType": "sql",
     "attributes": {
         "url": "String",
+        "date_deployment_device": "Date",
         "type": "String",
         "id_alfresco": "String",
         "storage": "String",
