@@ -73,15 +73,6 @@
         "targetKey": "node_id",
         "keysIn": "transect",
         "targetStorageType": "sql"
-      },
-      "delivered_files": {
-        "type": "one_to_many",
-        "implementation": "foreignkeys",
-        "reverseAssociation": "node_delivered_files",
-        "target": "delivered_files",
-        "targetKey": "node_id",
-        "keysIn": "delivered_files",
-        "targetStorageType": "sql"
-    }
+      }
     }
 }

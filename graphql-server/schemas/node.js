@@ -99,22 +99,6 @@ module.exports = `
     """
     countFilteredTransects(search: searchTransectInput) : Int
   
-    """
-    @search-request
-    """
-    delivered_filesFilter(search: searchDelivered_filesInput, order: [ orderDelivered_filesInput ], pagination: paginationInput!): [delivered_files]
-
-
-    """
-    @search-request
-    """
-    delivered_filesConnection(search: searchDelivered_filesInput, order: [ orderDelivered_filesInput ], pagination: paginationCursorInput!): Delivered_filesConnection
-
-    """
-    @count-request
-    """
-    countFilteredDelivered_files(search: searchDelivered_filesInput) : Int
-  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -170,8 +154,8 @@ type NodeEdge{
     countNodes(search: searchNodeInput ): Int
     csvTableTemplateNode: [String]
     nodesConnection(search:searchNodeInput, order: [ orderNodeInput ], pagination: paginationCursorInput! ): NodeConnection
-    validateNodeForCreation( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID], addDelivered_files:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateNodeForUpdating(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID] , addDelivered_files:[ID], removeDelivered_files:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateNodeForCreation( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateNodeForUpdating(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateNodeForDeletion(id: ID!): Boolean!
     validateNodeAfterReading(id: ID!): Boolean!
     """
@@ -181,8 +165,8 @@ type NodeEdge{
   }
 
   type Mutation {
-    addNode( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID], addDelivered_files:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
-    updateNode(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID] , addDelivered_files:[ID], removeDelivered_files:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
+    addNode( nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, addUnique_visit_pristine:ID, addUnique_visit_disturbed:ID, addEcosystems:ID  , addDeployments:[ID], addIndividuals:[ID], addTransects:[ID] , skipAssociationsExistenceChecks:Boolean = false): node!
+    updateNode(id: ID!, nomenclatura: String, con_socio: Int, fid: Int, location: Point, cat_integr: String , addCumulus_node:ID, removeCumulus_node:ID , addUnique_visit_pristine:ID, removeUnique_visit_pristine:ID , addUnique_visit_disturbed:ID, removeUnique_visit_disturbed:ID , addEcosystems:ID, removeEcosystems:ID   , addDeployments:[ID], removeDeployments:[ID] , addIndividuals:[ID], removeIndividuals:[ID] , addTransects:[ID], removeTransects:[ID]  , skipAssociationsExistenceChecks:Boolean = false): node!
     deleteNode(id: ID!): String!
     bulkAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateNodeWithCumulus_id(bulkAssociationInput: [bulkAssociationNodeWithCumulus_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

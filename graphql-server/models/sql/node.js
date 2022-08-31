@@ -92,15 +92,6 @@ const definition = {
             targetKey: 'node_id',
             keysIn: 'transect',
             targetStorageType: 'sql'
-        },
-        delivered_files: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'node_delivered_files',
-            target: 'delivered_files',
-            targetKey: 'node_id',
-            keysIn: 'delivered_files',
-            targetStorageType: 'sql'
         }
     },
     id: {
@@ -223,10 +214,6 @@ module.exports = class node extends Sequelize.Model {
         });
         node.hasMany(models.transect, {
             as: 'transects',
-            foreignKey: 'node_id'
-        });
-        node.hasMany(models.delivered_files, {
-            as: 'delivered_files',
             foreignKey: 'node_id'
         });
     }
