@@ -9,10 +9,12 @@ module.exports.logic_patch = function(product) {
         input = product.preWriteCast(input)
         try {
             // validate if unique url
-            const alreadyRegistered = await product.findOne({ where: { url: input.url } })
+            if(input.url !== undefined) {
+                const alreadyRegistered = await product.findOne({ where: { url: input.url } })
 
-            if(alreadyRegistered) {
-                return alreadyRegistered;
+                if(alreadyRegistered) {
+                    return alreadyRegistered;
+                }
             }
 
             const result = await product.sequelize.transaction(async (t) => {
@@ -41,10 +43,12 @@ module.exports.logic_patch = function(product) {
                 }
 
                 // validate if unique url
-                const alreadyRegistered = await product.findOne({ where: { url: input.url } })
-
-                if(alreadyRegistered) {
-                    throw new Error(`Record with url field = ${input.url} already exists`);
+                if(input.url !== undefined) {
+                    const alreadyRegistered = await product.findOne({ where: { url: input.url } })
+                    
+                    if(alreadyRegistered && alreadyRegistered.id !== parseInt(input.id)) {
+                        throw new Error(`Record with url field = ${input.url} already exists`);
+                    }
                 }
 
                 let updated = await to_update.update(input, {
