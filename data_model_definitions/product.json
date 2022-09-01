@@ -8,22 +8,19 @@
         "producer": "String",
         "project": "String",
         "metadata": "JSON",
-        "audio_grid_id": "Int",
-        "audio_distance_to_mean": "Float",
         "createdAt": "DateTime",
         "updatedAt": "DateTime",
         "comments": "String",
-        "file_ids": "[Int]",
-        "pipeline_id": "Int"
+        "pipeline_id": "Int",
+        "file_id": "Int"
     },
     "associations": {
         "fileAssoc": {
-            "type": "many_to_many",
+            "type": "many_to_one",
             "implementation": "foreignkeys",
             "reverseAssociation": "file_products",
             "target": "file",
-            "targetKey": "product_ids",
-            "sourceKey": "file_ids",
+            "targetKey": "file_id",
             "keysIn": "product",
             "targetStorageType": "sql"
         },

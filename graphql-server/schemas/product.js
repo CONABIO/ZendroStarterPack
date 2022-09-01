@@ -44,18 +44,6 @@ module.exports = `
     @original-field
     
     """
-    audio_grid_id: Int
-
-    """
-    @original-field
-    
-    """
-    audio_distance_to_mean: Float
-
-    """
-    @original-field
-    
-    """
     createdAt: DateTime
 
     """
@@ -74,32 +62,17 @@ module.exports = `
     @original-field
     
     """
-    file_ids: [Int]
+    pipeline_id: Int
 
     """
     @original-field
     
     """
-    pipeline_id: Int
+    file_id: Int
 
-    pipeline(search: searchPipeline_infoInput): pipeline_info
+    fileAssoc(search: searchFileInput): file
+  pipeline(search: searchPipeline_infoInput): pipeline_info
     
-    """
-    @search-request
-    """
-    fileAssocFilter(search: searchFileInput, order: [ orderFileInput ], pagination: paginationInput!): [file]
-
-
-    """
-    @search-request
-    """
-    fileAssocConnection(search: searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput!): FileConnection
-
-    """
-    @count-request
-    """
-    countFilteredFileAssoc(search: searchFileInput) : Int
-  
     
     """
     @record as base64 encoded cursor for paginated connections
@@ -125,13 +98,11 @@ type ProductEdge{
     producer
     project
     metadata
-    audio_grid_id
-    audio_distance_to_mean
     createdAt
     updatedAt
     comments
-    file_ids
     pipeline_id
+    file_id
   }
   
   input searchProductInput {
@@ -147,7 +118,10 @@ type ProductEdge{
     order: Order
   }
 
-  input bulkAssociationProductWithPipeline_idInput{
+  input bulkAssociationProductWithFile_idInput{
+    id: ID!
+    file_id: ID!
+  }  input bulkAssociationProductWithPipeline_idInput{
     id: ID!
     pipeline_id: ID!
   }
@@ -158,8 +132,8 @@ type ProductEdge{
     countProducts(search: searchProductInput ): Int
     csvTableTemplateProduct: [String]
     productsConnection(search:searchProductInput, order: [ orderProductInput ], pagination: paginationCursorInput! ): ProductConnection
-    validateProductForCreation( type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, audio_grid_id: Int, audio_distance_to_mean: Float, createdAt: DateTime, updatedAt: DateTime, comments: String , addPipeline:ID  , addFileAssoc:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateProductForUpdating(id: ID!, type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, audio_grid_id: Int, audio_distance_to_mean: Float, createdAt: DateTime, updatedAt: DateTime, comments: String , addPipeline:ID, removePipeline:ID   , addFileAssoc:[ID], removeFileAssoc:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateProductForCreation( type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, createdAt: DateTime, updatedAt: DateTime, comments: String , addFileAssoc:ID, addPipeline:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateProductForUpdating(id: ID!, type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, createdAt: DateTime, updatedAt: DateTime, comments: String , addFileAssoc:ID, removeFileAssoc:ID , addPipeline:ID, removePipeline:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateProductForDeletion(id: ID!): Boolean!
     validateProductAfterReading(id: ID!): Boolean!
     """
@@ -169,10 +143,12 @@ type ProductEdge{
   }
 
   type Mutation {
-    addProduct( type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, audio_grid_id: Int, audio_distance_to_mean: Float, createdAt: DateTime, updatedAt: DateTime, comments: String , addPipeline:ID  , addFileAssoc:[ID] , skipAssociationsExistenceChecks:Boolean = false): product!
-    updateProduct(id: ID!, type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, audio_grid_id: Int, audio_distance_to_mean: Float, createdAt: DateTime, updatedAt: DateTime, comments: String , addPipeline:ID, removePipeline:ID   , addFileAssoc:[ID], removeFileAssoc:[ID]  , skipAssociationsExistenceChecks:Boolean = false): product!
+    addProduct( type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, createdAt: DateTime, updatedAt: DateTime, comments: String , addFileAssoc:ID, addPipeline:ID   , skipAssociationsExistenceChecks:Boolean = false): product!
+    updateProduct(id: ID!, type: String, url: String, observation_type: String, producer: String, project: String, metadata: JSON, createdAt: DateTime, updatedAt: DateTime, comments: String , addFileAssoc:ID, removeFileAssoc:ID , addPipeline:ID, removePipeline:ID    , skipAssociationsExistenceChecks:Boolean = false): product!
     deleteProduct(id: ID!): String!
-    bulkAssociateProductWithPipeline_id(bulkAssociationInput: [bulkAssociationProductWithPipeline_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkAssociateProductWithFile_id(bulkAssociationInput: [bulkAssociationProductWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateProductWithFile_id(bulkAssociationInput: [bulkAssociationProductWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateProductWithPipeline_id(bulkAssociationInput: [bulkAssociationProductWithPipeline_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateProductWithPipeline_id(bulkAssociationInput: [bulkAssociationProductWithPipeline_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

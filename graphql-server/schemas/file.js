@@ -52,12 +52,6 @@ module.exports = `
     """
     deployment_id: Int
 
-    """
-    @original-field
-    
-    """
-    product_ids: [Int]
-
     associated_deployment(search: searchDeploymentInput): deployment
     
     """
@@ -119,7 +113,6 @@ type FileEdge{
     updatedAt
     createdAt
     deployment_id
-    product_ids
   }
   
   input searchFileInput {

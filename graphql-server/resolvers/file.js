@@ -165,17 +165,14 @@ file.prototype.file_productsFilter = function({
 }, context) {
 
 
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
-        return [];
-    }
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "file_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
+
     return resolvers.products({
         search: nsearch,
         order: order,
@@ -194,20 +191,13 @@ file.prototype.countFilteredFile_products = function({
     search
 }, context) {
 
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
-        return 0;
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "file_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
-
     return resolvers.countProducts({
         search: nsearch
     }, context);
@@ -231,26 +221,12 @@ file.prototype.file_productsConnection = function({
 }, context) {
 
 
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.product_ids) || this.product_ids.length === 0) {
-        return {
-            edges: [],
-            products: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.product.idAttribute(),
-        "value": this.product_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "file_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.productsConnection({
         search: nsearch,
@@ -323,8 +299,13 @@ file.prototype.add_file_annotations = async function(input, benignErrorReporter)
  */
 file.prototype.add_file_products = async function(input, benignErrorReporter) {
 
-    await file.add_product_ids(this.getIdValue(), input.addFile_products, benignErrorReporter);
-    this.product_ids = helper.unionIds(this.product_ids, input.addFile_products);
+    let bulkAssociationInput = input.addFile_products.map(associatedRecordId => {
+        return {
+            file_id: this.getIdValue(),
+            [models.product.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.product.bulkAssociateProductWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -365,8 +346,13 @@ file.prototype.remove_file_annotations = async function(input, benignErrorReport
  */
 file.prototype.remove_file_products = async function(input, benignErrorReporter) {
 
-    await file.remove_product_ids(this.getIdValue(), input.removeFile_products, benignErrorReporter);
-    this.product_ids = helper.differenceIds(this.product_ids, input.removeFile_products);
+    let bulkAssociationInput = input.removeFile_products.map(associatedRecordId => {
+        return {
+            file_id: this.getIdValue(),
+            [models.product.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.product.bulkDisAssociateProductWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -402,8 +388,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     promises_to_many.push(file.countFilteredFile_annotations({}, context));
-
-    get_to_many_associated_fk += Array.isArray(file.product_ids) ? file.product_ids.length : 0;
+    promises_to_many.push(file.countFilteredFile_products({}, context));
     promises_to_one.push(file.associated_deployment({}, context));
 
 

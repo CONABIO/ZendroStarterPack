@@ -27,22 +27,19 @@ const definition = {
         producer: 'String',
         project: 'String',
         metadata: 'JSON',
-        audio_grid_id: 'Int',
-        audio_distance_to_mean: 'Float',
         createdAt: 'DateTime',
         updatedAt: 'DateTime',
         comments: 'String',
-        file_ids: '[Int]',
-        pipeline_id: 'Int'
+        pipeline_id: 'Int',
+        file_id: 'Int'
     },
     associations: {
         fileAssoc: {
-            type: 'many_to_many',
+            type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'file_products',
             target: 'file',
-            targetKey: 'product_ids',
-            sourceKey: 'file_ids',
+            targetKey: 'file_id',
             keysIn: 'product',
             targetStorageType: 'sql'
         },
@@ -95,12 +92,6 @@ module.exports = class product extends Sequelize.Model {
             metadata: {
                 type: Sequelize[dict['JSON']]
             },
-            audio_grid_id: {
-                type: Sequelize[dict['Int']]
-            },
-            audio_distance_to_mean: {
-                type: Sequelize[dict['Float']]
-            },
             createdAt: {
                 type: Sequelize[dict['DateTime']]
             },
@@ -110,11 +101,10 @@ module.exports = class product extends Sequelize.Model {
             comments: {
                 type: Sequelize[dict['String']]
             },
-            file_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
-            },
             pipeline_id: {
+                type: Sequelize[dict['Int']]
+            },
+            file_id: {
                 type: Sequelize[dict['Int']]
             }
 
@@ -169,6 +159,10 @@ module.exports = class product extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
+        product.belongsTo(models.file, {
+            as: 'fileAssoc',
+            foreignKey: 'file_id'
+        });
         product.belongsTo(models.pipeline_info, {
             as: 'pipeline',
             foreignKey: 'pipeline_id'
@@ -378,6 +372,29 @@ module.exports = class product extends Sequelize.Model {
 
 
     /**
+     * add_file_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_file_id(id, file_id, benignErrorReporter) {
+        try {
+            let updated = await product.update({
+                file_id: file_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
      * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -400,32 +417,31 @@ module.exports = class product extends Sequelize.Model {
             });
         }
     }
+
     /**
-     * add_file_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   file_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async add_file_ids(id, file_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            file_ids.forEach(idx => {
-                promises.push(models.file.add_product_ids(idx, [`${id}`], benignErrorReporter, false));
+    static async remove_file_id(id, file_id, benignErrorReporter) {
+        try {
+            let updated = await product.update({
+                file_id: null
+            }, {
+                where: {
+                    id: id,
+                    file_id: file_id
+                }
             });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.file_ids), file_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                file_ids: updated_ids
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
             });
         }
     }
-
     /**
      * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
@@ -450,35 +466,36 @@ module.exports = class product extends Sequelize.Model {
             });
         }
     }
+
+
+
+
+
     /**
-     * remove_file_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * bulkAssociateProductWithFile_id - bulkAssociaton of given ids
      *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   file_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
      */
-    static async remove_file_ids(id, file_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            file_ids.forEach(idx => {
-                promises.push(models.file.remove_product_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.file_ids), file_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                file_ids: updated_ids
-            });
-        }
+    static async bulkAssociateProductWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            file_id,
+            id
+        }) => {
+            promises.push(super.update({
+                file_id: file_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
     }
-
-
-
-
 
     /**
      * bulkAssociateProductWithPipeline_id - bulkAssociaton of given ids
@@ -506,6 +523,33 @@ module.exports = class product extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+
+    /**
+     * bulkDisAssociateProductWithFile_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateProductWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            file_id,
+            id
+        }) => {
+            promises.push(super.update({
+                file_id: null
+            }, {
+                where: {
+                    id: id,
+                    file_id: file_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
     /**
      * bulkDisAssociateProductWithPipeline_id - bulkDisAssociaton of given ids

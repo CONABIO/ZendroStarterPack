@@ -14,12 +14,50 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addPipeline': 'pipeline_info',
-    'addFileAssoc': 'file'
+    'addFileAssoc': 'file',
+    'addPipeline': 'pipeline_info'
 }
 
 
 
+/**
+ * product.prototype.fileAssoc - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+product.prototype.fileAssoc = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.file_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneFile({
+                [models.file.idAttribute()]: this.file_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.file.idAttribute(),
+                "value": this.file_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.filesConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 /**
  * product.prototype.pipeline - Return associated record
  *
@@ -59,117 +97,6 @@ product.prototype.pipeline = async function({
     }
 }
 
-/**
- * product.prototype.fileAssocFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-product.prototype.fileAssocFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.file.idAttribute(),
-        "value": this.file_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.files({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * product.prototype.countFilteredFileAssoc - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-product.prototype.countFilteredFileAssoc = function({
-    search
-}, context) {
-
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
-        return 0;
-    }
-
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.file.idAttribute(),
-        "value": this.file_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-
-    return resolvers.countFiles({
-        search: nsearch
-    }, context);
-}
-
-/**
- * product.prototype.fileAssocConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-product.prototype.fileAssocConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.file_ids) || this.file_ids.length === 0) {
-        return {
-            edges: [],
-            files: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.file.idAttribute(),
-        "value": this.file_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.filesConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -183,7 +110,8 @@ product.prototype.fileAssocConnection = function({
 product.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addFileAssoc)) {
+
+    if (helper.isNotUndefinedAndNotNull(input.addFileAssoc)) {
         promises_add.push(this.add_fileAssoc(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addPipeline)) {
@@ -192,7 +120,8 @@ product.prototype.handleAssociations = async function(input, benignErrorReporter
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeFileAssoc)) {
+
+    if (helper.isNotUndefinedAndNotNull(input.removeFileAssoc)) {
         promises_remove.push(this.remove_fileAssoc(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removePipeline)) {
@@ -203,16 +132,14 @@ product.prototype.handleAssociations = async function(input, benignErrorReporter
 
 }
 /**
- * add_fileAssoc - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_fileAssoc - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 product.prototype.add_fileAssoc = async function(input, benignErrorReporter) {
-
-    await product.add_file_ids(this.getIdValue(), input.addFileAssoc, benignErrorReporter);
-    this.file_ids = helper.unionIds(this.file_ids, input.addFileAssoc);
+    await product.add_file_id(this.getIdValue(), input.addFileAssoc, benignErrorReporter);
+    this.file_id = input.addFileAssoc;
 }
 
 /**
@@ -227,16 +154,16 @@ product.prototype.add_pipeline = async function(input, benignErrorReporter) {
 }
 
 /**
- * remove_fileAssoc - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_fileAssoc - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 product.prototype.remove_fileAssoc = async function(input, benignErrorReporter) {
-
-    await product.remove_file_ids(this.getIdValue(), input.removeFileAssoc, benignErrorReporter);
-    this.file_ids = helper.differenceIds(this.file_ids, input.removeFileAssoc);
+    if (input.removeFileAssoc == this.file_id) {
+        await product.remove_file_id(this.getIdValue(), input.removeFileAssoc, benignErrorReporter);
+        this.file_id = null;
+    }
 }
 
 /**
@@ -271,8 +198,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-
-    get_to_many_associated_fk += Array.isArray(product.file_ids) ? product.file_ids.length : 0;
+    promises_to_one.push(product.fileAssoc({}, context));
     promises_to_one.push(product.pipeline({}, context));
 
 
@@ -597,6 +523,25 @@ module.exports = {
     },
 
     /**
+     * bulkAssociateProductWithFile_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateProductWithFile_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                file_id
+            }) => file_id)), models.file);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), product);
+        }
+        return await product.bulkAssociateProductWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
      * bulkAssociateProductWithPipeline_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -614,6 +559,25 @@ module.exports = {
             }) => id)), product);
         }
         return await product.bulkAssociateProductWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
+     * bulkDisAssociateProductWithFile_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateProductWithFile_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                file_id
+            }) => file_id)), models.file);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), product);
+        }
+        return await product.bulkDisAssociateProductWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateProductWithPipeline_id - bulkDisAssociaton resolver of given ids

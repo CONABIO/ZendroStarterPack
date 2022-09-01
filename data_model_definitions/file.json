@@ -9,8 +9,7 @@
         "storage": "String",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
-        "deployment_id": "Int",
-        "product_ids": "[Int]"
+        "deployment_id": "Int"
     },
     "associations": {
         "associated_deployment": {
@@ -32,13 +31,12 @@
             "targetStorageType": "sql"
         },
         "file_products": {
-            "type": "many_to_many",
+            "type": "one_to_many",
             "implementation": "foreignkeys",
             "reverseAssociation": "fileAssoc",
             "target": "product",
-            "targetKey": "file_ids",
-            "sourceKey": "product_ids",
-            "keysIn": "file",
+            "targetKey": "file_id",
+            "keysIn": "product",
             "targetStorageType": "sql"
         }
     }
