@@ -27,10 +27,6 @@ const definition = {
         confidence: 'Float',
         geometry: 'GeometryCollection',
         video_frame_num: 'Int',
-        frequency_min: 'Float',
-        frequency_max: 'Float',
-        time_min: 'Float',
-        time_max: 'Float',
         updatedAt: 'DateTime',
         createdAt: 'DateTime',
         file_id: 'Int',
@@ -104,18 +100,6 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             },
             video_frame_num: {
                 type: Sequelize[dict['Int']]
-            },
-            frequency_min: {
-                type: Sequelize[dict['Float']]
-            },
-            frequency_max: {
-                type: Sequelize[dict['Float']]
-            },
-            time_min: {
-                type: Sequelize[dict['Float']]
-            },
-            time_max: {
-                type: Sequelize[dict['Float']]
             },
             updatedAt: {
                 type: Sequelize[dict['DateTime']]
