@@ -17,7 +17,8 @@ const actionsWhitelist = [
     "count",
     "vueTable",
     "csvTableTemplate",
-    "Connection"
+    "Connection",
+    "FileCounts"
 ]
 
 module.exports = { modelWhitelist, actionsWhitelist };
