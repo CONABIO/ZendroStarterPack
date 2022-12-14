@@ -40,22 +40,32 @@ const definition = {
             keysIn: 'file',
             targetStorageType: 'sql'
         },
-        file_annotations: {
+        file_annotations_geom: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'fileTo',
-            target: 'annotations_geom_obs_type',
+            reverseAssociation: 'fileToGeom',
+            target: 'annotations_geom',
             targetKey: 'file_id',
-            keysIn: 'annotations_geom_obs_type',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         },
-        file_products: {
+        file_annotations_media: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'fileAssoc',
-            target: 'product',
+            reverseAssociation: 'fileToMedia',
+            target: 'annotations_media',
             targetKey: 'file_id',
-            keysIn: 'product',
+            keysIn: 'annotations_media',
+            targetStorageType: 'sql'
+        },
+        pipelineInfo: {
+            type: 'many_to_many',
+            implementation: 'sql_cross_table',
+            reverseAssociation: 'processedFiles',
+            target: 'pipeline_info',
+            targetKey: 'pipeline_id',
+            sourceKey: 'file_id',
+            keysIn: 'processed_files',
             targetStorageType: 'sql'
         }
     },
@@ -160,13 +170,19 @@ module.exports = class file extends Sequelize.Model {
             as: 'associated_deployment',
             foreignKey: 'deployment_id'
         });
-        file.hasMany(models.annotations_geom_obs_type, {
-            as: 'file_annotations',
+        file.hasMany(models.annotations_geom, {
+            as: 'file_annotations_geom',
             foreignKey: 'file_id'
         });
-        file.hasMany(models.product, {
-            as: 'file_products',
+        file.hasMany(models.annotations_media, {
+            as: 'file_annotations_media',
             foreignKey: 'file_id'
+        });
+        file.belongsToMany(models.pipeline_info, {
+            as: 'pipelineInfo',
+            foreignKey: 'file_id',
+            through: 'processed_files',
+            onDelete: 'CASCADE'
         });
     }
 
@@ -370,6 +386,76 @@ module.exports = class file extends Sequelize.Model {
         return helper.csvTableTemplate(definition);
     }
 
+    /**
+     * pipelineInfoFilterImpl - The model implementation for searching associated records. This method uses limit-offset based pagination.
+     *
+     * @param {object} search - The search condition for which records shall be fetched
+     * @param  {array} order - Type of sorting (ASC, DESC) for each field
+     * @param {object} pagination - The parameters for pagination, which can be used to get a subset of the requested record set
+     * @return {object} The set of records
+     */
+    async pipelineInfoFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, models.pipeline_info.idAttribute(), models.pipeline_info.definition.attributes);
+        return this.getPipelineInfo(options);
+    }
+
+    /**
+     * pipelineInfoConnectionImpl - The model implementation for searching associated records. This method uses cursor based pagination.
+     *
+     * @param {object} search - The search condition for which records shall be fetched
+     * @param  {array} order - Type of sorting (ASC, DESC) for each field
+     * @param {object} pagination - The parameters for pagination, which can be used to get a subset of the requested record set
+     * @return {object} The set of records
+     */
+    async pipelineInfoConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, models.pipeline_info.idAttribute(), models.pipeline_info.definition.attributes);
+        let records = await this.getPipelineInfo(options);
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after || pagination.before)) {
+            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
+                ...pagination,
+                includeCursor: false
+            }, models.pipeline_info.idAttribute(), models.pipeline_info.definition.attributes);
+            oppRecords = await this.getPipelineInfo(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        let nodes = edges.map(edge => edge.node);
+        return {
+            edges,
+            pageInfo,
+            pipeline_infos: nodes
+        };
+    }
+
+    /**
+     * countFilteredPipelineInfoImpl - The model implementation for counting the number of associated records
+     *
+     * This method is the implementation for counting the number of records that fulfill a given condition, or for all records in the table.
+     * @param {object} search - The search term that restricts the set of records to be counted - if undefined, all records in the table
+     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard
+     * @return {number} The number of records that fulfill the condition, or of all records in the table
+     */
+    countFilteredPipelineInfoImpl({
+        search
+    }) {
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search);
+        return this.countPipelineInfo(options);
+    }
 
 
     /**
@@ -395,6 +481,20 @@ module.exports = class file extends Sequelize.Model {
             });
         }
     }
+    /**
+     * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_pipeline_id(record, addPipelineInfo) {
+        const updated = await this.sequelize.transaction(async (transaction) => {
+            return await record.addPipelineInfo(addPipelineInfo, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
 
     /**
      * remove_deployment_id - field Mutation (model-layer) for to_one associationsArguments to remove
@@ -419,6 +519,20 @@ module.exports = class file extends Sequelize.Model {
                 message: error
             });
         }
+    }
+    /**
+     * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_pipeline_id(record, removePipelineInfo) {
+        const updated = await this.sequelize.transaction(async (transaction) => {
+            return await record.removePipelineInfo(removePipelineInfo, {
+                transaction: transaction
+            });
+        });
+        return updated;
     }
 
 

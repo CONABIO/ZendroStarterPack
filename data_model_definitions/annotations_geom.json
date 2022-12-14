@@ -1,0 +1,62 @@
+{
+    "model": "annotations_geom",
+    "storageType": "sql",
+    "attributes": {
+        "file_id": "Int",
+        "user_id": "Int",
+        "annotation_method_id": "Int",
+        "observation_type": "String",
+        "confidence": "Float",
+        "pipeline_id": "Int",
+        "geometry": "Polygon",
+        "video_frame_num": "Int",
+        "is_setup_or_pickup": "Boolean",
+        "taxon_id": "String",
+        "count": "Int",
+        "life_stage": "String",
+        "sex": "String",
+        "behaviour": "String",
+        "individual_id": "String",
+        "comments": "String",
+        "updatedAt": "DateTime",
+        "createdAt": "DateTime"
+    },
+    "associations": {
+        "fileToGeom": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "file_annotations_geom",
+            "target": "file",
+            "targetKey": "file_id",
+            "keysIn": "annotations_geom",
+            "targetStorageType": "sql"
+        },
+        "userToGeom": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "user_annotations_geom",
+            "target": "user",
+            "targetKey": "user_id",
+            "keysIn": "annotations_geom",
+            "targetStorageType": "sql"
+        },
+        "annotationMethodGeom": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "geomAnn",
+            "target": "annotations_method",
+            "targetKey": "annotation_method_id",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "pipeline_annotation_geom": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "annotationsGeom",
+            "target": "pipeline_info",
+            "targetKey": "pipeline_id",
+            "keysIn": "annotations_geom",
+            "targetStorageType": "sql"
+        }
+    }
+}

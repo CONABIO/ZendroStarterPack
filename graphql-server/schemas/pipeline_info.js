@@ -8,19 +8,31 @@ module.exports = `
     @original-field
     
     """
+    name: String
+
+    """
+    @original-field
+    
+    """
     version: String
 
     """
     @original-field
     
     """
-    commit_dvc_of_data_ref: String
+    url_repo_model: String
 
     """
     @original-field
     
     """
-    url_repo_model: String
+    execution_params: JSON
+
+    """
+    @original-field
+    
+    """
+    last_execution: DateTime
 
     """
     @original-field
@@ -44,34 +56,50 @@ module.exports = `
     """
     @search-request
     """
-    pipeline_productsFilter(search: searchProductInput, order: [ orderProductInput ], pagination: paginationInput!): [product]
+    annotationsGeomFilter(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationInput!): [annotations_geom]
 
 
     """
     @search-request
     """
-    pipeline_productsConnection(search: searchProductInput, order: [ orderProductInput ], pagination: paginationCursorInput!): ProductConnection
+    annotationsGeomConnection(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationCursorInput!): Annotations_geomConnection
 
     """
     @count-request
     """
-    countFilteredPipeline_products(search: searchProductInput) : Int
+    countFilteredAnnotationsGeom(search: searchAnnotations_geomInput) : Int
   
     """
     @search-request
     """
-    annotationsFilter(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationInput!): [annotations_geom_obs_type]
+    annotationsMediaFilter(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationInput!): [annotations_media]
 
 
     """
     @search-request
     """
-    annotationsConnection(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationCursorInput!): Annotations_geom_obs_typeConnection
+    annotationsMediaConnection(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationCursorInput!): Annotations_mediaConnection
 
     """
     @count-request
     """
-    countFilteredAnnotations(search: searchAnnotations_geom_obs_typeInput) : Int
+    countFilteredAnnotationsMedia(search: searchAnnotations_mediaInput) : Int
+  
+    """
+    @search-request
+    """
+    processedFilesFilter(search: searchFileInput, order: [ orderFileInput ], pagination: paginationInput!): [file]
+
+
+    """
+    @search-request
+    """
+    processedFilesConnection(search: searchFileInput, order: [ orderFileInput ], pagination: paginationCursorInput!): FileConnection
+
+    """
+    @count-request
+    """
+    countFilteredProcessedFiles(search: searchFileInput) : Int
   
     
     """
@@ -92,9 +120,11 @@ type Pipeline_infoEdge{
 
   enum pipeline_infoField {
     id
+    name
     version
-    commit_dvc_of_data_ref
     url_repo_model
+    execution_params
+    last_execution
     updatedAt
     createdAt
     comments
@@ -121,8 +151,8 @@ type Pipeline_infoEdge{
     countPipeline_infos(search: searchPipeline_infoInput ): Int
     csvTableTemplatePipeline_info: [String]
     pipeline_infosConnection(search:searchPipeline_infoInput, order: [ orderPipeline_infoInput ], pagination: paginationCursorInput! ): Pipeline_infoConnection
-    validatePipeline_infoForCreation( version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validatePipeline_infoForUpdating(id: ID!, version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePipeline_infoForCreation( name: String, version: String, url_repo_model: String, execution_params: JSON, last_execution: DateTime, updatedAt: DateTime, createdAt: DateTime, comments: String   , addAnnotationsGeom:[ID], addAnnotationsMedia:[ID], addProcessedFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validatePipeline_infoForUpdating(id: ID!, name: String, version: String, url_repo_model: String, execution_params: JSON, last_execution: DateTime, updatedAt: DateTime, createdAt: DateTime, comments: String   , addAnnotationsGeom:[ID], removeAnnotationsGeom:[ID] , addAnnotationsMedia:[ID], removeAnnotationsMedia:[ID] , addProcessedFiles:[ID], removeProcessedFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validatePipeline_infoForDeletion(id: ID!): Boolean!
     validatePipeline_infoAfterReading(id: ID!): Boolean!
     """
@@ -132,8 +162,8 @@ type Pipeline_infoEdge{
   }
 
   type Mutation {
-    addPipeline_info( version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], addAnnotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
-    updatePipeline_info(id: ID!, version: String, commit_dvc_of_data_ref: String, url_repo_model: String, updatedAt: DateTime, createdAt: DateTime, comments: String   , addPipeline_products:[ID], removePipeline_products:[ID] , addAnnotations:[ID], removeAnnotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
+    addPipeline_info( name: String, version: String, url_repo_model: String, execution_params: JSON, last_execution: DateTime, updatedAt: DateTime, createdAt: DateTime, comments: String   , addAnnotationsGeom:[ID], addAnnotationsMedia:[ID], addProcessedFiles:[ID] , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
+    updatePipeline_info(id: ID!, name: String, version: String, url_repo_model: String, execution_params: JSON, last_execution: DateTime, updatedAt: DateTime, createdAt: DateTime, comments: String   , addAnnotationsGeom:[ID], removeAnnotationsGeom:[ID] , addAnnotationsMedia:[ID], removeAnnotationsMedia:[ID] , addProcessedFiles:[ID], removeProcessedFiles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): pipeline_info!
     deletePipeline_info(id: ID!): String!
       }
 `;

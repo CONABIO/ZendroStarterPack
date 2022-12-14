@@ -6,23 +6,26 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(annotations_geom_obs_type) {
+module.exports.validator_patch = function(annotations_geom) {
 
-    annotations_geom_obs_type.prototype.validationControl = {
+    annotations_geom.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    annotations_geom_obs_type.prototype.validatorSchema = {
+    annotations_geom.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "classified_by": {
-                "type": ["string", "null"]
+            "file_id": {
+                "type": ["integer", "null"]
             },
-            "classification_method": {
-                "type": ["string", "null"]
+            "user_id": {
+                "type": ["integer", "null"]
+            },
+            "annotation_method_id": {
+                "type": ["integer", "null"]
             },
             "observation_type": {
                 "type": ["string", "null"]
@@ -30,28 +33,37 @@ module.exports.validator_patch = function(annotations_geom_obs_type) {
             "confidence": {
                 "type": ["number", "null"]
             },
+            "pipeline_id": {
+                "type": ["integer", "null"]
+            },
             "geometry": {
                 "type": ["object", "null"]
             },
             "video_frame_num": {
                 "type": ["integer", "null"]
             },
-            "frequency_min": {
-                "type": ["number", "null"]
+            "is_setup_or_pickup": {
+                "type": ["boolean", "null"]
             },
-            "frequency_max": {
-                "type": ["number", "null"]
+            "taxon_id": {
+                "type": ["string", "null"]
             },
-            "time_min": {
-                "type": ["number", "null"]
+            "count": {
+                "type": ["integer", "null"]
             },
-            "time_max": {
-                "type": ["number", "null"]
+            "life_stage": {
+                "type": ["string", "null"]
             },
-            "metadata": {
-                "type": ["object", "null"]
+            "sex": {
+                "type": ["string", "null"]
             },
-            "product_id_alfesco": {
+            "behaviour": {
+                "type": ["string", "null"]
+            },
+            "individual_id": {
+                "type": ["string", "null"]
+            },
+            "comments": {
                 "type": ["string", "null"]
             },
             "updatedAt": {
@@ -67,29 +79,23 @@ module.exports.validator_patch = function(annotations_geom_obs_type) {
                 }, {
                     "type": "null"
                 }]
-            },
-            "file_id": {
-                "type": ["integer", "null"]
-            },
-            "pipeline_id": {
-                "type": ["integer", "null"]
             }
         }
     }
 
-    annotations_geom_obs_type.prototype.asyncValidate = ajv.compile(
-        annotations_geom_obs_type.prototype.validatorSchema
+    annotations_geom.prototype.asyncValidate = ajv.compile(
+        annotations_geom.prototype.validatorSchema
     )
 
-    annotations_geom_obs_type.prototype.validateForCreate = async function(record) {
-        return await annotations_geom_obs_type.prototype.asyncValidate(record)
+    annotations_geom.prototype.validateForCreate = async function(record) {
+        return await annotations_geom.prototype.asyncValidate(record)
     }
 
-    annotations_geom_obs_type.prototype.validateForUpdate = async function(record) {
-        return await annotations_geom_obs_type.prototype.asyncValidate(record)
+    annotations_geom.prototype.validateForUpdate = async function(record) {
+        return await annotations_geom.prototype.asyncValidate(record)
     }
 
-    annotations_geom_obs_type.prototype.validateForDelete = async function(id) {
+    annotations_geom.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -100,9 +106,9 @@ module.exports.validator_patch = function(annotations_geom_obs_type) {
         }
     }
 
-    annotations_geom_obs_type.prototype.validateAfterRead = async function(record) {
-        return await annotations_geom_obs_type.prototype.asyncValidate(record)
+    annotations_geom.prototype.validateAfterRead = async function(record) {
+        return await annotations_geom.prototype.asyncValidate(record)
     }
 
-    return annotations_geom_obs_type
+    return annotations_geom
 }

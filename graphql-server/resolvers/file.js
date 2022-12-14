@@ -15,11 +15,88 @@ const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addAssociated_deployment': 'deployment',
-    'addFile_annotations': 'annotations_geom_obs_type',
-    'addFile_products': 'product'
+    'addFile_annotations_geom': 'annotations_geom',
+    'addFile_annotations_media': 'annotations_media',
+    'addPipelineInfo': 'pipeline_info'
 }
 
 
+/**
+ * file.prototype.pipelineInfoFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+file.prototype.pipelineInfoFilter = async function({
+    search,
+    order,
+    pagination
+}, context) {
+    if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+        helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "pipelineInfoFilter");
+        return this.pipelineInfoFilterImpl({
+            search,
+            order,
+            pagination
+        });
+    } else {
+        throw new Error("You don't have authorization to perform this action");
+    }
+}
+
+/**
+ * file.prototype.pipelineInfoConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+file.prototype.pipelineInfoConnection = async function({
+    search,
+    order,
+    pagination
+}, context) {
+    if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+        helper.checkCursorBasedPaginationArgument(pagination);
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "pipelineInfoConnection");
+        return this.pipelineInfoConnectionImpl({
+            search,
+            order,
+            pagination
+        });
+    } else {
+        throw new Error("You don't have authorization to perform this action");
+    }
+}
+
+/**
+ * file.prototype.countFilteredPipelineInfo - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+file.prototype.countFilteredPipelineInfo = async function({
+    search
+}, context) {
+    if (await checkAuthorization(context, 'pipeline_info', 'read') === true) {
+        return this.countFilteredPipelineInfoImpl({
+            search
+        });
+    } else {
+        throw new Error("You don't have authorization to perform this action");
+    }
+}
 
 /**
  * file.prototype.associated_deployment - Return associated record
@@ -61,7 +138,7 @@ file.prototype.associated_deployment = async function({
 }
 
 /**
- * file.prototype.file_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * file.prototype.file_annotations_geomFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -71,7 +148,7 @@ file.prototype.associated_deployment = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_annotationsFilter = function({
+file.prototype.file_annotations_geomFilter = function({
     search,
     order,
     pagination
@@ -86,7 +163,7 @@ file.prototype.file_annotationsFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations_geom_obs_types({
+    return resolvers.annotations_geoms({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -94,13 +171,13 @@ file.prototype.file_annotationsFilter = function({
 }
 
 /**
- * file.prototype.countFilteredFile_annotations - Count number of associated records that holds the conditions specified in the search argument
+ * file.prototype.countFilteredFile_annotations_geom - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-file.prototype.countFilteredFile_annotations = function({
+file.prototype.countFilteredFile_annotations_geom = function({
     search
 }, context) {
 
@@ -111,13 +188,13 @@ file.prototype.countFilteredFile_annotations = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations_geom_obs_types({
+    return resolvers.countAnnotations_geoms({
         search: nsearch
     }, context);
 }
 
 /**
- * file.prototype.file_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * file.prototype.file_annotations_geomConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -127,7 +204,7 @@ file.prototype.countFilteredFile_annotations = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_annotationsConnection = function({
+file.prototype.file_annotations_geomConnection = function({
     search,
     order,
     pagination
@@ -141,14 +218,14 @@ file.prototype.file_annotationsConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotations_geom_obs_typesConnection({
+    return resolvers.annotations_geomsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
 }
 /**
- * file.prototype.file_productsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * file.prototype.file_annotations_mediaFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -158,7 +235,7 @@ file.prototype.file_annotationsConnection = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_productsFilter = function({
+file.prototype.file_annotations_mediaFilter = function({
     search,
     order,
     pagination
@@ -173,7 +250,7 @@ file.prototype.file_productsFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.products({
+    return resolvers.annotations_media({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -181,13 +258,13 @@ file.prototype.file_productsFilter = function({
 }
 
 /**
- * file.prototype.countFilteredFile_products - Count number of associated records that holds the conditions specified in the search argument
+ * file.prototype.countFilteredFile_annotations_media - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-file.prototype.countFilteredFile_products = function({
+file.prototype.countFilteredFile_annotations_media = function({
     search
 }, context) {
 
@@ -198,13 +275,13 @@ file.prototype.countFilteredFile_products = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countProducts({
+    return resolvers.countAnnotations_media({
         search: nsearch
     }, context);
 }
 
 /**
- * file.prototype.file_productsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * file.prototype.file_annotations_mediaConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -214,7 +291,7 @@ file.prototype.countFilteredFile_products = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-file.prototype.file_productsConnection = function({
+file.prototype.file_annotations_mediaConnection = function({
     search,
     order,
     pagination
@@ -228,7 +305,7 @@ file.prototype.file_productsConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.productsConnection({
+    return resolvers.annotations_mediaConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -247,11 +324,14 @@ file.prototype.file_productsConnection = function({
 file.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addFile_annotations)) {
-        promises_add.push(this.add_file_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addFile_annotations_geom)) {
+        promises_add.push(this.add_file_annotations_geom(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addFile_products)) {
-        promises_add.push(this.add_file_products(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addFile_annotations_media)) {
+        promises_add.push(this.add_file_annotations_media(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.addPipelineInfo)) {
+        promises_add.push(this.add_pipelineInfo(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addAssociated_deployment)) {
         promises_add.push(this.add_associated_deployment(input, benignErrorReporter));
@@ -259,11 +339,14 @@ file.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeFile_annotations)) {
-        promises_remove.push(this.remove_file_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeFile_annotations_geom)) {
+        promises_remove.push(this.remove_file_annotations_geom(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeFile_products)) {
-        promises_remove.push(this.remove_file_products(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeFile_annotations_media)) {
+        promises_remove.push(this.remove_file_annotations_media(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removePipelineInfo)) {
+        promises_remove.push(this.remove_pipelineInfo(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeAssociated_deployment)) {
         promises_remove.push(this.remove_associated_deployment(input, benignErrorReporter));
@@ -273,39 +356,48 @@ file.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
 }
 /**
- * add_file_annotations - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_pipelineInfo - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.add_file_annotations = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
+file.prototype.add_pipelineInfo = async function(input) {
+    await models.file.add_pipeline_id(this, input.addPipelineInfo);
 }
 
 /**
- * add_file_products - field Mutation for to_many associations to add
+ * add_file_annotations_geom - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.add_file_products = async function(input, benignErrorReporter) {
+file.prototype.add_file_annotations_geom = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addFile_products.map(associatedRecordId => {
+    let bulkAssociationInput = input.addFile_annotations_geom.map(associatedRecordId => {
         return {
             file_id: this.getIdValue(),
-            [models.product.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.product.bulkAssociateProductWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkAssociateAnnotations_geomWithFile_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_file_annotations_media - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+file.prototype.add_file_annotations_media = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addFile_annotations_media.map(associatedRecordId => {
+        return {
+            file_id: this.getIdValue(),
+            [models.annotations_media.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_media.bulkAssociateAnnotations_mediaWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -320,39 +412,48 @@ file.prototype.add_associated_deployment = async function(input, benignErrorRepo
 }
 
 /**
- * remove_file_annotations - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_pipelineInfo - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.remove_file_annotations = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removeFile_annotations.map(associatedRecordId => {
-        return {
-            file_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput, benignErrorReporter);
+file.prototype.remove_pipelineInfo = async function(input) {
+    await models.file.remove_pipeline_id(this, input.removePipelineInfo);
 }
 
 /**
- * remove_file_products - field Mutation for to_many associations to remove
+ * remove_file_annotations_geom - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-file.prototype.remove_file_products = async function(input, benignErrorReporter) {
+file.prototype.remove_file_annotations_geom = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeFile_products.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeFile_annotations_geom.map(associatedRecordId => {
         return {
             file_id: this.getIdValue(),
-            [models.product.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.product.bulkDisAssociateProductWithFile_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkDisAssociateAnnotations_geomWithFile_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_file_annotations_media - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+file.prototype.remove_file_annotations_media = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeFile_annotations_media.map(associatedRecordId => {
+        return {
+            file_id: this.getIdValue(),
+            [models.annotations_media.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_media.bulkDisAssociateAnnotations_mediaWithFile_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -387,18 +488,23 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_many.push(file.countFilteredFile_annotations({}, context));
-    promises_to_many.push(file.countFilteredFile_products({}, context));
+
+    let promises_cross_to_many = [];
+    promises_to_many.push(file.countFilteredFile_annotations_geom({}, context));
+    promises_to_many.push(file.countFilteredFile_annotations_media({}, context));
     promises_to_one.push(file.associated_deployment({}, context));
 
+    promises_cross_to_many.push(file.countFilteredPipelineInfo({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
+    let result_cross_to_many = await Promise.all(promises_cross_to_many);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
+    let get_cross_to_many_associated = result_cross_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
 
-    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated_fk + get_to_many_associated + get_cross_to_many_associated;
 }
 
 /**

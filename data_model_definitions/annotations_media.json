@@ -1,0 +1,60 @@
+{
+    "model": "annotations_media",
+    "storageType": "sql",
+    "attributes": {
+        "file_id": "Int",
+        "user_id": "Int",
+        "annotation_method_id": "Int",
+        "observation_type": "String",
+        "confidence": "Float",
+        "pipeline_id": "Int",
+        "is_setup_or_pickup": "Boolean",
+        "taxon_id": "String",
+        "count": "Int",
+        "life_stage": "String",
+        "sex": "String",
+        "behaviour": "String",
+        "individual_id": "String",
+        "comments": "String",
+        "updatedAt": "DateTime",
+        "createdAt": "DateTime"
+    },
+    "associations": {
+        "fileToMedia": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "file_annotations_media",
+            "target": "file",
+            "targetKey": "file_id",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "userToMedia": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "user_annotations_media",
+            "target": "user",
+            "targetKey": "user_id",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "annotationMethodMedia": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "mediaAnn",
+            "target": "annotations_method",
+            "targetKey": "annotation_method_id",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "pipeline_annotation_media": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "annotationsMedia",
+            "target": "pipeline_info",
+            "targetKey": "pipeline_id",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        }
+    }
+}

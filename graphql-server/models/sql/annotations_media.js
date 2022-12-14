@@ -18,47 +18,61 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'annotations_geom_obs_type',
+    model: 'annotations_media',
     storageType: 'sql',
     attributes: {
-        classified_by: 'String',
-        classification_method: 'String',
-        observation_type: 'String',
-        confidence: 'Float',
-        geometry: 'GeometryCollection',
-        video_frame_num: 'Int',
-        updatedAt: 'DateTime',
-        createdAt: 'DateTime',
         file_id: 'Int',
         user_id: 'Int',
-        pipeline_id: 'Int'
+        annotation_method_id: 'Int',
+        observation_type: 'String',
+        confidence: 'Float',
+        pipeline_id: 'Int',
+        is_setup_or_pickup: 'Boolean',
+        taxon_id: 'String',
+        count: 'Int',
+        life_stage: 'String',
+        sex: 'String',
+        behaviour: 'String',
+        individual_id: 'String',
+        comments: 'String',
+        updatedAt: 'DateTime',
+        createdAt: 'DateTime'
     },
     associations: {
-        fileTo: {
+        fileToMedia: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'file_annotations',
+            reverseAssociation: 'file_annotations_media',
             target: 'file',
             targetKey: 'file_id',
-            keysIn: 'annotations_geom_obs_type',
+            keysIn: 'annotations_media',
             targetStorageType: 'sql'
         },
-        userTo: {
+        userToMedia: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'user_annotations',
+            reverseAssociation: 'user_annotations_media',
             target: 'user',
             targetKey: 'user_id',
-            keysIn: 'annotations_geom_obs_type',
+            keysIn: 'annotations_media',
             targetStorageType: 'sql'
         },
-        pipeline_annotation: {
+        annotationMethodMedia: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'annotations',
+            reverseAssociation: 'mediaAnn',
+            target: 'annotations_method',
+            targetKey: 'annotation_method_id',
+            keysIn: 'annotations_media',
+            targetStorageType: 'sql'
+        },
+        pipeline_annotation_media: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'annotationsMedia',
             target: 'pipeline_info',
             targetKey: 'pipeline_id',
-            keysIn: 'annotations_geom_obs_type',
+            keysIn: 'annotations_media',
             targetStorageType: 'sql'
         }
     },
@@ -73,7 +87,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class annotations_geom_obs_type extends Sequelize.Model {
+module.exports = class annotations_media extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -83,11 +97,14 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            classified_by: {
-                type: Sequelize[dict['String']]
+            file_id: {
+                type: Sequelize[dict['Int']]
             },
-            classification_method: {
-                type: Sequelize[dict['String']]
+            user_id: {
+                type: Sequelize[dict['Int']]
+            },
+            annotation_method_id: {
+                type: Sequelize[dict['Int']]
             },
             observation_type: {
                 type: Sequelize[dict['String']]
@@ -95,32 +112,44 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             confidence: {
                 type: Sequelize[dict['Float']]
             },
-            geometry: {
-                type: Sequelize[dict['GeometryCollection']]
-            },
-            video_frame_num: {
+            pipeline_id: {
                 type: Sequelize[dict['Int']]
+            },
+            is_setup_or_pickup: {
+                type: Sequelize[dict['Boolean']]
+            },
+            taxon_id: {
+                type: Sequelize[dict['String']]
+            },
+            count: {
+                type: Sequelize[dict['Int']]
+            },
+            life_stage: {
+                type: Sequelize[dict['String']]
+            },
+            sex: {
+                type: Sequelize[dict['String']]
+            },
+            behaviour: {
+                type: Sequelize[dict['String']]
+            },
+            individual_id: {
+                type: Sequelize[dict['String']]
+            },
+            comments: {
+                type: Sequelize[dict['String']]
             },
             updatedAt: {
                 type: Sequelize[dict['DateTime']]
             },
             createdAt: {
                 type: Sequelize[dict['DateTime']]
-            },
-            file_id: {
-                type: Sequelize[dict['Int']]
-            },
-            user_id: {
-                type: Sequelize[dict['Int']]
-            },
-            pipeline_id: {
-                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "annotations_geom_obs_type",
-            tableName: "annotations_geom_obs_types",
+            modelName: "annotations_media",
+            tableName: "annotations_media",
             sequelize
         });
     }
@@ -168,16 +197,20 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        annotations_geom_obs_type.belongsTo(models.file, {
-            as: 'fileTo',
+        annotations_media.belongsTo(models.file, {
+            as: 'fileToMedia',
             foreignKey: 'file_id'
         });
-        annotations_geom_obs_type.belongsTo(models.user, {
-            as: 'userTo',
+        annotations_media.belongsTo(models.user, {
+            as: 'userToMedia',
             foreignKey: 'user_id'
         });
-        annotations_geom_obs_type.belongsTo(models.pipeline_info, {
-            as: 'pipeline_annotation',
+        annotations_media.belongsTo(models.annotations_method, {
+            as: 'annotationMethodMedia',
+            foreignKey: 'annotation_method_id'
+        });
+        annotations_media.belongsTo(models.pipeline_info, {
+            as: 'pipeline_annotation_media',
             foreignKey: 'pipeline_id'
         });
     }
@@ -190,13 +223,13 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: annotations_geom_obs_type.idAttribute(),
+            field: annotations_media.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await annotations_geom_obs_type.readAllCursor(queryArg);
-        cursorRes = cursorRes.annotations_geom_obs_types.reduce(
-            (map, obj) => ((map[obj[annotations_geom_obs_type.idAttribute()]] = obj), map), {}
+        let cursorRes = await annotations_media.readAllCursor(queryArg);
+        cursorRes = cursorRes.annotations_media.reduce(
+            (map, obj) => ((map[obj[annotations_media.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -204,7 +237,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(annotations_geom_obs_type.batchReadById, {
+    static readByIdLoader = new DataLoader(annotations_media.batchReadById, {
         cache: false,
     });
 
@@ -213,11 +246,11 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type annotations_geom_obs_type, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type annotations_media, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await annotations_geom_obs_type.readByIdLoader.load(id);
+        return await annotations_media.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -229,7 +262,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, annotations_geom_obs_type.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, annotations_media.definition.attributes);
         return super.count(options);
     }
 
@@ -244,9 +277,9 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_geom_obs_type.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_media.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => annotations_geom_obs_type.postReadCast(x))
+        records = records.map(x => annotations_media.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -262,10 +295,10 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_geom_obs_type.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_media.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => annotations_geom_obs_type.postReadCast(x))
+        records = records.map(x => annotations_media.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -276,7 +309,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), annotations_geom_obs_type.definition.attributes);
+            }, this.idAttribute(), annotations_media.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -285,7 +318,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            annotations_geom_obs_types: edges.map((edge) => edge.node)
+            annotations_media: edges.map((edge) => edge.node)
         };
     }
 
@@ -299,7 +332,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = annotations_geom_obs_type.preWriteCast(input)
+        input = annotations_media.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -307,8 +340,8 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 });
                 return item;
             });
-            annotations_geom_obs_type.postReadCast(result.dataValues)
-            annotations_geom_obs_type.postReadCast(result._previousDataValues)
+            annotations_media.postReadCast(result.dataValues)
+            annotations_media.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -348,7 +381,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = annotations_geom_obs_type.preWriteCast(input)
+        input = annotations_media.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -361,8 +394,8 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
                 });
                 return updated;
             });
-            annotations_geom_obs_type.postReadCast(result.dataValues)
-            annotations_geom_obs_type.postReadCast(result._previousDataValues)
+            annotations_media.postReadCast(result.dataValues)
+            annotations_media.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -393,7 +426,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async add_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 file_id: file_id
             }, {
                 where: {
@@ -416,8 +449,31 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async add_user_id(id, user_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 user_id: user_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * add_annotation_method_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   annotation_method_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_annotation_method_id(id, annotation_method_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_media.update({
+                annotation_method_id: annotation_method_id
             }, {
                 where: {
                     id: id
@@ -439,7 +495,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async add_pipeline_id(id, pipeline_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 pipeline_id: pipeline_id
             }, {
                 where: {
@@ -463,7 +519,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async remove_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 file_id: null
             }, {
                 where: {
@@ -487,12 +543,36 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async remove_user_id(id, user_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 user_id: null
             }, {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_annotation_method_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   annotation_method_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_annotation_method_id(id, annotation_method_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_media.update({
+                annotation_method_id: null
+            }, {
+                where: {
+                    id: id,
+                    annotation_method_id: annotation_method_id
                 }
             });
             return updated[0];
@@ -511,7 +591,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      */
     static async remove_pipeline_id(id, pipeline_id, benignErrorReporter) {
         try {
-            let updated = await annotations_geom_obs_type.update({
+            let updated = await annotations_media.update({
                 pipeline_id: null
             }, {
                 where: {
@@ -532,13 +612,13 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithFile_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotations_mediaWithFile_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput) {
+    static async bulkAssociateAnnotations_mediaWithFile_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -558,13 +638,13 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithUser_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotations_mediaWithUser_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput) {
+    static async bulkAssociateAnnotations_mediaWithUser_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -584,13 +664,39 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotations_mediaWithAnnotation_method_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput) {
+    static async bulkAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "annotation_method_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            annotation_method_id,
+            id
+        }) => {
+            promises.push(super.update({
+                annotation_method_id: annotation_method_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateAnnotations_mediaWithPipeline_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_mediaWithPipeline_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -611,13 +717,13 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotations_mediaWithFile_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput) {
+    static async bulkDisAssociateAnnotations_mediaWithFile_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -638,13 +744,13 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithUser_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotations_mediaWithUser_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput) {
+    static async bulkDisAssociateAnnotations_mediaWithUser_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -665,13 +771,40 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotations_mediaWithAnnotation_method_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput) {
+    static async bulkDisAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "annotation_method_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            annotation_method_id,
+            id
+        }) => {
+            promises.push(super.update({
+                annotation_method_id: null
+            }, {
+                where: {
+                    id: id,
+                    annotation_method_id: annotation_method_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_mediaWithPipeline_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_mediaWithPipeline_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -699,7 +832,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return annotations_geom_obs_type.definition.id.name;
+        return annotations_media.definition.id.name;
     }
 
     /**
@@ -708,16 +841,16 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return annotations_geom_obs_type.definition.id.type;
+        return annotations_media.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotations_geom_obs_type.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotations_media.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[annotations_geom_obs_type.idAttribute()];
+        return this[annotations_media.idAttribute()];
     }
 
     /**
@@ -738,9 +871,9 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  annotations_geom_obs_type to a base 64 String
+     * base64Encode - Encode  annotations_media to a base 64 String
      *
-     * @return {string} The annotations_geom_obs_type object, encoded in a base 64 String
+     * @return {string} The annotations_media object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -751,28 +884,28 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The annotations_geom_obs_type object, encoded in a base 64 String
+     * @return {string} The annotations_media object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of annotations_geom_obs_type.
+     * stripAssociations - Instance method for getting all attributes of annotations_media.
      *
-     * @return {object} The attributes of annotations_geom_obs_type in object form
+     * @return {object} The attributes of annotations_media in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(annotations_geom_obs_type.definition.attributes);
+        let attributes = Object.keys(annotations_media.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of annotations_geom_obs_type that are marked as external IDs.
+     * externalIdsArray - Get all attributes of annotations_media that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of annotations_geom_obs_type that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of annotations_media that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -784,7 +917,7 @@ module.exports = class annotations_geom_obs_type extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of annotations_geom_obs_type.
+     * externalIdsObject - Get all external IDs of annotations_media.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

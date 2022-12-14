@@ -18,38 +18,29 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'product',
+    model: 'annotations_method',
     storageType: 'sql',
     attributes: {
-        type: 'String',
-        url: 'String',
-        observation_type: 'String',
-        producer: 'String',
-        project: 'String',
-        metadata: 'JSON',
-        createdAt: 'DateTime',
-        updatedAt: 'DateTime',
-        comments: 'String',
-        pipeline_id: 'Int',
-        file_id: 'Int'
+        name: 'String',
+        description: 'String'
     },
     associations: {
-        fileAssoc: {
-            type: 'many_to_one',
+        geomAnn: {
+            type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'file_products',
-            target: 'file',
-            targetKey: 'file_id',
-            keysIn: 'product',
+            reverseAssociation: 'annotationMethodMedia',
+            target: 'annotations_media',
+            targetKey: 'annotation_method_id',
+            keysIn: 'annotations_media',
             targetStorageType: 'sql'
         },
-        pipeline: {
-            type: 'many_to_one',
+        mediaAnn: {
+            type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'pipeline_products',
-            target: 'pipeline_info',
-            targetKey: 'pipeline_id',
-            keysIn: 'product',
+            reverseAssociation: 'annotationMethodGeom',
+            target: 'annotations_geom',
+            targetKey: 'annotation_method_id',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         }
     },
@@ -64,7 +55,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class product extends Sequelize.Model {
+module.exports = class annotations_method extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -74,44 +65,17 @@ module.exports = class product extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            type: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            url: {
+            description: {
                 type: Sequelize[dict['String']]
-            },
-            observation_type: {
-                type: Sequelize[dict['String']]
-            },
-            producer: {
-                type: Sequelize[dict['String']]
-            },
-            project: {
-                type: Sequelize[dict['String']]
-            },
-            metadata: {
-                type: Sequelize[dict['JSON']]
-            },
-            createdAt: {
-                type: Sequelize[dict['DateTime']]
-            },
-            updatedAt: {
-                type: Sequelize[dict['DateTime']]
-            },
-            comments: {
-                type: Sequelize[dict['String']]
-            },
-            pipeline_id: {
-                type: Sequelize[dict['Int']]
-            },
-            file_id: {
-                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "product",
-            tableName: "products",
+            modelName: "annotations_method",
+            tableName: "annotations_methods",
             sequelize
         });
     }
@@ -159,13 +123,13 @@ module.exports = class product extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        product.belongsTo(models.file, {
-            as: 'fileAssoc',
-            foreignKey: 'file_id'
+        annotations_method.hasMany(models.annotations_media, {
+            as: 'geomAnn',
+            foreignKey: 'annotation_method_id'
         });
-        product.belongsTo(models.pipeline_info, {
-            as: 'pipeline',
-            foreignKey: 'pipeline_id'
+        annotations_method.hasMany(models.annotations_geom, {
+            as: 'mediaAnn',
+            foreignKey: 'annotation_method_id'
         });
     }
 
@@ -177,13 +141,13 @@ module.exports = class product extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: product.idAttribute(),
+            field: annotations_method.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await product.readAllCursor(queryArg);
-        cursorRes = cursorRes.products.reduce(
-            (map, obj) => ((map[obj[product.idAttribute()]] = obj), map), {}
+        let cursorRes = await annotations_method.readAllCursor(queryArg);
+        cursorRes = cursorRes.annotations_methods.reduce(
+            (map, obj) => ((map[obj[annotations_method.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -191,7 +155,7 @@ module.exports = class product extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(product.batchReadById, {
+    static readByIdLoader = new DataLoader(annotations_method.batchReadById, {
         cache: false,
     });
 
@@ -200,11 +164,11 @@ module.exports = class product extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type product, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type annotations_method, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await product.readByIdLoader.load(id);
+        return await annotations_method.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -216,7 +180,7 @@ module.exports = class product extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, product.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, annotations_method.definition.attributes);
         return super.count(options);
     }
 
@@ -231,9 +195,9 @@ module.exports = class product extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), product.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_method.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => product.postReadCast(x))
+        records = records.map(x => annotations_method.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -249,10 +213,10 @@ module.exports = class product extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), product.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_method.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => product.postReadCast(x))
+        records = records.map(x => annotations_method.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -263,7 +227,7 @@ module.exports = class product extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), product.definition.attributes);
+            }, this.idAttribute(), annotations_method.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -272,7 +236,7 @@ module.exports = class product extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            products: edges.map((edge) => edge.node)
+            annotations_methods: edges.map((edge) => edge.node)
         };
     }
 
@@ -286,7 +250,7 @@ module.exports = class product extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = product.preWriteCast(input)
+        input = annotations_method.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -294,8 +258,8 @@ module.exports = class product extends Sequelize.Model {
                 });
                 return item;
             });
-            product.postReadCast(result.dataValues)
-            product.postReadCast(result._previousDataValues)
+            annotations_method.postReadCast(result.dataValues)
+            annotations_method.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -335,7 +299,7 @@ module.exports = class product extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = product.preWriteCast(input)
+        input = annotations_method.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -348,8 +312,8 @@ module.exports = class product extends Sequelize.Model {
                 });
                 return updated;
             });
-            product.postReadCast(result.dataValues)
-            product.postReadCast(result._previousDataValues)
+            annotations_method.postReadCast(result.dataValues)
+            annotations_method.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -371,212 +335,12 @@ module.exports = class product extends Sequelize.Model {
 
 
 
-    /**
-     * add_file_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_file_id(id, file_id, benignErrorReporter) {
-        try {
-            let updated = await product.update({
-                file_id: file_id
-            }, {
-                where: {
-                    id: id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_pipeline_id(id, pipeline_id, benignErrorReporter) {
-        try {
-            let updated = await product.update({
-                pipeline_id: pipeline_id
-            }, {
-                where: {
-                    id: id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-
-    /**
-     * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_file_id(id, file_id, benignErrorReporter) {
-        try {
-            let updated = await product.update({
-                file_id: null
-            }, {
-                where: {
-                    id: id,
-                    file_id: file_id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_pipeline_id(id, pipeline_id, benignErrorReporter) {
-        try {
-            let updated = await product.update({
-                pipeline_id: null
-            }, {
-                where: {
-                    id: id,
-                    pipeline_id: pipeline_id
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
 
 
 
 
 
-    /**
-     * bulkAssociateProductWithFile_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateProductWithFile_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            file_id,
-            id
-        }) => {
-            promises.push(super.update({
-                file_id: file_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-    /**
-     * bulkAssociateProductWithPipeline_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateProductWithPipeline_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            pipeline_id,
-            id
-        }) => {
-            promises.push(super.update({
-                pipeline_id: pipeline_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-
-    /**
-     * bulkDisAssociateProductWithFile_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateProductWithFile_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            file_id,
-            id
-        }) => {
-            promises.push(super.update({
-                file_id: null
-            }, {
-                where: {
-                    id: id,
-                    file_id: file_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateProductWithPipeline_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateProductWithPipeline_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            pipeline_id,
-            id
-        }) => {
-            promises.push(super.update({
-                pipeline_id: null
-            }, {
-                where: {
-                    id: id,
-                    pipeline_id: pipeline_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
 
@@ -586,7 +350,7 @@ module.exports = class product extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return product.definition.id.name;
+        return annotations_method.definition.id.name;
     }
 
     /**
@@ -595,16 +359,16 @@ module.exports = class product extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return product.definition.id.type;
+        return annotations_method.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of product.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotations_method.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[product.idAttribute()];
+        return this[annotations_method.idAttribute()];
     }
 
     /**
@@ -625,9 +389,9 @@ module.exports = class product extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  product to a base 64 String
+     * base64Encode - Encode  annotations_method to a base 64 String
      *
-     * @return {string} The product object, encoded in a base 64 String
+     * @return {string} The annotations_method object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -638,28 +402,28 @@ module.exports = class product extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The product object, encoded in a base 64 String
+     * @return {string} The annotations_method object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of product.
+     * stripAssociations - Instance method for getting all attributes of annotations_method.
      *
-     * @return {object} The attributes of product in object form
+     * @return {object} The attributes of annotations_method in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(product.definition.attributes);
+        let attributes = Object.keys(annotations_method.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of product that are marked as external IDs.
+     * externalIdsArray - Get all attributes of annotations_method that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of product that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of annotations_method that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -671,7 +435,7 @@ module.exports = class product extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of product.
+     * externalIdsObject - Get all external IDs of annotations_method.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

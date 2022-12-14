@@ -18,66 +18,63 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'user',
+    model: 'annotations_geom',
     storageType: 'sql',
     attributes: {
-        username: 'String',
-        password: 'String',
-        first_name: 'String',
-        last_name: 'String',
-        email: 'String',
-        is_active: 'Boolean',
-        last_login: 'DateTime',
-        institution_id: 'Int',
-        cumulus_ids: '[Int]'
+        file_id: 'Int',
+        user_id: 'Int',
+        annotation_method_id: 'Int',
+        observation_type: 'String',
+        confidence: 'Float',
+        pipeline_id: 'Int',
+        geometry: 'Polygon',
+        video_frame_num: 'Int',
+        is_setup_or_pickup: 'Boolean',
+        taxon_id: 'String',
+        count: 'Int',
+        life_stage: 'String',
+        sex: 'String',
+        behaviour: 'String',
+        individual_id: 'String',
+        comments: 'String',
+        updatedAt: 'DateTime',
+        createdAt: 'DateTime'
     },
     associations: {
-        roles: {
-            type: 'many_to_many',
-            implementation: 'sql_cross_table',
-            reverseAssociation: 'users',
-            target: 'role',
-            targetKey: 'role_id',
-            sourceKey: 'user_id',
-            keysIn: 'role_to_user',
-            targetStorageType: 'sql',
-            label: 'name'
-        },
-        institutions: {
+        fileToGeom: {
             type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'users',
-            target: 'institution',
-            targetKey: 'institution_id',
-            keysIn: 'user',
+            reverseAssociation: 'file_annotations_geom',
+            target: 'file',
+            targetKey: 'file_id',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         },
-        associated_cumulus: {
-            type: 'many_to_many',
+        userToGeom: {
+            type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'associated_partners',
-            target: 'cumulus',
-            targetKey: 'user_ids',
-            sourceKey: 'cumulus_ids',
-            keysIn: 'user',
-            targetStorageType: 'sql'
-        },
-        user_annotations_geom: {
-            type: 'one_to_many',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'userToGeom',
-            target: 'annotations_geom',
+            reverseAssociation: 'user_annotations_geom',
+            target: 'user',
             targetKey: 'user_id',
             keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         },
-        user_annotations_media: {
-            type: 'one_to_many',
+        annotationMethodGeom: {
+            type: 'many_to_one',
             implementation: 'foreignkeys',
-            reverseAssociation: 'userToMedia',
-            target: 'annotations_media',
-            targetKey: 'user_id',
+            reverseAssociation: 'geomAnn',
+            target: 'annotations_method',
+            targetKey: 'annotation_method_id',
             keysIn: 'annotations_media',
+            targetStorageType: 'sql'
+        },
+        pipeline_annotation_geom: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'annotationsGeom',
+            target: 'pipeline_info',
+            targetKey: 'pipeline_id',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         }
     },
@@ -92,7 +89,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class user extends Sequelize.Model {
+module.exports = class annotations_geom extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -102,39 +99,65 @@ module.exports = class user extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            username: {
-                type: Sequelize[dict['String']]
-            },
-            password: {
-                type: Sequelize[dict['String']]
-            },
-            first_name: {
-                type: Sequelize[dict['String']]
-            },
-            last_name: {
-                type: Sequelize[dict['String']]
-            },
-            email: {
-                type: Sequelize[dict['String']]
-            },
-            is_active: {
-                type: Sequelize[dict['Boolean']]
-            },
-            last_login: {
-                type: Sequelize[dict['DateTime']]
-            },
-            institution_id: {
+            file_id: {
                 type: Sequelize[dict['Int']]
             },
-            cumulus_ids: {
-                type: Sequelize[dict['[Int]']],
-                defaultValue: '[]'
+            user_id: {
+                type: Sequelize[dict['Int']]
+            },
+            annotation_method_id: {
+                type: Sequelize[dict['Int']]
+            },
+            observation_type: {
+                type: Sequelize[dict['String']]
+            },
+            confidence: {
+                type: Sequelize[dict['Float']]
+            },
+            pipeline_id: {
+                type: Sequelize[dict['Int']]
+            },
+            geometry: {
+                type: Sequelize[dict['Polygon']]
+            },
+            video_frame_num: {
+                type: Sequelize[dict['Int']]
+            },
+            is_setup_or_pickup: {
+                type: Sequelize[dict['Boolean']]
+            },
+            taxon_id: {
+                type: Sequelize[dict['String']]
+            },
+            count: {
+                type: Sequelize[dict['Int']]
+            },
+            life_stage: {
+                type: Sequelize[dict['String']]
+            },
+            sex: {
+                type: Sequelize[dict['String']]
+            },
+            behaviour: {
+                type: Sequelize[dict['String']]
+            },
+            individual_id: {
+                type: Sequelize[dict['String']]
+            },
+            comments: {
+                type: Sequelize[dict['String']]
+            },
+            updatedAt: {
+                type: Sequelize[dict['DateTime']]
+            },
+            createdAt: {
+                type: Sequelize[dict['DateTime']]
             }
 
 
         }, {
-            modelName: "user",
-            tableName: "users",
+            modelName: "annotations_geom",
+            tableName: "annotations_geoms",
             sequelize
         });
     }
@@ -182,23 +205,21 @@ module.exports = class user extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        user.belongsTo(models.institution, {
-            as: 'institutions',
-            foreignKey: 'institution_id'
+        annotations_geom.belongsTo(models.file, {
+            as: 'fileToGeom',
+            foreignKey: 'file_id'
         });
-        user.hasMany(models.annotations_geom, {
-            as: 'user_annotations_geom',
+        annotations_geom.belongsTo(models.user, {
+            as: 'userToGeom',
             foreignKey: 'user_id'
         });
-        user.hasMany(models.annotations_media, {
-            as: 'user_annotations_media',
-            foreignKey: 'user_id'
+        annotations_geom.belongsTo(models.annotations_method, {
+            as: 'annotationMethodGeom',
+            foreignKey: 'annotation_method_id'
         });
-        user.belongsToMany(models.role, {
-            as: 'roles',
-            foreignKey: 'user_id',
-            through: 'role_to_user',
-            onDelete: 'CASCADE'
+        annotations_geom.belongsTo(models.pipeline_info, {
+            as: 'pipeline_annotation_geom',
+            foreignKey: 'pipeline_id'
         });
     }
 
@@ -210,13 +231,13 @@ module.exports = class user extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: user.idAttribute(),
+            field: annotations_geom.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await user.readAllCursor(queryArg);
-        cursorRes = cursorRes.users.reduce(
-            (map, obj) => ((map[obj[user.idAttribute()]] = obj), map), {}
+        let cursorRes = await annotations_geom.readAllCursor(queryArg);
+        cursorRes = cursorRes.annotations_geoms.reduce(
+            (map, obj) => ((map[obj[annotations_geom.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -224,7 +245,7 @@ module.exports = class user extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(user.batchReadById, {
+    static readByIdLoader = new DataLoader(annotations_geom.batchReadById, {
         cache: false,
     });
 
@@ -233,11 +254,11 @@ module.exports = class user extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type user, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type annotations_geom, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await user.readByIdLoader.load(id);
+        return await annotations_geom.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -249,7 +270,7 @@ module.exports = class user extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, user.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, annotations_geom.definition.attributes);
         return super.count(options);
     }
 
@@ -264,9 +285,9 @@ module.exports = class user extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), user.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_geom.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => user.postReadCast(x))
+        records = records.map(x => annotations_geom.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -282,10 +303,10 @@ module.exports = class user extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), user.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), annotations_geom.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => user.postReadCast(x))
+        records = records.map(x => annotations_geom.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -296,7 +317,7 @@ module.exports = class user extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), user.definition.attributes);
+            }, this.idAttribute(), annotations_geom.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -305,7 +326,7 @@ module.exports = class user extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            users: edges.map((edge) => edge.node)
+            annotations_geoms: edges.map((edge) => edge.node)
         };
     }
 
@@ -319,7 +340,7 @@ module.exports = class user extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = user.preWriteCast(input)
+        input = annotations_geom.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -327,8 +348,8 @@ module.exports = class user extends Sequelize.Model {
                 });
                 return item;
             });
-            user.postReadCast(result.dataValues)
-            user.postReadCast(result._previousDataValues)
+            annotations_geom.postReadCast(result.dataValues)
+            annotations_geom.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -368,7 +389,7 @@ module.exports = class user extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = user.preWriteCast(input)
+        input = annotations_geom.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -381,8 +402,8 @@ module.exports = class user extends Sequelize.Model {
                 });
                 return updated;
             });
-            user.postReadCast(result.dataValues)
-            user.postReadCast(result._previousDataValues)
+            annotations_geom.postReadCast(result.dataValues)
+            annotations_geom.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -402,89 +423,19 @@ module.exports = class user extends Sequelize.Model {
         return helper.csvTableTemplate(definition);
     }
 
-    /**
-     * rolesFilterImpl - The model implementation for searching associated records. This method uses limit-offset based pagination.
-     *
-     * @param {object} search - The search condition for which records shall be fetched
-     * @param  {array} order - Type of sorting (ASC, DESC) for each field
-     * @param {object} pagination - The parameters for pagination, which can be used to get a subset of the requested record set
-     * @return {object} The set of records
-     */
-    async rolesFilterImpl({
-        search,
-        order,
-        pagination
-    }) {
-        // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, models.role.idAttribute(), models.role.definition.attributes);
-        return this.getRoles(options);
-    }
-
-    /**
-     * rolesConnectionImpl - The model implementation for searching associated records. This method uses cursor based pagination.
-     *
-     * @param {object} search - The search condition for which records shall be fetched
-     * @param  {array} order - Type of sorting (ASC, DESC) for each field
-     * @param {object} pagination - The parameters for pagination, which can be used to get a subset of the requested record set
-     * @return {object} The set of records
-     */
-    async rolesConnectionImpl({
-        search,
-        order,
-        pagination
-    }) {
-        // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, models.role.idAttribute(), models.role.definition.attributes);
-        let records = await this.getRoles(options);
-        // get the first record (if exists) in the opposite direction to determine pageInfo.
-        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
-        let oppRecords = [];
-        if (pagination && (pagination.after || pagination.before)) {
-            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
-                ...pagination,
-                includeCursor: false
-            }, models.role.idAttribute(), models.role.definition.attributes);
-            oppRecords = await this.getRoles(oppOptions);
-        }
-        // build the graphql Connection Object
-        let edges = helper.buildEdgeObject(records);
-        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
-        let nodes = edges.map(edge => edge.node);
-        return {
-            edges,
-            pageInfo,
-            roles: nodes
-        };
-    }
-
-    /**
-     * countFilteredRolesImpl - The model implementation for counting the number of associated records
-     *
-     * This method is the implementation for counting the number of records that fulfill a given condition, or for all records in the table.
-     * @param {object} search - The search term that restricts the set of records to be counted - if undefined, all records in the table
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard
-     * @return {number} The number of records that fulfill the condition, or of all records in the table
-     */
-    countFilteredRolesImpl({
-        search
-    }) {
-        let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search);
-        return this.countRoles(options);
-    }
 
 
     /**
-     * add_institution_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_file_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async add_institution_id(id, institution_id, benignErrorReporter) {
+    static async add_file_id(id, file_id, benignErrorReporter) {
         try {
-            let updated = await user.update({
-                institution_id: institution_id
+            let updated = await annotations_geom.update({
+                file_id: file_id
             }, {
                 where: {
                     id: id
@@ -498,60 +449,19 @@ module.exports = class user extends Sequelize.Model {
         }
     }
     /**
-     * add_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_user_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            cumulus_ids.forEach(idx => {
-                promises.push(models.cumulus.add_user_ids(idx, [`${id}`], benignErrorReporter, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.cumulus_ids), cumulus_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                cumulus_ids: updated_ids
-            });
-        }
-    }
-    /**
-     * add_role_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   role_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_role_id(record, addRoles) {
-        const updated = await this.sequelize.transaction(async (transaction) => {
-            return await record.addRoles(addRoles, {
-                transaction: transaction
-            });
-        });
-        return updated;
-    }
-
-    /**
-     * remove_institution_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   institution_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_institution_id(id, institution_id, benignErrorReporter) {
+    static async add_user_id(id, user_id, benignErrorReporter) {
         try {
-            let updated = await user.update({
-                institution_id: null
+            let updated = await annotations_geom.update({
+                user_id: user_id
             }, {
                 where: {
-                    id: id,
-                    institution_id: institution_id
+                    id: id
                 }
             });
             return updated[0];
@@ -562,43 +472,100 @@ module.exports = class user extends Sequelize.Model {
         }
     }
     /**
-     * remove_cumulus_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   cumulus_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_cumulus_ids(id, cumulus_ids, benignErrorReporter, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            cumulus_ids.forEach(idx => {
-                promises.push(models.cumulus.remove_user_ids(idx, [`${id}`], benignErrorReporter, false));
+    static async add_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                pipeline_id: pipeline_id
+            }, {
+                where: {
+                    id: id
+                }
             });
-            await Promise.all(promises);
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
         }
+    }
 
-        let record = await super.findByPk(id);
-        if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.cumulus_ids), cumulus_ids);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                cumulus_ids: updated_ids
+    /**
+     * remove_file_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   file_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_file_id(id, file_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                file_id: null
+            }, {
+                where: {
+                    id: id,
+                    file_id: file_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
             });
         }
     }
     /**
-     * remove_role_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_user_id - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   role_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   user_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_role_id(record, removeRoles) {
-        const updated = await this.sequelize.transaction(async (transaction) => {
-            return await record.removeRoles(removeRoles, {
-                transaction: transaction
+    static async remove_user_id(id, user_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                user_id: null
+            }, {
+                where: {
+                    id: id,
+                    user_id: user_id
+                }
             });
-        });
-        return updated;
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   pipeline_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_pipeline_id(id, pipeline_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
     }
 
 
@@ -606,21 +573,73 @@ module.exports = class user extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateUserWithInstitution_id - bulkAssociaton of given ids
+     * bulkAssociateAnnotations_geomWithFile_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateUserWithInstitution_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "institution_id");
+    static async bulkAssociateAnnotations_geomWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            institution_id,
+            file_id,
             id
         }) => {
             promises.push(super.update({
-                institution_id: institution_id
+                file_id: file_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateAnnotations_geomWithUser_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_geomWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: user_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateAnnotations_geomWithPipeline_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: pipeline_id
             }, {
                 where: {
                     id: id
@@ -633,25 +652,79 @@ module.exports = class user extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateUserWithInstitution_id - bulkDisAssociaton of given ids
+     * bulkDisAssociateAnnotations_geomWithFile_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateUserWithInstitution_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "institution_id");
+    static async bulkDisAssociateAnnotations_geomWithFile_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "file_id");
         var promises = [];
         mappedForeignKeys.forEach(({
-            institution_id,
+            file_id,
             id
         }) => {
             promises.push(super.update({
-                institution_id: null
+                file_id: null
             }, {
                 where: {
                     id: id,
-                    institution_id: institution_id
+                    file_id: file_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_geomWithUser_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_geomWithUser_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "user_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            user_id,
+            id
+        }) => {
+            promises.push(super.update({
+                user_id: null
+            }, {
+                where: {
+                    id: id,
+                    user_id: user_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_geomWithPipeline_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "pipeline_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            pipeline_id,
+            id
+        }) => {
+            promises.push(super.update({
+                pipeline_id: null
+            }, {
+                where: {
+                    id: id,
+                    pipeline_id: pipeline_id
                 }
             }));
         })
@@ -667,7 +740,7 @@ module.exports = class user extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return user.definition.id.name;
+        return annotations_geom.definition.id.name;
     }
 
     /**
@@ -676,16 +749,16 @@ module.exports = class user extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return user.definition.id.type;
+        return annotations_geom.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of user.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of annotations_geom.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[user.idAttribute()];
+        return this[annotations_geom.idAttribute()];
     }
 
     /**
@@ -706,9 +779,9 @@ module.exports = class user extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  user to a base 64 String
+     * base64Encode - Encode  annotations_geom to a base 64 String
      *
-     * @return {string} The user object, encoded in a base 64 String
+     * @return {string} The annotations_geom object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -719,28 +792,28 @@ module.exports = class user extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The user object, encoded in a base 64 String
+     * @return {string} The annotations_geom object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of user.
+     * stripAssociations - Instance method for getting all attributes of annotations_geom.
      *
-     * @return {object} The attributes of user in object form
+     * @return {object} The attributes of annotations_geom in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(user.definition.attributes);
+        let attributes = Object.keys(annotations_geom.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of user that are marked as external IDs.
+     * externalIdsArray - Get all attributes of annotations_geom that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of user that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of annotations_geom that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -752,7 +825,7 @@ module.exports = class user extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of user.
+     * externalIdsObject - Get all external IDs of annotations_geom.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

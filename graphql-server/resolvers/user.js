@@ -16,7 +16,8 @@ const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addInstitutions': 'institution',
     'addAssociated_cumulus': 'cumulus',
-    'addUser_annotations': 'annotations_geom_obs_type',
+    'addUser_annotations_geom': 'annotations_geom',
+    'addUser_annotations_media': 'annotations_media',
     'addRoles': 'role'
 }
 
@@ -249,7 +250,7 @@ user.prototype.associated_cumulusConnection = function({
     }, context);
 }
 /**
- * user.prototype.user_annotationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * user.prototype.user_annotations_geomFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -259,7 +260,7 @@ user.prototype.associated_cumulusConnection = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-user.prototype.user_annotationsFilter = function({
+user.prototype.user_annotations_geomFilter = function({
     search,
     order,
     pagination
@@ -274,7 +275,7 @@ user.prototype.user_annotationsFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations_geom_obs_types({
+    return resolvers.annotations_geoms({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -282,13 +283,13 @@ user.prototype.user_annotationsFilter = function({
 }
 
 /**
- * user.prototype.countFilteredUser_annotations - Count number of associated records that holds the conditions specified in the search argument
+ * user.prototype.countFilteredUser_annotations_geom - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-user.prototype.countFilteredUser_annotations = function({
+user.prototype.countFilteredUser_annotations_geom = function({
     search
 }, context) {
 
@@ -299,13 +300,13 @@ user.prototype.countFilteredUser_annotations = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations_geom_obs_types({
+    return resolvers.countAnnotations_geoms({
         search: nsearch
     }, context);
 }
 
 /**
- * user.prototype.user_annotationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * user.prototype.user_annotations_geomConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -315,7 +316,7 @@ user.prototype.countFilteredUser_annotations = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-user.prototype.user_annotationsConnection = function({
+user.prototype.user_annotations_geomConnection = function({
     search,
     order,
     pagination
@@ -329,7 +330,94 @@ user.prototype.user_annotationsConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotations_geom_obs_typesConnection({
+    return resolvers.annotations_geomsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * user.prototype.user_annotations_mediaFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+user.prototype.user_annotations_mediaFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "user_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.annotations_media({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * user.prototype.countFilteredUser_annotations_media - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+user.prototype.countFilteredUser_annotations_media = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "user_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countAnnotations_media({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * user.prototype.user_annotations_mediaConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+user.prototype.user_annotations_mediaConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "user_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.annotations_mediaConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -351,8 +439,11 @@ user.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.addAssociated_cumulus)) {
         promises_add.push(this.add_associated_cumulus(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addUser_annotations)) {
-        promises_add.push(this.add_user_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addUser_annotations_geom)) {
+        promises_add.push(this.add_user_annotations_geom(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.addUser_annotations_media)) {
+        promises_add.push(this.add_user_annotations_media(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.addRoles)) {
         promises_add.push(this.add_roles(input, benignErrorReporter));
@@ -366,8 +457,11 @@ user.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.removeAssociated_cumulus)) {
         promises_remove.push(this.remove_associated_cumulus(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeUser_annotations)) {
-        promises_remove.push(this.remove_user_annotations(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeUser_annotations_geom)) {
+        promises_remove.push(this.remove_user_annotations_geom(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeUser_annotations_media)) {
+        promises_remove.push(this.remove_user_annotations_media(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeRoles)) {
         promises_remove.push(this.remove_roles(input, benignErrorReporter));
@@ -402,21 +496,39 @@ user.prototype.add_associated_cumulus = async function(input, benignErrorReporte
 }
 
 /**
- * add_user_annotations - field Mutation for to_many associations to add
+ * add_user_annotations_geom - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-user.prototype.add_user_annotations = async function(input, benignErrorReporter) {
+user.prototype.add_user_annotations_geom = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addUser_annotations.map(associatedRecordId => {
+    let bulkAssociationInput = input.addUser_annotations_geom.map(associatedRecordId => {
         return {
             user_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkAssociateAnnotations_geomWithUser_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_user_annotations_media - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+user.prototype.add_user_annotations_media = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addUser_annotations_media.map(associatedRecordId => {
+        return {
+            user_id: this.getIdValue(),
+            [models.annotations_media.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_media.bulkAssociateAnnotations_mediaWithUser_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -453,21 +565,39 @@ user.prototype.remove_associated_cumulus = async function(input, benignErrorRepo
 }
 
 /**
- * remove_user_annotations - field Mutation for to_many associations to remove
+ * remove_user_annotations_geom - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-user.prototype.remove_user_annotations = async function(input, benignErrorReporter) {
+user.prototype.remove_user_annotations_geom = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeUser_annotations.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeUser_annotations_geom.map(associatedRecordId => {
         return {
             user_id: this.getIdValue(),
-            [models.annotations_geom_obs_type.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkDisAssociateAnnotations_geomWithUser_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_user_annotations_media - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+user.prototype.remove_user_annotations_media = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeUser_annotations_media.map(associatedRecordId => {
+        return {
+            user_id: this.getIdValue(),
+            [models.annotations_media.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.annotations_media.bulkDisAssociateAnnotations_mediaWithUser_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -506,7 +636,8 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_cross_to_many = [];
 
     get_to_many_associated_fk += Array.isArray(user.cumulus_ids) ? user.cumulus_ids.length : 0;
-    promises_to_many.push(user.countFilteredUser_annotations({}, context));
+    promises_to_many.push(user.countFilteredUser_annotations_geom({}, context));
+    promises_to_many.push(user.countFilteredUser_annotations_media({}, context));
     promises_to_one.push(user.institutions({}, context));
 
     promises_cross_to_many.push(user.countFilteredRoles({}, context));

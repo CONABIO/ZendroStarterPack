@@ -2,30 +2,42 @@
     "model": "pipeline_info",
     "storageType": "sql",
     "attributes": {
+        "name": "String",
         "version": "String",
-        "commit_dvc_of_data_ref": "String",
         "url_repo_model": "String",
+        "execution_params": "JSON",
+        "last_execution": "DateTime",
         "updatedAt": "DateTime",
         "createdAt": "DateTime",
         "comments": "String"
     },
     "associations": {
-        "pipeline_products": {
+        "annotationsGeom": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "pipeline",
-            "target": "product",
+            "reverseAssociation": "pipeline_annotation_geom",
+            "target": "annotations_geom",
             "targetKey": "pipeline_id",
-            "keysIn": "product",
+            "keysIn": "annotations_geom",
             "targetStorageType": "sql"
         },
-        "annotations": {
+        "annotationsMedia": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "pipeline_annotation",
-            "target": "annotations_geom_obs_type",
+            "reverseAssociation": "pipeline_annotation_media",
+            "target": "annotations_media",
             "targetKey": "pipeline_id",
-            "keysIn": "annotations_geom_obs_type",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "processedFiles": {
+            "type": "many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "pipelineInfo",
+            "target": "file",
+            "targetKey": "file_id",
+            "sourceKey" : "pipeline_id",
+            "keysIn": "processed_files",
             "targetStorageType": "sql"
         }
     }

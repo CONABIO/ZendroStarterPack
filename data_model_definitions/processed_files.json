@@ -1,0 +1,8 @@
+{
+    "model": "processed_files",
+    "storageType": "sql",
+    "attributes": {
+        "file_id": "Int",
+        "pipeline_id": "Int"
+    }
+}

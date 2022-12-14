@@ -95,18 +95,34 @@ module.exports = `
     """
     @search-request
     """
-    user_annotationsFilter(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationInput!): [annotations_geom_obs_type]
+    user_annotations_geomFilter(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationInput!): [annotations_geom]
 
 
     """
     @search-request
     """
-    user_annotationsConnection(search: searchAnnotations_geom_obs_typeInput, order: [ orderAnnotations_geom_obs_typeInput ], pagination: paginationCursorInput!): Annotations_geom_obs_typeConnection
+    user_annotations_geomConnection(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationCursorInput!): Annotations_geomConnection
 
     """
     @count-request
     """
-    countFilteredUser_annotations(search: searchAnnotations_geom_obs_typeInput) : Int
+    countFilteredUser_annotations_geom(search: searchAnnotations_geomInput) : Int
+  
+    """
+    @search-request
+    """
+    user_annotations_mediaFilter(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationInput!): [annotations_media]
+
+
+    """
+    @search-request
+    """
+    user_annotations_mediaConnection(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationCursorInput!): Annotations_mediaConnection
+
+    """
+    @count-request
+    """
+    countFilteredUser_annotations_media(search: searchAnnotations_mediaInput) : Int
   
     
     """
@@ -162,8 +178,8 @@ type UserEdge{
     countUsers(search: searchUserInput ): Int
     csvTableTemplateUser: [String]
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput! ): UserConnection
-    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations:[ID], removeUser_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForCreation( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations_geom:[ID], addUser_annotations_media:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateUserForUpdating(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations_geom:[ID], removeUser_annotations_geom:[ID] , addUser_annotations_media:[ID], removeUser_annotations_media:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateUserForDeletion(id: ID!): Boolean!
     validateUserAfterReading(id: ID!): Boolean!
     """
@@ -173,8 +189,8 @@ type UserEdge{
   }
 
   type Mutation {
-    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations:[ID], removeUser_annotations:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID  , addRoles:[ID], addAssociated_cumulus:[ID], addUser_annotations_geom:[ID], addUser_annotations_media:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, username: String, password: String, first_name: String, last_name: String, email: String, is_active: Boolean, last_login: DateTime , addInstitutions:ID, removeInstitutions:ID   , addRoles:[ID], removeRoles:[ID] , addAssociated_cumulus:[ID], removeAssociated_cumulus:[ID] , addUser_annotations_geom:[ID], removeUser_annotations_geom:[ID] , addUser_annotations_media:[ID], removeUser_annotations_media:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
     deleteUser(id: ID!): String!
     bulkAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateUserWithInstitution_id(bulkAssociationInput: [bulkAssociationUserWithInstitution_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

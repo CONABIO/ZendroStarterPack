@@ -21,22 +21,32 @@
             "keysIn": "file",
             "targetStorageType": "sql"
         },
-        "file_annotations": {
+        "file_annotations_geom": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "fileTo",
-            "target": "annotations_geom_obs_type",
+            "reverseAssociation": "fileToGeom",
+            "target": "annotations_geom",
             "targetKey": "file_id",
-            "keysIn": "annotations_geom_obs_type",
+            "keysIn": "annotations_geom",
             "targetStorageType": "sql"
         },
-        "file_products": {
+        "file_annotations_media": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "fileAssoc",
-            "target": "product",
+            "reverseAssociation": "fileToMedia",
+            "target": "annotations_media",
             "targetKey": "file_id",
-            "keysIn": "product",
+            "keysIn": "annotations_media",
+            "targetStorageType": "sql"
+        },
+        "pipelineInfo": {
+            "type": "many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "processedFiles",
+            "target": "pipeline_info",
+            "targetKey": "pipeline_id",
+            "sourceKey" : "file_id",
+            "keysIn": "processed_files",
             "targetStorageType": "sql"
         }
     }

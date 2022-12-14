@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const annotations_geom_obs_type = require(path.join(__dirname, '..', 'models', 'index.js')).annotations_geom_obs_type;
+const annotations_geom = require(path.join(__dirname, '..', 'models', 'index.js')).annotations_geom;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,21 +14,22 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addFileTo': 'file',
-    'addUserTo': 'user',
-    'addPipeline_annotation': 'pipeline_info'
+    'addFileToGeom': 'file',
+    'addUserToGeom': 'user',
+    'addAnnotationMethodGeom': 'annotations_method',
+    'addPipeline_annotation_geom': 'pipeline_info'
 }
 
 
 
 /**
- * annotations_geom_obs_type.prototype.fileTo - Return associated record
+ * annotations_geom.prototype.fileToGeom - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-annotations_geom_obs_type.prototype.fileTo = async function({
+annotations_geom.prototype.fileToGeom = async function({
     search
 }, context) {
 
@@ -60,13 +61,13 @@ annotations_geom_obs_type.prototype.fileTo = async function({
     }
 }
 /**
- * annotations_geom_obs_type.prototype.userTo - Return associated record
+ * annotations_geom.prototype.userToGeom - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-annotations_geom_obs_type.prototype.userTo = async function({
+annotations_geom.prototype.userToGeom = async function({
     search
 }, context) {
 
@@ -98,13 +99,47 @@ annotations_geom_obs_type.prototype.userTo = async function({
     }
 }
 /**
- * annotations_geom_obs_type.prototype.pipeline_annotation - Return associated record
+ * annotations_geom.prototype.annotationMethodGeom - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-annotations_geom_obs_type.prototype.pipeline_annotation = async function({
+annotations_geom.prototype.annotationMethodGeom = async function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "annotation_method_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    let found = (await resolvers.annotations_methodsConnection({
+        search: nsearch,
+        pagination: {
+            first: 2
+        }
+    }, context)).edges;
+    if (found.length > 0) {
+        if (found.length > 1) {
+            context.benignErrors.push(new Error(
+                `Not unique "to_one" association Error: Found > 1 annotations_methods matching annotations_geom with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the annotations_geom model. Returning first annotations_method.`
+            ));
+        }
+        return found[0].node;
+    }
+    return null;
+}
+/**
+ * annotations_geom.prototype.pipeline_annotation_geom - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+annotations_geom.prototype.pipeline_annotation_geom = async function({
     search
 }, context) {
 
@@ -146,104 +181,130 @@ annotations_geom_obs_type.prototype.pipeline_annotation = async function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.handleAssociations = async function(input, benignErrorReporter) {
+annotations_geom.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.addFileTo)) {
-        promises_add.push(this.add_fileTo(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addFileToGeom)) {
+        promises_add.push(this.add_fileToGeom(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addUserTo)) {
-        promises_add.push(this.add_userTo(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addUserToGeom)) {
+        promises_add.push(this.add_userToGeom(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addPipeline_annotation)) {
-        promises_add.push(this.add_pipeline_annotation(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addAnnotationMethodGeom)) {
+        promises_add.push(this.add_annotationMethodGeom(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addPipeline_annotation_geom)) {
+        promises_add.push(this.add_pipeline_annotation_geom(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.removeFileTo)) {
-        promises_remove.push(this.remove_fileTo(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeFileToGeom)) {
+        promises_remove.push(this.remove_fileToGeom(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeUserTo)) {
-        promises_remove.push(this.remove_userTo(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeUserToGeom)) {
+        promises_remove.push(this.remove_userToGeom(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removePipeline_annotation)) {
-        promises_remove.push(this.remove_pipeline_annotation(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeAnnotationMethodGeom)) {
+        promises_remove.push(this.remove_annotationMethodGeom(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removePipeline_annotation_geom)) {
+        promises_remove.push(this.remove_pipeline_annotation_geom(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_fileTo - field Mutation for to_one associations to add
+ * add_fileToGeom - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.add_fileTo = async function(input, benignErrorReporter) {
-    await annotations_geom_obs_type.add_file_id(this.getIdValue(), input.addFileTo, benignErrorReporter);
-    this.file_id = input.addFileTo;
+annotations_geom.prototype.add_fileToGeom = async function(input, benignErrorReporter) {
+    await annotations_geom.add_file_id(this.getIdValue(), input.addFileToGeom, benignErrorReporter);
+    this.file_id = input.addFileToGeom;
 }
 
 /**
- * add_userTo - field Mutation for to_one associations to add
+ * add_userToGeom - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.add_userTo = async function(input, benignErrorReporter) {
-    await annotations_geom_obs_type.add_user_id(this.getIdValue(), input.addUserTo, benignErrorReporter);
-    this.user_id = input.addUserTo;
+annotations_geom.prototype.add_userToGeom = async function(input, benignErrorReporter) {
+    await annotations_geom.add_user_id(this.getIdValue(), input.addUserToGeom, benignErrorReporter);
+    this.user_id = input.addUserToGeom;
 }
 
 /**
- * add_pipeline_annotation - field Mutation for to_one associations to add
+ * add_annotationMethodGeom - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.add_pipeline_annotation = async function(input, benignErrorReporter) {
-    await annotations_geom_obs_type.add_pipeline_id(this.getIdValue(), input.addPipeline_annotation, benignErrorReporter);
-    this.pipeline_id = input.addPipeline_annotation;
+annotations_geom.prototype.add_annotationMethodGeom = async function(input, benignErrorReporter) {
+    await models.annotations_method.add_annotation_method_id(input.addAnnotationMethodGeom, this.getIdValue(), benignErrorReporter);
 }
 
 /**
- * remove_fileTo - field Mutation for to_one associations to remove
+ * add_pipeline_annotation_geom - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom.prototype.add_pipeline_annotation_geom = async function(input, benignErrorReporter) {
+    await annotations_geom.add_pipeline_id(this.getIdValue(), input.addPipeline_annotation_geom, benignErrorReporter);
+    this.pipeline_id = input.addPipeline_annotation_geom;
+}
+
+/**
+ * remove_fileToGeom - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.remove_fileTo = async function(input, benignErrorReporter) {
-    if (input.removeFileTo == this.file_id) {
-        await annotations_geom_obs_type.remove_file_id(this.getIdValue(), input.removeFileTo, benignErrorReporter);
+annotations_geom.prototype.remove_fileToGeom = async function(input, benignErrorReporter) {
+    if (input.removeFileToGeom == this.file_id) {
+        await annotations_geom.remove_file_id(this.getIdValue(), input.removeFileToGeom, benignErrorReporter);
         this.file_id = null;
     }
 }
 
 /**
- * remove_userTo - field Mutation for to_one associations to remove
+ * remove_userToGeom - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.remove_userTo = async function(input, benignErrorReporter) {
-    if (input.removeUserTo == this.user_id) {
-        await annotations_geom_obs_type.remove_user_id(this.getIdValue(), input.removeUserTo, benignErrorReporter);
+annotations_geom.prototype.remove_userToGeom = async function(input, benignErrorReporter) {
+    if (input.removeUserToGeom == this.user_id) {
+        await annotations_geom.remove_user_id(this.getIdValue(), input.removeUserToGeom, benignErrorReporter);
         this.user_id = null;
     }
 }
 
 /**
- * remove_pipeline_annotation - field Mutation for to_one associations to remove
+ * remove_annotationMethodGeom - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-annotations_geom_obs_type.prototype.remove_pipeline_annotation = async function(input, benignErrorReporter) {
-    if (input.removePipeline_annotation == this.pipeline_id) {
-        await annotations_geom_obs_type.remove_pipeline_id(this.getIdValue(), input.removePipeline_annotation, benignErrorReporter);
+annotations_geom.prototype.remove_annotationMethodGeom = async function(input, benignErrorReporter) {
+    await models.annotations_method.remove_annotation_method_id(input.removeAnnotationMethodGeom, this.getIdValue(), benignErrorReporter);
+}
+
+/**
+ * remove_pipeline_annotation_geom - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+annotations_geom.prototype.remove_pipeline_annotation_geom = async function(input, benignErrorReporter) {
+    if (input.removePipeline_annotation_geom == this.pipeline_id) {
+        await annotations_geom.remove_pipeline_id(this.getIdValue(), input.removePipeline_annotation_geom, benignErrorReporter);
         this.pipeline_id = null;
     }
 }
@@ -259,17 +320,18 @@ annotations_geom_obs_type.prototype.remove_pipeline_annotation = async function(
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let annotations_geom_obs_type = await resolvers.readOneAnnotations_geom_obs_type({
+    let annotations_geom = await resolvers.readOneAnnotations_geom({
         id: id
     }, context);
     //check that record actually exists
-    if (annotations_geom_obs_type === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (annotations_geom === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
-    promises_to_one.push(annotations_geom_obs_type.fileTo({}, context));
-    promises_to_one.push(annotations_geom_obs_type.userTo({}, context));
-    promises_to_one.push(annotations_geom_obs_type.pipeline_annotation({}, context));
+    promises_to_one.push(annotations_geom.fileToGeom({}, context));
+    promises_to_one.push(annotations_geom.userToGeom({}, context));
+    promises_to_one.push(annotations_geom.annotationMethodGeom({}, context));
+    promises_to_one.push(annotations_geom.pipeline_annotation_geom({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -290,7 +352,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`annotations_geom_obs_type with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`annotations_geom with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -302,7 +364,7 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const annotations_geom_obs_type_record = await resolvers.readOneAnnotations_geom_obs_type({
+    const annotations_geom_record = await resolvers.readOneAnnotations_geom({
             id: id
         },
         context
@@ -314,7 +376,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * annotations_geom_obs_types - Check user authorization and return certain number, specified in pagination argument, of records that
+     * annotations_geoms - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -323,21 +385,21 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    annotations_geom_obs_types: async function({
+    annotations_geoms: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "annotations_geom_obs_types");
-            return await annotations_geom_obs_type.readAll(search, order, pagination, context.benignErrors);
+        if (await checkAuthorization(context, 'annotations_geom', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "annotations_geoms");
+            return await annotations_geom.readAll(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * annotations_geom_obs_typesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * annotations_geomsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -346,65 +408,65 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    annotations_geom_obs_typesConnection: async function({
+    annotations_geomsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'read') === true) {
+        if (await checkAuthorization(context, 'annotations_geom', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "annotations_geom_obs_typesConnection");
-            return await annotations_geom_obs_type.readAllCursor(search, order, pagination, context.benignErrors);
+            helper.checkCountAndReduceRecordsLimit(limit, context, "annotations_geomsConnection");
+            return await annotations_geom.readAllCursor(search, order, pagination, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneAnnotations_geom_obs_type - Check user authorization and return one record with the specified id in the id argument.
+     * readOneAnnotations_geom - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneAnnotations_geom_obs_type: async function({
+    readOneAnnotations_geom: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneAnnotations_geom_obs_type");
-            return await annotations_geom_obs_type.readById(id, context.benignErrors);
+        if (await checkAuthorization(context, 'annotations_geom', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneAnnotations_geom");
+            return await annotations_geom.readById(id, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countAnnotations_geom_obs_types - Counts number of records that holds the conditions specified in the search argument
+     * countAnnotations_geoms - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countAnnotations_geom_obs_types: async function({
+    countAnnotations_geoms: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'read') === true) {
-            return await annotations_geom_obs_type.countRecords(search, context.benignErrors);
+        if (await checkAuthorization(context, 'annotations_geom', 'read') === true) {
+            return await annotations_geom.countRecords(search, context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateAnnotations_geom_obs_typeForCreation - Check user authorization and validate input argument for creation.
+     * validateAnnotations_geomForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateAnnotations_geom_obs_typeForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'annotations_geom_obs_type', 'read');
+    validateAnnotations_geomForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'annotations_geom', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -419,7 +481,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    annotations_geom_obs_type,
+                    annotations_geom,
                     inputSanitized
                 );
                 return true;
@@ -433,14 +495,14 @@ module.exports = {
     },
 
     /**
-     * validateAnnotations_geom_obs_typeForUpdating - Check user authorization and validate input argument for updating.
+     * validateAnnotations_geomForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateAnnotations_geom_obs_typeForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'annotations_geom_obs_type', 'read');
+    validateAnnotations_geomForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'annotations_geom', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -455,7 +517,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    annotations_geom_obs_type,
+                    annotations_geom,
                     inputSanitized
                 );
                 return true;
@@ -469,21 +531,21 @@ module.exports = {
     },
 
     /**
-     * validateAnnotations_geom_obs_typeForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateAnnotations_geomForDeletion - Check user authorization and validate record by ID for deletion.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateAnnotations_geom_obs_typeForDeletion: async ({
+    validateAnnotations_geomForDeletion: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'annotations_geom_obs_type', 'read')) === true) {
+        if ((await checkAuthorization(context, 'annotations_geom', 'read')) === true) {
             try {
                 await validForDeletion(id, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    annotations_geom_obs_type,
+                    annotations_geom,
                     id);
                 return true;
             } catch (error) {
@@ -496,20 +558,20 @@ module.exports = {
     },
 
     /**
-     * validateAnnotations_geom_obs_typeAfterReading - Check user authorization and validate record by ID after reading.
+     * validateAnnotations_geomAfterReading - Check user authorization and validate record by ID after reading.
      *
      * @param  {string} {id} id of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateAnnotations_geom_obs_typeAfterReading: async ({
+    validateAnnotations_geomAfterReading: async ({
         id
     }, context) => {
-        if ((await checkAuthorization(context, 'annotations_geom_obs_type', 'read')) === true) {
+        if ((await checkAuthorization(context, 'annotations_geom', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    annotations_geom_obs_type,
+                    annotations_geom,
                     id);
                 return true;
             } catch (error) {
@@ -521,7 +583,7 @@ module.exports = {
         }
     },
     /**
-     * addAnnotations_geom_obs_type - Check user authorization and creates a new record with data specified in the input argument.
+     * addAnnotations_geom - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -529,8 +591,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addAnnotations_geom_obs_type: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'annotations_geom_obs_type', 'create');
+    addAnnotations_geom: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'annotations_geom', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -538,28 +600,28 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdAnnotations_geom_obs_type = await annotations_geom_obs_type.addOne(inputSanitized, context.benignErrors);
-            await createdAnnotations_geom_obs_type.handleAssociations(inputSanitized, context.benignErrors);
-            return createdAnnotations_geom_obs_type;
+            let createdAnnotations_geom = await annotations_geom.addOne(inputSanitized, context.benignErrors);
+            await createdAnnotations_geom.handleAssociations(inputSanitized, context.benignErrors);
+            return createdAnnotations_geom;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteAnnotations_geom_obs_type - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteAnnotations_geom - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteAnnotations_geom_obs_type: async function({
+    deleteAnnotations_geom: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'delete') === true) {
+        if (await checkAuthorization(context, 'annotations_geom', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
-                return annotations_geom_obs_type.deleteOne(id, context.benignErrors);
+                return annotations_geom.deleteOne(id, context.benignErrors);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -567,7 +629,7 @@ module.exports = {
     },
 
     /**
-     * updateAnnotations_geom_obs_type - Check user authorization and update the record specified in the input argument
+     * updateAnnotations_geom - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -575,8 +637,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateAnnotations_geom_obs_type: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'annotations_geom_obs_type', 'update');
+    updateAnnotations_geom: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'annotations_geom', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -584,22 +646,22 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedAnnotations_geom_obs_type = await annotations_geom_obs_type.updateOne(inputSanitized, context.benignErrors);
-            await updatedAnnotations_geom_obs_type.handleAssociations(inputSanitized, context.benignErrors);
-            return updatedAnnotations_geom_obs_type;
+            let updatedAnnotations_geom = await annotations_geom.updateOne(inputSanitized, context.benignErrors);
+            await updatedAnnotations_geom.handleAssociations(inputSanitized, context.benignErrors);
+            return updatedAnnotations_geom;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithFile_id - bulkAssociaton resolver of given ids
+     * bulkAssociateAnnotations_geomWithFile_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateAnnotations_geom_obs_typeWithFile_id: async function(bulkAssociationInput, context) {
+    bulkAssociateAnnotations_geomWithFile_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -607,18 +669,18 @@ module.exports = {
             }) => file_id)), models.file);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkAssociateAnnotations_geomWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithUser_id - bulkAssociaton resolver of given ids
+     * bulkAssociateAnnotations_geomWithUser_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateAnnotations_geom_obs_typeWithUser_id: async function(bulkAssociationInput, context) {
+    bulkAssociateAnnotations_geomWithUser_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -626,18 +688,18 @@ module.exports = {
             }) => user_id)), models.user);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkAssociateAnnotations_geomWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkAssociaton resolver of given ids
+     * bulkAssociateAnnotations_geomWithPipeline_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateAnnotations_geom_obs_typeWithPipeline_id: async function(bulkAssociationInput, context) {
+    bulkAssociateAnnotations_geomWithPipeline_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -645,18 +707,18 @@ module.exports = {
             }) => pipeline_id)), models.pipeline_info);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithFile_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateAnnotations_geomWithFile_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateAnnotations_geom_obs_typeWithFile_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateAnnotations_geomWithFile_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -664,18 +726,18 @@ module.exports = {
             }) => file_id)), models.file);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkDisAssociateAnnotations_geomWithFile_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithUser_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateAnnotations_geomWithUser_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateAnnotations_geom_obs_typeWithUser_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateAnnotations_geomWithUser_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -683,18 +745,18 @@ module.exports = {
             }) => user_id)), models.user);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkDisAssociateAnnotations_geomWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
-     * bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateAnnotations_geomWithPipeline_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id: async function(bulkAssociationInput, context) {
+    bulkDisAssociateAnnotations_geomWithPipeline_id: async function(bulkAssociationInput, context) {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
@@ -702,36 +764,36 @@ module.exports = {
             }) => pipeline_id)), models.pipeline_info);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
-            }) => id)), annotations_geom_obs_type);
+            }) => id)), annotations_geom);
         }
-        return await annotations_geom_obs_type.bulkDisAssociateAnnotations_geom_obs_typeWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+        return await annotations_geom.bulkDisAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
 
     /**
-     * csvTableTemplateAnnotations_geom_obs_type - Returns table's template
+     * csvTableTemplateAnnotations_geom - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateAnnotations_geom_obs_type: async function(_, context) {
-        if (await checkAuthorization(context, 'annotations_geom_obs_type', 'read') === true) {
-            return annotations_geom_obs_type.csvTableTemplate(context.benignErrors);
+    csvTableTemplateAnnotations_geom: async function(_, context) {
+        if (await checkAuthorization(context, 'annotations_geom', 'read') === true) {
+            return annotations_geom.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * annotations_geom_obs_typesZendroDefinition - Return data model definition
+     * annotations_geomsZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    annotations_geom_obs_typesZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "annotations_geom_obs_type", "read")) === true) {
-            return annotations_geom_obs_type.definition;
+    annotations_geomsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "annotations_geom", "read")) === true) {
+            return annotations_geom.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
