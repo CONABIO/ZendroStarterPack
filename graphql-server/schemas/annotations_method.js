@@ -20,34 +20,34 @@ module.exports = `
     """
     @search-request
     """
-    geomAnnFilter(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationInput!): [annotations_media]
+    geomAnnFilter(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationInput!): [annotations_geom]
 
 
     """
     @search-request
     """
-    geomAnnConnection(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationCursorInput!): Annotations_mediaConnection
+    geomAnnConnection(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationCursorInput!): Annotations_geomConnection
 
     """
     @count-request
     """
-    countFilteredGeomAnn(search: searchAnnotations_mediaInput) : Int
+    countFilteredGeomAnn(search: searchAnnotations_geomInput) : Int
   
     """
     @search-request
     """
-    mediaAnnFilter(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationInput!): [annotations_geom]
+    mediaAnnFilter(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationInput!): [annotations_media]
 
 
     """
     @search-request
     """
-    mediaAnnConnection(search: searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationCursorInput!): Annotations_geomConnection
+    mediaAnnConnection(search: searchAnnotations_mediaInput, order: [ orderAnnotations_mediaInput ], pagination: paginationCursorInput!): Annotations_mediaConnection
 
     """
     @count-request
     """
-    countFilteredMediaAnn(search: searchAnnotations_geomInput) : Int
+    countFilteredMediaAnn(search: searchAnnotations_mediaInput) : Int
   
     
     """

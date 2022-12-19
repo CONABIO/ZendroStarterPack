@@ -14,8 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addGeomAnn': 'annotations_media',
-    'addMediaAnn': 'annotations_geom'
+    'addGeomAnn': 'annotations_geom',
+    'addMediaAnn': 'annotations_media'
 }
 
 
@@ -47,7 +47,7 @@ annotations_method.prototype.geomAnnFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations_media({
+    return resolvers.annotations_geoms({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -72,7 +72,7 @@ annotations_method.prototype.countFilteredGeomAnn = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations_media({
+    return resolvers.countAnnotations_geoms({
         search: nsearch
     }, context);
 }
@@ -102,7 +102,7 @@ annotations_method.prototype.geomAnnConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotations_mediaConnection({
+    return resolvers.annotations_geomsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -134,7 +134,7 @@ annotations_method.prototype.mediaAnnFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.annotations_geoms({
+    return resolvers.annotations_media({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -159,7 +159,7 @@ annotations_method.prototype.countFilteredMediaAnn = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countAnnotations_geoms({
+    return resolvers.countAnnotations_media({
         search: nsearch
     }, context);
 }
@@ -189,7 +189,7 @@ annotations_method.prototype.mediaAnnConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.annotations_geomsConnection({
+    return resolvers.annotations_mediaConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -239,10 +239,10 @@ annotations_method.prototype.add_geomAnn = async function(input, benignErrorRepo
     let bulkAssociationInput = input.addGeomAnn.map(associatedRecordId => {
         return {
             annotation_method_id: this.getIdValue(),
-            [models.annotations_media.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_media.bulkAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -257,10 +257,10 @@ annotations_method.prototype.add_mediaAnn = async function(input, benignErrorRep
     let bulkAssociationInput = input.addMediaAnn.map(associatedRecordId => {
         return {
             annotation_method_id: this.getIdValue(),
-            [models.annotations_geom.idAttribute()]: associatedRecordId
+            [models.annotations_media.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_geom.bulkAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_media.bulkAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -275,10 +275,10 @@ annotations_method.prototype.remove_geomAnn = async function(input, benignErrorR
     let bulkAssociationInput = input.removeGeomAnn.map(associatedRecordId => {
         return {
             annotation_method_id: this.getIdValue(),
-            [models.annotations_media.idAttribute()]: associatedRecordId
+            [models.annotations_geom.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_media.bulkDisAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_geom.bulkDisAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -293,10 +293,10 @@ annotations_method.prototype.remove_mediaAnn = async function(input, benignError
     let bulkAssociationInput = input.removeMediaAnn.map(associatedRecordId => {
         return {
             annotation_method_id: this.getIdValue(),
-            [models.annotations_geom.idAttribute()]: associatedRecordId
+            [models.annotations_media.idAttribute()]: associatedRecordId
         }
     });
-    await models.annotations_geom.bulkDisAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
+    await models.annotations_media.bulkDisAssociateAnnotations_mediaWithAnnotation_method_id(bulkAssociationInput, benignErrorReporter);
 }
 
 

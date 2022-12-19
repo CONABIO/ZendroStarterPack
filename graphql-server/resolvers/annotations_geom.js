@@ -108,29 +108,33 @@ annotations_geom.prototype.userToGeom = async function({
 annotations_geom.prototype.annotationMethodGeom = async function({
     search
 }, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "annotation_method_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
 
-    let found = (await resolvers.annotations_methodsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
+    if (helper.isNotUndefinedAndNotNull(this.annotation_method_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneAnnotations_method({
+                [models.annotations_method.idAttribute()]: this.annotation_method_id
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.annotations_method.idAttribute(),
+                "value": this.annotation_method_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.annotations_methodsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
         }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 annotations_methods matching annotations_geom with id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the annotations_geom model. Returning first annotations_method.`
-            ));
-        }
-        return found[0].node;
     }
-    return null;
 }
 /**
  * annotations_geom.prototype.pipeline_annotation_geom - Return associated record
@@ -246,7 +250,8 @@ annotations_geom.prototype.add_userToGeom = async function(input, benignErrorRep
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 annotations_geom.prototype.add_annotationMethodGeom = async function(input, benignErrorReporter) {
-    await models.annotations_method.add_annotation_method_id(input.addAnnotationMethodGeom, this.getIdValue(), benignErrorReporter);
+    await annotations_geom.add_annotation_method_id(this.getIdValue(), input.addAnnotationMethodGeom, benignErrorReporter);
+    this.annotation_method_id = input.addAnnotationMethodGeom;
 }
 
 /**
@@ -293,7 +298,10 @@ annotations_geom.prototype.remove_userToGeom = async function(input, benignError
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 annotations_geom.prototype.remove_annotationMethodGeom = async function(input, benignErrorReporter) {
-    await models.annotations_method.remove_annotation_method_id(input.removeAnnotationMethodGeom, this.getIdValue(), benignErrorReporter);
+    if (input.removeAnnotationMethodGeom == this.annotation_method_id) {
+        await annotations_geom.remove_annotation_method_id(this.getIdValue(), input.removeAnnotationMethodGeom, benignErrorReporter);
+        this.annotation_method_id = null;
+    }
 }
 
 /**
@@ -693,6 +701,25 @@ module.exports = {
         return await annotations_geom.bulkAssociateAnnotations_geomWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
+     * bulkAssociateAnnotations_geomWithAnnotation_method_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateAnnotations_geomWithAnnotation_method_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                annotation_method_id
+            }) => annotation_method_id)), models.annotations_method);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom);
+        }
+        return await annotations_geom.bulkAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
      * bulkAssociateAnnotations_geomWithPipeline_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -748,6 +775,25 @@ module.exports = {
             }) => id)), annotations_geom);
         }
         return await annotations_geom.bulkDisAssociateAnnotations_geomWithUser_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
+    },
+    /**
+     * bulkDisAssociateAnnotations_geomWithAnnotation_method_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateAnnotations_geomWithAnnotation_method_id: async function(bulkAssociationInput, context) {
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                annotation_method_id
+            }) => annotation_method_id)), models.annotations_method);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), annotations_geom);
+        }
+        return await annotations_geom.bulkDisAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput.bulkAssociationInput, context.benignErrors);
     },
     /**
      * bulkDisAssociateAnnotations_geomWithPipeline_id - bulkDisAssociaton resolver of given ids

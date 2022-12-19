@@ -28,19 +28,19 @@ const definition = {
         geomAnn: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'annotationMethodMedia',
-            target: 'annotations_media',
+            reverseAssociation: 'annotationMethodGeom',
+            target: 'annotations_geom',
             targetKey: 'annotation_method_id',
-            keysIn: 'annotations_media',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         },
         mediaAnn: {
             type: 'one_to_many',
             implementation: 'foreignkeys',
-            reverseAssociation: 'annotationMethodGeom',
-            target: 'annotations_geom',
+            reverseAssociation: 'annotationMethodMedia',
+            target: 'annotations_media',
             targetKey: 'annotation_method_id',
-            keysIn: 'annotations_geom',
+            keysIn: 'annotations_media',
             targetStorageType: 'sql'
         }
     },
@@ -123,11 +123,11 @@ module.exports = class annotations_method extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        annotations_method.hasMany(models.annotations_media, {
+        annotations_method.hasMany(models.annotations_geom, {
             as: 'geomAnn',
             foreignKey: 'annotation_method_id'
         });
-        annotations_method.hasMany(models.annotations_geom, {
+        annotations_method.hasMany(models.annotations_media, {
             as: 'mediaAnn',
             foreignKey: 'annotation_method_id'
         });

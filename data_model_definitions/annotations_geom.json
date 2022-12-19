@@ -46,7 +46,7 @@
             "reverseAssociation": "geomAnn",
             "target": "annotations_method",
             "targetKey": "annotation_method_id",
-            "keysIn": "annotations_media",
+            "keysIn": "annotations_geom",
             "targetStorageType": "sql"
         },
         "pipeline_annotation_geom": {

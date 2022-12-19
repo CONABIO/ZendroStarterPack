@@ -65,7 +65,7 @@ const definition = {
             reverseAssociation: 'geomAnn',
             target: 'annotations_method',
             targetKey: 'annotation_method_id',
-            keysIn: 'annotations_media',
+            keysIn: 'annotations_geom',
             targetStorageType: 'sql'
         },
         pipeline_annotation_geom: {
@@ -472,6 +472,29 @@ module.exports = class annotations_geom extends Sequelize.Model {
         }
     }
     /**
+     * add_annotation_method_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   annotation_method_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_annotation_method_id(id, annotation_method_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                annotation_method_id: annotation_method_id
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
      * add_pipeline_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
@@ -534,6 +557,30 @@ module.exports = class annotations_geom extends Sequelize.Model {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_annotation_method_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   annotation_method_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_annotation_method_id(id, annotation_method_id, benignErrorReporter) {
+        try {
+            let updated = await annotations_geom.update({
+                annotation_method_id: null
+            }, {
+                where: {
+                    id: id,
+                    annotation_method_id: annotation_method_id
                 }
             });
             return updated[0];
@@ -625,6 +672,32 @@ module.exports = class annotations_geom extends Sequelize.Model {
     }
 
     /**
+     * bulkAssociateAnnotations_geomWithAnnotation_method_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "annotation_method_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            annotation_method_id,
+            id
+        }) => {
+            promises.push(super.update({
+                annotation_method_id: annotation_method_id
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
      * bulkAssociateAnnotations_geomWithPipeline_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
@@ -698,6 +771,33 @@ module.exports = class annotations_geom extends Sequelize.Model {
                 where: {
                     id: id,
                     user_id: user_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateAnnotations_geomWithAnnotation_method_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "annotation_method_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            annotation_method_id,
+            id
+        }) => {
+            promises.push(super.update({
+                annotation_method_id: null
+            }, {
+                where: {
+                    id: id,
+                    annotation_method_id: annotation_method_id
                 }
             }));
         })

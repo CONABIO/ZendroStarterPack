@@ -175,6 +175,9 @@ type Annotations_geomEdge{
   }  input bulkAssociationAnnotations_geomWithUser_idInput{
     id: ID!
     user_id: ID!
+  }  input bulkAssociationAnnotations_geomWithAnnotation_method_idInput{
+    id: ID!
+    annotation_method_id: ID!
   }  input bulkAssociationAnnotations_geomWithPipeline_idInput{
     id: ID!
     pipeline_id: ID!
@@ -204,6 +207,8 @@ type Annotations_geomEdge{
     bulkDisAssociateAnnotations_geomWithFile_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateAnnotations_geomWithUser_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateAnnotations_geomWithUser_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithUser_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithAnnotation_method_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateAnnotations_geomWithAnnotation_method_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithAnnotation_method_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
 bulkAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithPipeline_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateAnnotations_geomWithPipeline_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithPipeline_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
