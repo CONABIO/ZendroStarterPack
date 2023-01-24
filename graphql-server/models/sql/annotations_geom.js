@@ -27,7 +27,7 @@ const definition = {
         observation_type: 'String',
         confidence: 'Float',
         pipeline_id: 'Int',
-        geometry: 'Polygon',
+        geometry: 'String',
         video_frame_num: 'Int',
         is_setup_or_pickup: 'Boolean',
         taxon_id: 'String',
@@ -118,7 +118,7 @@ module.exports = class annotations_geom extends Sequelize.Model {
                 type: Sequelize[dict['Int']]
             },
             geometry: {
-                type: Sequelize[dict['Polygon']]
+                type: Sequelize[dict['String']]
             },
             video_frame_num: {
                 type: Sequelize[dict['Int']]

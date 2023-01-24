@@ -44,7 +44,7 @@ module.exports = `
     @original-field
     
     """
-    geometry: Polygon
+    geometry: String
 
     """
     @original-field
@@ -189,8 +189,8 @@ type Annotations_geomEdge{
     countAnnotations_geoms(search: searchAnnotations_geomInput ): Int
     csvTableTemplateAnnotations_geom: [String]
     annotations_geomsConnection(search:searchAnnotations_geomInput, order: [ orderAnnotations_geomInput ], pagination: paginationCursorInput! ): Annotations_geomConnection
-    validateAnnotations_geomForCreation( observation_type: String, confidence: Float, geometry: Polygon, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, addUserToGeom:ID, addAnnotationMethodGeom:ID, addPipeline_annotation_geom:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateAnnotations_geomForUpdating(id: ID!, observation_type: String, confidence: Float, geometry: Polygon, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, removeFileToGeom:ID , addUserToGeom:ID, removeUserToGeom:ID , addAnnotationMethodGeom:ID, removeAnnotationMethodGeom:ID , addPipeline_annotation_geom:ID, removePipeline_annotation_geom:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAnnotations_geomForCreation( observation_type: String, confidence: Float, geometry: String, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, addUserToGeom:ID, addAnnotationMethodGeom:ID, addPipeline_annotation_geom:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAnnotations_geomForUpdating(id: ID!, observation_type: String, confidence: Float, geometry: String, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, removeFileToGeom:ID , addUserToGeom:ID, removeUserToGeom:ID , addAnnotationMethodGeom:ID, removeAnnotationMethodGeom:ID , addPipeline_annotation_geom:ID, removePipeline_annotation_geom:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateAnnotations_geomForDeletion(id: ID!): Boolean!
     validateAnnotations_geomAfterReading(id: ID!): Boolean!
     """
@@ -200,8 +200,8 @@ type Annotations_geomEdge{
   }
 
   type Mutation {
-    addAnnotations_geom( observation_type: String, confidence: Float, geometry: Polygon, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, addUserToGeom:ID, addAnnotationMethodGeom:ID, addPipeline_annotation_geom:ID   , skipAssociationsExistenceChecks:Boolean = false): annotations_geom!
-    updateAnnotations_geom(id: ID!, observation_type: String, confidence: Float, geometry: Polygon, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, removeFileToGeom:ID , addUserToGeom:ID, removeUserToGeom:ID , addAnnotationMethodGeom:ID, removeAnnotationMethodGeom:ID , addPipeline_annotation_geom:ID, removePipeline_annotation_geom:ID    , skipAssociationsExistenceChecks:Boolean = false): annotations_geom!
+    addAnnotations_geom( observation_type: String, confidence: Float, geometry: String, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, addUserToGeom:ID, addAnnotationMethodGeom:ID, addPipeline_annotation_geom:ID   , skipAssociationsExistenceChecks:Boolean = false): annotations_geom!
+    updateAnnotations_geom(id: ID!, observation_type: String, confidence: Float, geometry: String, video_frame_num: Int, is_setup_or_pickup: Boolean, taxon_id: String, count: Int, life_stage: String, sex: String, behaviour: String, individual_id: String, comments: String, updatedAt: DateTime, createdAt: DateTime , addFileToGeom:ID, removeFileToGeom:ID , addUserToGeom:ID, removeUserToGeom:ID , addAnnotationMethodGeom:ID, removeAnnotationMethodGeom:ID , addPipeline_annotation_geom:ID, removePipeline_annotation_geom:ID    , skipAssociationsExistenceChecks:Boolean = false): annotations_geom!
     deleteAnnotations_geom(id: ID!): String!
     bulkAssociateAnnotations_geomWithFile_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateAnnotations_geomWithFile_id(bulkAssociationInput: [bulkAssociationAnnotations_geomWithFile_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
